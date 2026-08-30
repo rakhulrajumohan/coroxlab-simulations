@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Why Does Ice Float? 🧊</title>
+<style>
+  :root{
+    --sky1:#DFF6FF;
+    --sky2:#B8E8FF;
+    --ink:#123B4D;
+    --accent:#FF8A65;
+    --accent2:#66BB6A;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0;
+    width:100%; height:100%;
+    overflow:hidden;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    background: linear-gradient(180deg, var(--sky1), var(--sky2) 70%);
+    color: var(--ink);
+  }
+  .app{
+    width:100vw; height:100vh; height:100dvh;
+    display:flex; flex-direction:column;
+    padding: 10px 12px 8px;
+    gap:8px;
+  }
+
+  header{ text-align:center; flex: 0 0 auto; }
+  h1{
+    font-size: clamp(18px, 3.4vw, 26px);
+    margin:0; color:#0A4A66; text-shadow:0 2px 0 rgba(255,255,255,0.6);
+  }
+  h1 .cube{ display:inline-block; animation: wiggle 2.5s ease-in-out infinite; }
+  @keyframes wiggle{ 0%,100%{transform:rotate(0deg);} 50%{transform:rotate(-8deg);} }
+  .sub{
+    margin: 2px 0 0; font-size: clamp(11px,2vw,13.5px); color:#3E7891;
+  }
+
+  .stage-wrap{
+    flex: 1 1 auto;
+    min-height: 0;
+    background:#FFFFFF;
+    border-radius: 20px;
+    border: 3px solid #ffffff;
+    box-shadow: 0 10px 26px rgba(10,74,102,0.14);
+    padding: 8px;
+    display:flex;
+  }
+  #floatCanvas{
+    width:100%; height:100%;
+    border-radius:14px;
+    display:block;
+  }
+
+  .status-banner{
+    text-align:center; font-weight:bold; font-size: clamp(12px,2.6vw,15px);
+    padding:7px 12px; border-radius:12px;
+    transition: background .3s ease, color .3s ease, border-color .3s ease;
+    border: 2px solid #66BB6A; background:#E9F9EC; color:#2E7D32;
+    flex: 0 0 auto;
+  }
+  .status-banner.sinking{
+    border-color:#E64A19; background:#FFF0EB; color:#C33C0F;
+  }
+
+  .controls{
+    flex: 0 0 auto;
+    background: #FFFFFF;
+    border-radius: 18px;
+    padding: 10px 16px;
+    box-shadow: 0 8px 20px rgba(10,74,102,0.12);
+    display:flex; flex-wrap:wrap; align-items:center; gap: 14px 22px;
+  }
+  .stat-chip{
+    background:#F0FBFF; border:2px solid #9FD8EA; border-radius:12px;
+    padding:6px 12px; font-size: clamp(11px,2vw,13px); font-weight:bold; color:#0A4A66;
+    display:flex; align-items:center; gap:5px; flex:0 0 auto;
+  }
+
+  .slider-item{
+    display:flex; align-items:center; gap:8px;
+    flex: 1 1 200px; min-width: 170px;
+  }
+  .slider-item .icon{ font-size: clamp(18px,3vw,22px); flex-shrink:0; }
+  .slider-col{ flex:1; display:flex; flex-direction:column; gap:3px; min-width:0; }
+  .slider-label{
+    display:flex; justify-content:space-between; align-items:baseline;
+    font-weight:bold; font-size: clamp(11px,2vw,13px); color:#0A4A66; gap:6px;
+  }
+  .slider-label span.val{ font-size: clamp(10px,1.8vw,12px); color:var(--accent); font-weight:bold; white-space:nowrap; }
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:11px; border-radius:20px;
+    background: linear-gradient(90deg,#B8E8FF,#4FC3F7); outline:none; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:24px; height:24px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #ffffff, #FF8A65 60%);
+    border:3px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.25); cursor:pointer; margin-top:-1px;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:20px; height:20px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #ffffff, #FF8A65 60%);
+    border:3px solid #fff; box-shadow:0 3px 8px rgba(0,0,0,0.25); cursor:pointer;
+  }
+
+  .reset-btn{
+    display:flex; align-items:center; gap:6px; flex: 0 0 auto;
+    background: linear-gradient(180deg,#79D4A0,var(--accent2));
+    color:white; font-weight:bold; font-size: clamp(12px,2.2vw,14px);
+    border:none; border-radius:24px; padding:10px 20px;
+    box-shadow: 0 5px 0 #4C9A5B, 0 6px 10px rgba(0,0,0,0.15);
+    cursor:pointer; transition: transform .08s ease;
+  }
+  .reset-btn:active{ transform: translateY(3px); box-shadow: 0 2px 0 #4C9A5B, 0 3px 6px rgba(0,0,0,0.15); }
+
+  footer{
+    flex: 0 0 auto;
+    text-align:center;
+    font-size: clamp(10px,1.8vw,12px);
+    color:#5D8CA0;
+    padding-top: 2px;
+  }
+  footer b{ color:#0A4A66; }
+
+  @media (max-width: 560px){
+    .app{ padding: 8px 8px 6px; gap:6px; }
+    .controls{ padding: 8px 12px; gap:10px 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="cube">🧊</span> Why Does Ice Float?</h1>
+    <p class="sub">Change the densities below and watch what happens!</p>
+  </header>
+
+  <div class="stage-wrap">
+    <canvas id="floatCanvas"></canvas>
+  </div>
+
+  <div class="status-banner" id="statusBanner">🎈 FLOATS — the ice is less dense than the water</div>
+
+  <div class="controls">
+    <div class="stat-chip">⬆️ Above: <span id="abovePct">8%</span></div>
+    <div class="stat-chip">⬇️ Below: <span id="belowPct">92%</span></div>
+
+    <div class="slider-item">
+      <div class="icon">🧊</div>
+      <div class="slider-col">
+        <div class="slider-label">Ice Size <span class="val" id="sizeVal">Medium</span></div>
+        <input type="range" id="sizeSlider" min="40" max="150" value="90" step="1">
+      </div>
+    </div>
+
+    <div class="slider-item">
+      <div class="icon">⚖️</div>
+      <div class="slider-col">
+        <div class="slider-label">Ice Density <span class="val" id="iceDensityVal">0.92 g/cm³</span></div>
+        <input type="range" id="iceDensitySlider" min="0.80" max="1.15" value="0.92" step="0.01">
+      </div>
+    </div>
+
+    <div class="slider-item">
+      <div class="icon">🌊</div>
+      <div class="slider-col">
+        <div class="slider-label">Water Density <span class="val" id="waterDensityVal">1.00 g/cm³</span></div>
+        <input type="range" id="waterDensitySlider" min="0.90" max="1.25" value="1.00" step="0.01">
+      </div>
+    </div>
+
+    <button class="reset-btn" id="resetBtn">🔄 Reset</button>
+  </div>
+
+  <footer>this simulation was created by <b>CORO X Lab</b></footer>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('floatCanvas');
+  const ctx = canvas.getContext('2d');
+  const stageWrap = document.querySelector('.stage-wrap');
+
+  const sizeSlider = document.getElementById('sizeSlider');
+  const sizeVal = document.getElementById('sizeVal');
+  const iceDensitySlider = document.getElementById('iceDensitySlider');
+  const iceDensityVal = document.getElementById('iceDensityVal');
+  const waterDensitySlider = document.getElementById('waterDensitySlider');
+  const waterDensityVal = document.getElementById('waterDensityVal');
+  const statusBanner = document.getElementById('statusBanner');
+  const resetBtn = document.getElementById('resetBtn');
+  const abovePctEl = document.getElementById('abovePct');
+  const belowPctEl = document.getElementById('belowPct');
+
+  // logical/display size in CSS pixels; updated on resize
+  let W = 600, H = 400;
+  let DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  // geometry, recomputed as proportions of W/H whenever size changes
+  let glass = { left:0, right:0, top:0, bottom:0 };
+  let waterTopY = 0;
+
+  function computeGeometry(){
+    glass.left   = W * 0.14;
+    glass.right  = W * 0.86;
+    glass.top    = H * 0.14;
+    glass.bottom = H * 0.86;
+    waterTopY    = H * 0.32;
+  }
+
+  function resizeCanvas(){
+    const rect = stageWrap.getBoundingClientRect();
+    W = Math.max(280, rect.width - 16);
+    H = Math.max(220, rect.height - 16);
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    computeGeometry();
+    currentTopY = null; // let it re-settle at new scale
+  }
+
+  let iceDensity = parseFloat(iceDensitySlider.value);
+  let waterDensity = parseFloat(waterDensitySlider.value);
+  let iceSize = parseFloat(sizeSlider.value);
+  let bobPhase = 0;
+  let rippleTime = 0;
+  let ripples = [];
+  let currentTopY = null;
+
+  function updateDensityLabels(){
+    iceDensityVal.textContent = iceDensity.toFixed(2) + ' g/cm³';
+    waterDensityVal.textContent = waterDensity.toFixed(2) + ' g/cm³';
+  }
+  function updateStatusAndStats(){
+    const ratio = iceDensity / waterDensity;
+    const floats = ratio < 1;
+    const submergedFrac = Math.min(ratio, 1);
+    const aboveFrac = Math.max(1 - submergedFrac, 0);
+
+    abovePctEl.textContent = Math.round(aboveFrac*100) + '%';
+    belowPctEl.textContent = Math.round(submergedFrac*100) + '%';
+
+    if(floats){
+      statusBanner.textContent = '🎈 FLOATS — the ice is less dense than the water';
+      statusBanner.classList.remove('sinking');
+    } else {
+      statusBanner.textContent = '⬇️ SINKS — the ice is denser than the water, so gravity wins!';
+      statusBanner.classList.add('sinking');
+    }
+  }
+
+  function iceDimensions(size){
+    // scale ice relative to canvas size so it stays proportional on any screen
+    const scale = Math.min(W, H) / 420;
+    return { width: size*1.1*scale, height: size*0.85*scale };
+  }
+  function updateSizeLabel(){
+    let label = 'Medium';
+    if(iceSize < 70) label = 'Small';
+    else if(iceSize < 100) label = 'Medium';
+    else if(iceSize < 130) label = 'Large';
+    else label = 'Extra Large';
+    sizeVal.textContent = label;
+  }
+
+  function roundRect(c,x,y,w,h,r){
+    if (w < 2*r) r = w/2;
+    if (h < 2*r) r = h/2;
+    c.moveTo(x+r, y);
+    c.arcTo(x+w, y, x+w, y+h, r);
+    c.arcTo(x+w, y+h, x, y+h, r);
+    c.arcTo(x, y+h, x, y, r);
+    c.arcTo(x, y, x+w, y, r);
+    c.closePath();
+  }
+
+  function waterSurfaceY(x){
+    let y = Math.sin(x*0.02 + rippleTime*0.03) * 2;
+    for(const r of ripples){
+      const age = rippleTime - r.born;
+      if(age < 0 || age > 90) continue;
+      const dist = Math.abs(x - r.x);
+      const decay = Math.max(0, 1 - age/90);
+      y += Math.sin(dist*0.15 - age*0.35) * r.amp * decay * Math.exp(-dist*0.012);
+    }
+    return y;
+  }
+  function spawnRipple(x, amp){
+    ripples.push({x, born: rippleTime, amp});
+    if(ripples.length > 12) ripples.shift();
+  }
+
+  function drawGlass(){
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(glass.left, glass.top);
+    ctx.lineTo(glass.left, glass.bottom);
+    ctx.quadraticCurveTo(glass.left, glass.bottom+14, glass.left+14, glass.bottom+14);
+    ctx.lineTo(glass.right-14, glass.bottom+14);
+    ctx.quadraticCurveTo(glass.right, glass.bottom+14, glass.right, glass.bottom);
+    ctx.lineTo(glass.right, glass.top);
+    ctx.strokeStyle = 'rgba(80,150,180,0.55)';
+    ctx.lineWidth = 5; ctx.lineJoin='round';
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(glass.left+14, glass.top+6);
+    ctx.lineTo(glass.left+14, glass.bottom-10);
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth=4;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawWaterBody(alphaLayer, clipFromTop){
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(glass.left, clipFromTop);
+    ctx.lineTo(glass.left, glass.bottom);
+    ctx.quadraticCurveTo(glass.left, glass.bottom+14, glass.left+14, glass.bottom+14);
+    ctx.lineTo(glass.right-14, glass.bottom+14);
+    ctx.quadraticCurveTo(glass.right, glass.bottom+14, glass.right, glass.bottom);
+    ctx.lineTo(glass.right, clipFromTop);
+    ctx.closePath();
+    ctx.clip();
+
+    ctx.beginPath();
+    ctx.moveTo(glass.left-10, waterTopY);
+    for(let x=glass.left-10; x<=glass.right+10; x+=6){
+      ctx.lineTo(x, waterTopY + waterSurfaceY(x));
+    }
+    ctx.lineTo(glass.right+10, glass.bottom+30);
+    ctx.lineTo(glass.left-10, glass.bottom+30);
+    ctx.closePath();
+
+    const grad = ctx.createLinearGradient(0, waterTopY, 0, glass.bottom+14);
+    grad.addColorStop(0, '#4FC3F7');
+    grad.addColorStop(1, '#0288D1');
+    ctx.globalAlpha = alphaLayer;
+    ctx.fillStyle = grad;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  function drawIce(){
+    const {width, height} = iceDimensions(iceSize);
+    const centerX = (glass.left+glass.right)/2;
+    const ratio = iceDensity / waterDensity;
+
+    let targetTopY, bobAmount;
+    if(ratio < 1){
+      const submergedHeight = height * ratio;
+      const aboveHeight = height - submergedHeight;
+      targetTopY = waterTopY - aboveHeight;
+      bobAmount = 4;
+    } else {
+      targetTopY = glass.bottom - height - 6;
+      bobAmount = 1.2;
+    }
+
+    if(currentTopY === null) currentTopY = targetTopY;
+    currentTopY += (targetTopY - currentTopY) * 0.05;
+
+    const bob = Math.sin(bobPhase) * bobAmount;
+    const iceTopY = currentTopY + bob;
+    const iceBottomY = iceTopY + height;
+    const submergedHeight = Math.max(0, Math.min(height, iceBottomY - waterTopY));
+
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    roundRect(ctx, centerX-width/2-4, waterTopY+2, width+8, submergedHeight+6, 10);
+    ctx.fill();
+    ctx.restore();
+
+    const grad = ctx.createLinearGradient(centerX-width/2, iceTopY, centerX+width/2, iceBottomY);
+    grad.addColorStop(0, '#FFFFFF');
+    grad.addColorStop(0.5, '#EAFBFF');
+    grad.addColorStop(1, '#BFEAF5');
+
+    ctx.save();
+    ctx.beginPath();
+    roundRect(ctx, centerX-width/2, iceTopY, width, height, Math.min(16,width*0.15));
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.strokeStyle = 'rgba(150,210,230,0.9)'; ctx.lineWidth=2.5;
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.moveTo(centerX-width*0.28, iceTopY+height*0.22);
+    ctx.lineTo(centerX-width*0.05, iceTopY+height*0.12);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(centerX+width*0.1, iceTopY+height*0.55);
+    ctx.lineTo(centerX+width*0.3, iceTopY+height*0.4);
+    ctx.stroke();
+    ctx.restore();
+
+    return {centerX, iceTopY, iceBottomY, width, height, waterLineOnIce: waterTopY+bob};
+  }
+
+  function drawForceArrows(iceInfo){
+    ctx.save();
+    const fontSize = Math.max(10, Math.min(13, W*0.02));
+    ctx.font = 'bold ' + fontSize + 'px Trebuchet MS';
+    ctx.textAlign = 'center';
+    const armLen = Math.max(22, Math.min(34, H*0.08));
+    const armGap = Math.max(20, Math.min(34, W*0.05));
+
+    const wx = iceInfo.centerX - iceInfo.width/2 - armGap;
+    ctx.strokeStyle = '#E64A19'; ctx.fillStyle = '#E64A19'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(wx, iceInfo.iceTopY);
+    ctx.lineTo(wx, iceInfo.iceTopY + armLen);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(wx, iceInfo.iceTopY+armLen);
+    ctx.lineTo(wx-5, iceInfo.iceTopY+armLen-10);
+    ctx.lineTo(wx+5, iceInfo.iceTopY+armLen-10);
+    ctx.closePath(); ctx.fill();
+    ctx.fillText('Weight', wx, iceInfo.iceTopY - 6);
+
+    const bx = iceInfo.centerX + iceInfo.width/2 + armGap;
+    ctx.strokeStyle = '#00897B'; ctx.fillStyle = '#00897B';
+    ctx.beginPath();
+    ctx.moveTo(bx, iceInfo.iceBottomY);
+    ctx.lineTo(bx, iceInfo.iceBottomY - armLen);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(bx, iceInfo.iceBottomY-armLen);
+    ctx.lineTo(bx-5, iceInfo.iceBottomY-armLen+10);
+    ctx.lineTo(bx+5, iceInfo.iceBottomY-armLen+10);
+    ctx.closePath(); ctx.fill();
+    ctx.fillText('Buoyant', bx, iceInfo.iceBottomY + 16);
+    ctx.fillText('Force', bx, iceInfo.iceBottomY + 28);
+
+    ctx.restore();
+  }
+
+  function drawWaterlineDash(iceInfo){
+    ctx.save();
+    ctx.strokeStyle = 'rgba(2,60,90,0.5)';
+    ctx.setLineDash([4,4]); ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(iceInfo.centerX-iceInfo.width/2-6, iceInfo.waterLineOnIce);
+    ctx.lineTo(iceInfo.centerX+iceInfo.width/2+6, iceInfo.waterLineOnIce);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function drawLabels(iceInfo){
+    ctx.save();
+    const bigFont = Math.max(13, Math.min(18, W*0.028));
+    ctx.font = 'bold ' + bigFont + 'px Trebuchet MS';
+    ctx.fillStyle = '#0A4A66'; ctx.textAlign='left';
+    ctx.fillText('❄️ ICE', 16, 28);
+
+    ctx.fillStyle = '#F5FCFF'; ctx.textAlign='right';
+    ctx.fillText('💧 WATER', W-16, glass.bottom - 16);
+
+    const ratio = iceDensity / waterDensity;
+    const submergedFrac = Math.min(ratio, 1);
+    const aboveFrac = Math.max(1 - submergedFrac, 0);
+
+    const smallFont = Math.max(10, Math.min(13, W*0.02));
+    ctx.font = 'italic ' + smallFont + 'px Trebuchet MS';
+    if(aboveFrac > 0.01){
+      ctx.fillStyle = 'rgba(10,74,102,0.75)'; ctx.textAlign='center';
+      ctx.fillText('~' + Math.round(aboveFrac*100) + '% above', iceInfo.centerX, iceInfo.iceTopY - 8);
+    }
+    ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.textAlign='center';
+    ctx.fillText('~' + Math.round(submergedFrac*100) + '% below', iceInfo.centerX, Math.min(iceInfo.iceBottomY + 40, glass.bottom - 8));
+
+    if(ratio >= 1){
+      ctx.font = 'bold ' + smallFont + 'px Trebuchet MS';
+      ctx.fillStyle = '#FFE0D6';
+      ctx.fillText('resting on the bottom', iceInfo.centerX, iceInfo.iceTopY - 10);
+    }
+    ctx.restore();
+  }
+
+  function renderFloat(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#F3FCFF';
+    ctx.fillRect(0,0,W,H);
+
+    drawWaterBody(1, waterTopY - 60);
+    const iceInfo = drawIce();
+    drawWaterBody(0.35, waterTopY - 60);
+    drawWaterlineDash(iceInfo);
+    drawForceArrows(iceInfo);
+    drawGlass();
+    drawLabels(iceInfo);
+  }
+
+  function animateFloat(){
+    bobPhase += 0.035;
+    rippleTime += 1;
+    if(rippleTime % 70 === 0){
+      const centerX = (glass.left+glass.right)/2;
+      spawnRipple(centerX + (Math.random()-0.5)*40, 3);
+    }
+    renderFloat();
+    requestAnimationFrame(animateFloat);
+  }
+
+  sizeSlider.addEventListener('input', () => {
+    iceSize = parseFloat(sizeSlider.value);
+    updateSizeLabel();
+    const centerX = (glass.left+glass.right)/2;
+    spawnRipple(centerX-20, 6);
+    spawnRipple(centerX+20, 6);
+  });
+
+  iceDensitySlider.addEventListener('input', () => {
+    iceDensity = parseFloat(iceDensitySlider.value);
+    updateDensityLabels();
+    updateStatusAndStats();
+    spawnRipple((glass.left+glass.right)/2, 7);
+  });
+
+  waterDensitySlider.addEventListener('input', () => {
+    waterDensity = parseFloat(waterDensitySlider.value);
+    updateDensityLabels();
+    updateStatusAndStats();
+    spawnRipple((glass.left+glass.right)/2, 7);
+  });
+
+  resetBtn.addEventListener('click', () => {
+    iceSize = 90; sizeSlider.value = 90;
+    iceDensity = 0.92; iceDensitySlider.value = 0.92;
+    waterDensity = 1.00; waterDensitySlider.value = 1.00;
+    updateSizeLabel();
+    updateDensityLabels();
+    updateStatusAndStats();
+    ripples = []; bobPhase = 0;
+    currentTopY = null;
+    spawnRipple((glass.left+glass.right)/2, 8);
+  });
+
+  window.addEventListener('resize', resizeCanvas);
+
+  updateSizeLabel();
+  updateDensityLabels();
+  updateStatusAndStats();
+  resizeCanvas();
+  animateFloat();
+})();
+</script>
+</body>
+</html>
