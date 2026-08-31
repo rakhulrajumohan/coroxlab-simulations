@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Is It Matter? 🔬</title>
+<style>
+  :root{
+    --sky1:#FFF6E5;
+    --sky2:#FFE3C2;
+    --ink:#3B2A1A;
+    --accent:#FF8A65;
+    --green:#43A047;
+    --purple:#8E5CD9;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  html,body{
+    margin:0; padding:0; width:100%; height:100%; overflow:hidden;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    background: linear-gradient(180deg, var(--sky1), var(--sky2) 70%);
+    color: var(--ink);
+  }
+  .app{
+    width:100vw; height:100vh; height:100dvh;
+    display:flex; flex-direction:column;
+    padding: 10px 12px 8px;
+    gap:8px;
+  }
+  header{ text-align:center; flex:0 0 auto; }
+  h1{
+    font-size: clamp(18px, 3.6vw, 27px);
+    margin:0; color:#5A3A1A; text-shadow:0 2px 0 rgba(255,255,255,0.6);
+  }
+  h1 .spark{ display:inline-block; animation: spin 3s linear infinite; }
+  @keyframes spin{ 100%{ transform: rotate(360deg); } }
+  .sub{ margin:2px 0 0; font-size: clamp(11px,2vw,13.5px); color:#8A6741; }
+
+  .stage-wrap{
+    flex:1 1 auto; min-height:0;
+    background:#FFFFFF;
+    border-radius:20px; border:3px solid #ffffff;
+    box-shadow: 0 10px 26px rgba(90,58,26,0.14);
+    padding: 6px;
+    display:flex;
+  }
+  #stage{ width:100%; height:100%; border-radius:14px; display:block; cursor:pointer; }
+
+  footer{
+    flex:0 0 auto; text-align:center;
+    font-size: clamp(10px,1.8vw,12px);
+    color:#8A6741; padding-top:2px;
+  }
+  footer b{ color:#5A3A1A; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="spark">🔬</span> Is It Matter?</h1>
+    <p class="sub">Tap an object to find out if it's really matter!</p>
+  </header>
+
+  <div class="stage-wrap">
+    <canvas id="stage"></canvas>
+  </div>
+
+  <footer>this simulation was created by <b>CORO X Lab</b></footer>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  const stageWrap = document.querySelector('.stage-wrap');
+
+  let W = 600, H = 400;
+  let DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resizeCanvas(){
+    const rect = stageWrap.getBoundingClientRect();
+    W = Math.max(280, rect.width - 12);
+    H = Math.max(220, rect.height - 12);
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  // ---------------- DATA ----------------
+  const objects = [
+    { key:'stone',   emoji:'🪨', name:'Stone',   space:true,  mass:true,
+      note:'A stone takes up room and feels heavy in your hand.' },
+    { key:'water',   emoji:'💧', name:'Water',   space:true,  mass:true,
+      note:'Water fills up a cup and it has weight when you pour it.' },
+    { key:'air',     emoji:'💨', name:'Air',     space:true,  mass:true,
+      note:"You can't see air, but it fills balloons and has a tiny mass too!" },
+    { key:'book',    emoji:'📖', name:'Book',    space:true,  mass:true,
+      note:'A book takes up shelf space and you can feel its weight.' },
+    { key:'balloon', emoji:'🎈', name:'Balloon', space:true,  mass:true,
+      note:'The rubber balloon (and the air inside) takes up space and has mass.' },
+    { key:'light',   emoji:'💡', name:'Light',   space:false, mass:false,
+      note:"Light zips through space instantly and has no mass — it's a form of energy, not matter." },
+    { key:'sound',   emoji:'🔊', name:'Sound',   space:false, mass:false,
+      note:"Sound is just a vibration traveling through the air — it has no mass of its own, so it's energy too!" },
+  ];
+  objects.forEach(o => { o.isMatter = o.space && o.mass; });
+
+  let selected = null;       // index of selected object, or null for grid view
+  let cardAnim = 0;          // 0 -> 1 scale-in animation for detail card
+  let gridCards = [];        // hit regions for grid
+  let backButtonRect = null; // hit region for back button
+  let hoverIndex = -1;
+  let pulsePhase = 0;
+
+  // ---------------- HELPERS ----------------
+  function roundRect(c,x,y,w,h,r){
+    if (w < 2*r) r = w/2;
+    if (h < 2*r) r = h/2;
+    c.beginPath();
+    c.moveTo(x+r, y);
+    c.arcTo(x+w, y, x+w, y+h, r);
+    c.arcTo(x+w, y+h, x, y+h, r);
+    c.arcTo(x, y+h, x, y, r);
+    c.arcTo(x, y, x+w, y, r);
+    c.closePath();
+  }
+
+  function wrapText(c, text, x, y, maxWidth, lineHeight, align){
+    const words = text.split(' ');
+    let line = '';
+    const lines = [];
+    for(let i=0;i<words.length;i++){
+      const test = line + words[i] + ' ';
+      if(c.measureText(test).width > maxWidth && line !== ''){
+        lines.push(line.trim());
+        line = words[i] + ' ';
+      } else {
+        line = test;
+      }
+    }
+    lines.push(line.trim());
+    c.textAlign = align || 'center';
+    lines.forEach((l, i) => c.fillText(l, x, y + i*lineHeight));
+    return lines.length;
+  }
+
+  // ---------------- GRID VIEW ----------------
+  function layoutGrid(){
+    gridCards = [];
+    const n = objects.length;
+    const padding = Math.max(14, W*0.02);
+    const topOffset = Math.max(50, H*0.12);
+    const availW = W - padding*2;
+    const availH = H - topOffset - padding;
+
+    let cols = Math.max(2, Math.min(4, Math.floor(availW / 140)));
+    let rows = Math.ceil(n / cols);
+    // avoid too many rows on short screens
+    while(rows * 110 > availH && cols < 4){
+      cols++;
+      rows = Math.ceil(n / cols);
+    }
+
+    const gap = Math.max(10, Math.min(18, availW*0.02));
+    const cardW = (availW - gap*(cols-1)) / cols;
+    const cardH = Math.min(cardW * 0.9, (availH - gap*(rows-1)) / rows);
+
+    const gridW = cardW*cols + gap*(cols-1);
+    const startX = padding + (availW - gridW)/2;
+    const gridH = cardH*rows + gap*(rows-1);
+    const startY = topOffset + Math.max(0,(availH - gridH)/2);
+
+    objects.forEach((o, i) => {
+      const col = i % cols;
+      const row = Math.floor(i / cols);
+      const x = startX + col*(cardW+gap);
+      const y = startY + row*(cardH+gap);
+      gridCards.push({ x, y, w: cardW, h: cardH, index: i });
+    });
+  }
+
+  function drawGrid(){
+    // title prompt
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#8A6741';
+    ctx.font = 'bold ' + Math.max(13, Math.min(17, W*0.026)) + 'px Trebuchet MS';
+    ctx.fillText('👇 Tap an object to test it!', W/2, Math.max(30, H*0.075));
+    ctx.restore();
+
+    gridCards.forEach(card => {
+      const o = objects[card.index];
+      const isHover = hoverIndex === card.index;
+      const bob = Math.sin(pulsePhase*0.05 + card.index) * 2;
+
+      ctx.save();
+      roundRect(ctx, card.x, card.y + bob, card.w, card.h, 16);
+      const grad = ctx.createLinearGradient(card.x, card.y, card.x, card.y+card.h);
+      if(isHover){
+        grad.addColorStop(0, '#FFF3E0');
+        grad.addColorStop(1, '#FFE0B2');
+      } else {
+        grad.addColorStop(0, '#FFFFFF');
+        grad.addColorStop(1, '#FFF8EE');
+      }
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.strokeStyle = isHover ? '#FF8A65' : '#FFD9B3';
+      ctx.lineWidth = isHover ? 3 : 2;
+      ctx.stroke();
+
+      // emoji
+      ctx.font = Math.min(card.w, card.h) * 0.42 + 'px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(o.emoji, card.x + card.w/2, card.y + bob + card.h*0.4);
+
+      // label
+      ctx.font = 'bold ' + Math.max(11, Math.min(15, card.w*0.11)) + 'px Trebuchet MS';
+      ctx.fillStyle = '#5A3A1A';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(o.name, card.x + card.w/2, card.y + bob + card.h*0.82);
+      ctx.restore();
+    });
+  }
+
+  // ---------------- DETAIL VIEW ----------------
+  function easeOutBack(t){
+    const c1 = 1.70158, c3 = c1 + 1;
+    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+  }
+
+  function drawDetail(){
+    const o = objects[selected];
+    const t = easeOutBack(Math.min(1, cardAnim));
+
+    const cardW = Math.min(W*0.86, 460);
+    const cardH = Math.min(H*0.86, 480);
+    const cx = W/2, cy = H/2 + Math.max(4, H*0.01);
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(t, t);
+    ctx.translate(-cx, -cy);
+
+    // card shadow + background
+    roundRect(ctx, cx-cardW/2, cy-cardH/2, cardW, cardH, 22);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.shadowColor = 'rgba(90,58,26,0.25)';
+    ctx.shadowBlur = 22;
+    ctx.shadowOffsetY = 8;
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.strokeStyle = '#FFE0B2';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    let y = cy - cardH/2 + cardH*0.14;
+
+    // emoji + name
+    ctx.textAlign = 'center';
+    ctx.font = Math.min(cardW,cardH)*0.16 + 'px sans-serif';
+    ctx.fillText(o.emoji, cx, y);
+    y += cardH*0.10;
+    ctx.font = 'bold ' + Math.max(18, cardW*0.075) + 'px Trebuchet MS';
+    ctx.fillStyle = '#5A3A1A';
+    ctx.fillText(o.name.toUpperCase(), cx, y);
+    y += cardH*0.09;
+
+    // question rows
+    const rowFont = Math.max(13, cardW*0.045);
+    ctx.textAlign = 'left';
+    ctx.font = 'bold ' + rowFont + 'px Trebuchet MS';
+    const leftX = cx - cardW*0.40;
+    const rightX = cx + cardW*0.40;
+
+    function row(question, answer){
+      ctx.fillStyle = '#5A3A1A';
+      ctx.textAlign = 'left';
+      ctx.fillText(question, leftX, y);
+      ctx.textAlign = 'right';
+      ctx.font = 'bold ' + (rowFont*1.15) + 'px Trebuchet MS';
+      ctx.fillStyle = answer ? '#2E7D32' : '#C62828';
+      ctx.fillText(answer ? '✅' : '❌', rightX, y);
+      ctx.font = 'bold ' + rowFont + 'px Trebuchet MS';
+      y += cardH*0.10;
+    }
+
+    row('Does it occupy space?', o.space);
+    row('Does it have mass?', o.mass);
+
+    y += cardH*0.02;
+    // divider
+    ctx.strokeStyle = '#FFE0B2';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx-cardW*0.40, y);
+    ctx.lineTo(cx+cardW*0.40, y);
+    ctx.stroke();
+    y += cardH*0.09;
+
+    // result badge
+    const badgeText = o.isMatter ? "✅ It's MATTER!" : '❌ NOT Matter — it\'s Energy!';
+    const badgeColor = o.isMatter ? '#43A047' : '#8E5CD9';
+    ctx.font = 'bold ' + Math.max(15, cardW*0.06) + 'px Trebuchet MS';
+    const badgeW = ctx.measureText(badgeText).width + cardW*0.12;
+    const badgeH = cardH*0.10;
+    roundRect(ctx, cx-badgeW/2, y-badgeH*0.7, badgeW, badgeH, badgeH/2);
+    ctx.fillStyle = badgeColor;
+    ctx.fill();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.fillText(badgeText, cx, y + badgeH*0.12);
+    y += cardH*0.14;
+
+    // explanation
+    ctx.font = (Math.max(12, cardW*0.037)) + 'px Trebuchet MS';
+    ctx.fillStyle = '#7A5A33';
+    wrapText(ctx, o.note, cx, y, cardW*0.82, cardH*0.075, 'center');
+
+    ctx.restore(); // end scale transform
+
+    // back button (not scaled, always full size, easier to tap)
+    const btnW = Math.max(120, W*0.22);
+    const btnH = Math.max(36, H*0.08);
+    const btnX = W/2 - btnW/2;
+    const btnY = H - btnH - Math.max(10, H*0.03);
+    roundRect(ctx, btnX, btnY, btnW, btnH, btnH/2);
+    ctx.fillStyle = '#FFB74D';
+    ctx.fill();
+    ctx.font = 'bold ' + Math.max(13, btnH*0.4) + 'px Trebuchet MS';
+    ctx.fillStyle = '#5A3A1A';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('⬅ Back to Objects', btnX+btnW/2, btnY+btnH/2 + 1);
+    ctx.textBaseline = 'alphabetic';
+    backButtonRect = { x: btnX, y: btnY, w: btnW, h: btnH };
+  }
+
+  // ---------------- MAIN RENDER LOOP ----------------
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#FFFDF8';
+    ctx.fillRect(0,0,W,H);
+
+    if(selected === null){
+      layoutGrid();
+      drawGrid();
+      backButtonRect = null;
+    } else {
+      if(cardAnim < 1) cardAnim = Math.min(1, cardAnim + 0.06);
+      drawDetail();
+    }
+  }
+
+  function loop(){
+    pulsePhase += 1;
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------------- INTERACTION ----------------
+  function getPos(evt){
+    const rect = canvas.getBoundingClientRect();
+    const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+    const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  }
+
+  canvas.addEventListener('click', (evt) => {
+    const pos = getPos(evt);
+    if(selected === null){
+      for(const card of gridCards){
+        if(pos.x >= card.x && pos.x <= card.x+card.w && pos.y >= card.y && pos.y <= card.y+card.h){
+          selected = card.index;
+          cardAnim = 0;
+          return;
+        }
+      }
+    } else {
+      if(backButtonRect && pos.x >= backButtonRect.x && pos.x <= backButtonRect.x+backButtonRect.w &&
+         pos.y >= backButtonRect.y && pos.y <= backButtonRect.y+backButtonRect.h){
+        selected = null;
+        cardAnim = 0;
+      }
+    }
+  });
+
+  canvas.addEventListener('mousemove', (evt) => {
+    if(selected !== null){ hoverIndex = -1; return; }
+    const pos = getPos(evt);
+    hoverIndex = -1;
+    for(const card of gridCards){
+      if(pos.x >= card.x && pos.x <= card.x+card.w && pos.y >= card.y && pos.y <= card.y+card.h){
+        hoverIndex = card.index;
+        break;
+      }
+    }
+    canvas.style.cursor = hoverIndex >= 0 ? 'pointer' : 'default';
+  });
+
+  window.addEventListener('resize', resizeCanvas);
+
+  resizeCanvas();
+  loop();
+})();
+</script>
+</body>
+</html>
