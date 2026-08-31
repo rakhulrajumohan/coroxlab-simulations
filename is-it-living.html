@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔍 Is It Living?</title>
+<style>
+  :root{
+    --bg-top:#eafff3;
+    --bg-bottom:#dff3ff;
+    --ink:#1c2b3a;
+    --panel-bg:#ffffff;
+    --panel-border:#d6ecff;
+    --living:#2fbf71;
+    --living-dark:#1f9d5c;
+    --nonliving:#3d8bff;
+    --nonliving-dark:#2c6fe0;
+    --correct:#2fbf71;
+    --wrong:#ff5d5d;
+    --accent:#ff9d3d;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    font-family:'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
+    color:var(--ink);
+    background:linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+  }
+
+  .wrap{
+    max-width:520px;
+    margin:0 auto;
+    padding:18px 16px 10px;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+
+  h1{
+    text-align:center;
+    font-size:clamp(1.3rem, 5vw, 1.9rem);
+    margin:4px 0 2px;
+  }
+  .subtitle{
+    text-align:center;
+    font-size:0.9rem;
+    color:#4a6178;
+    margin:0 0 14px;
+  }
+
+  .progress-wrap{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:14px;
+  }
+  .progress-text{
+    font-size:0.85rem;
+    font-weight:bold;
+    white-space:nowrap;
+    color:#4a6178;
+  }
+  .progress-bar{
+    flex:1;
+    height:8px;
+    background:#e2eef7;
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, var(--accent), var(--living));
+    border-radius:6px;
+    transition:width 0.4s ease;
+  }
+
+  .card{
+    background:var(--panel-bg);
+    border:3px solid var(--panel-border);
+    border-radius:20px;
+    padding:22px 18px;
+    box-shadow:0 8px 22px rgba(30,60,90,0.12);
+    text-align:center;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    animation:cardIn 0.35s ease;
+  }
+  @keyframes cardIn{
+    from{ opacity:0; transform:translateY(10px) scale(0.98); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  .object-icon{
+    font-size:clamp(4rem, 20vw, 6rem);
+    line-height:1;
+    margin:6px 0 10px;
+    filter:drop-shadow(0 6px 8px rgba(0,0,0,0.12));
+    transition:transform 0.25s ease;
+  }
+  .object-name{
+    font-size:1.2rem;
+    font-weight:bold;
+    margin-bottom:6px;
+  }
+  .question{
+    font-size:1rem;
+    color:#4a6178;
+    margin-bottom:18px;
+  }
+
+  .answer-row{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .ans-btn{
+    flex:1 1 130px;
+    max-width:180px;
+    font-family:inherit;
+    font-size:1.05rem;
+    font-weight:bold;
+    color:#fff;
+    border:none;
+    border-radius:14px;
+    padding:16px 10px;
+    cursor:pointer;
+    box-shadow:0 4px 10px rgba(0,0,0,0.18);
+    transition:transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease;
+  }
+  .ans-btn:active{ transform:translateY(2px) scale(0.97); }
+  .ans-btn:focus-visible{ outline:3px solid #222; outline-offset:2px; }
+  .ans-btn.living{ background:linear-gradient(135deg, var(--living), var(--living-dark)); }
+  .ans-btn.nonliving{ background:linear-gradient(135deg, var(--nonliving), var(--nonliving-dark)); }
+  .ans-btn:disabled{ cursor:default; opacity:0.55; transform:none; }
+  .ans-btn.selected-correct{ box-shadow:0 0 0 4px #16803d, 0 4px 10px rgba(0,0,0,0.18); }
+  .ans-btn.selected-wrong{ box-shadow:0 0 0 4px #c93b3b, 0 4px 10px rgba(0,0,0,0.18); }
+
+  .feedback{
+    min-height:92px;
+    border-radius:14px;
+    padding:0 14px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    opacity:0;
+    transform:translateY(-6px);
+    transition:opacity 0.3s ease, transform 0.3s ease;
+  }
+  .feedback.show{ opacity:1; transform:translateY(0); }
+  .feedback.correct{ background:#e6f9ee; border:2px solid var(--correct); }
+  .feedback.wrong{ background:#ffecec; border:2px solid var(--wrong); }
+  .feedback-title{
+    font-weight:bold;
+    font-size:1.05rem;
+  }
+  .feedback.correct .feedback-title{ color:var(--correct); }
+  .feedback.wrong .feedback-title{ color:var(--wrong); }
+  .feedback-text{
+    font-size:0.88rem;
+    color:#3a4a5a;
+    line-height:1.4;
+    padding-bottom:12px;
+  }
+
+  .bottom-row{
+    margin-top:16px;
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .util-btn{
+    font-family:inherit;
+    font-size:0.92rem;
+    font-weight:bold;
+    border:none;
+    border-radius:12px;
+    padding:11px 20px;
+    cursor:pointer;
+    color:#fff;
+    box-shadow:0 3px 8px rgba(0,0,0,0.18);
+    transition:transform 0.15s ease;
+  }
+  .util-btn:active{ transform:translateY(2px) scale(0.97); }
+  .util-btn:disabled{ opacity:0.4; cursor:default; }
+  #nextBtn{ background:var(--accent); }
+  #resetBtn{ background:#8a8fa3; }
+
+  /* --- Results screen --- */
+  .results{
+    text-align:center;
+    padding:20px 10px;
+  }
+  .results .big-emoji{
+    font-size:3.5rem;
+    margin-bottom:6px;
+  }
+  .results h2{
+    margin:0 0 8px;
+    font-size:1.4rem;
+  }
+  .score-box{
+    display:inline-block;
+    background:linear-gradient(135deg, var(--living), var(--nonliving));
+    color:#fff;
+    font-weight:bold;
+    font-size:1.3rem;
+    padding:10px 24px;
+    border-radius:14px;
+    margin:10px 0 20px;
+  }
+  #tryAgainBtn{
+    background:var(--living);
+    font-size:1rem;
+    padding:13px 26px;
+  }
+
+  footer{
+    text-align:center;
+    color:#7c8ba1;
+    font-size:0.78rem;
+    padding:16px 10px 4px;
+  }
+  footer strong{ color:#4a6178; }
+
+  @media (max-width:380px){
+    .ans-btn{ flex:1 1 100%; max-width:none; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>🔍 Is It Living?</h1>
+  <p class="subtitle">Look at each object and decide — living or non-living?</p>
+
+  <div class="progress-wrap" id="progressWrap">
+    <span class="progress-text" id="progressText">Object 1 of 5</span>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <div class="card" id="quizCard">
+    <div class="object-icon" id="objectIcon">🐕</div>
+    <div class="object-name" id="objectName">Dog</div>
+    <div class="question">Is this living or non-living?</div>
+
+    <div class="answer-row">
+      <button class="ans-btn living" id="livingBtn">🟢 Living</button>
+      <button class="ans-btn nonliving" id="nonlivingBtn">🔵 Non-living</button>
+    </div>
+
+    <div class="feedback" id="feedback">
+      <div class="feedback-title" id="feedbackTitle"></div>
+      <div class="feedback-text" id="feedbackText"></div>
+    </div>
+
+    <div class="bottom-row">
+      <button class="util-btn" id="nextBtn" disabled>Next Object ➡️</button>
+      <button class="util-btn" id="resetBtn">🔄 Reset</button>
+    </div>
+  </div>
+
+  <div class="card results" id="resultsCard" style="display:none;">
+    <div class="big-emoji">🎉</div>
+    <h2>Great Job!</h2>
+    <p>You completed the Living vs Non-living challenge!</p>
+    <div class="score-box" id="scoreBox">Score: 0 / 5</div>
+    <div>
+      <button class="util-btn" id="tryAgainBtn">🔄 Try Again</button>
+    </div>
+  </div>
+
+  <footer>This simulation was created by <strong>COROX LAB</strong></footer>
+</div>
+
+<script>
+(function(){
+  const objects = [
+    {
+      icon:'🐕', name:'Dog', answer:'living',
+      correctText:'A dog is living because it needs food, breathes, grows, moves, responds to its surroundings, and can reproduce.',
+      wrongText:'A dog is actually living — it needs food, breathes, grows, moves, responds to its surroundings, and can reproduce.'
+    },
+    {
+      icon:'🌳', name:'Tree', answer:'living',
+      correctText:'A tree is living because it grows, needs water and nutrients, respires, responds to its surroundings, and reproduces.',
+      wrongText:'A tree is actually living — it grows, needs water and nutrients, respires, responds to its surroundings, and reproduces.'
+    },
+    {
+      icon:'🚗', name:'Car', answer:'nonliving',
+      correctText:'A car can move, but it is non-living because it does not grow, breathe, reproduce, or carry out life processes.',
+      wrongText:'A car is actually non-living — it can move, but it does not grow, breathe, reproduce, or carry out life processes.'
+    },
+    {
+      icon:'🪨', name:'Stone', answer:'nonliving',
+      correctText:'A stone does not grow, breathe, eat, reproduce, or respond to its surroundings.',
+      wrongText:'A stone is actually non-living — it does not grow, breathe, eat, reproduce, or respond to its surroundings.'
+    },
+    {
+      icon:'🌱', name:'Seed', answer:'living',
+      correctText:'A seed is living because it contains a living embryo and can grow into a new plant when conditions are suitable.',
+      wrongText:'A seed is actually living — it contains a living embryo and can grow into a new plant when conditions are suitable.'
+    }
+  ];
+
+  let currentIndex = 0;
+  let score = 0;
+  let answered = false;
+
+  const objectIcon = document.getElementById('objectIcon');
+  const objectName = document.getElementById('objectName');
+  const livingBtn = document.getElementById('livingBtn');
+  const nonlivingBtn = document.getElementById('nonlivingBtn');
+  const feedback = document.getElementById('feedback');
+  const feedbackTitle = document.getElementById('feedbackTitle');
+  const feedbackText = document.getElementById('feedbackText');
+  const nextBtn = document.getElementById('nextBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const progressText = document.getElementById('progressText');
+  const progressFill = document.getElementById('progressFill');
+  const progressWrap = document.getElementById('progressWrap');
+  const quizCard = document.getElementById('quizCard');
+  const resultsCard = document.getElementById('resultsCard');
+  const scoreBox = document.getElementById('scoreBox');
+  const tryAgainBtn = document.getElementById('tryAgainBtn');
+
+  function loadObject(){
+    const obj = objects[currentIndex];
+    answered = false;
+
+    objectIcon.textContent = obj.icon;
+    objectIcon.style.transform = 'scale(0.7)';
+    requestAnimationFrame(() => { objectIcon.style.transform = 'scale(1)'; });
+    objectName.textContent = obj.name;
+
+    feedback.classList.remove('show', 'correct', 'wrong');
+    feedbackTitle.textContent = '';
+    feedbackText.textContent = '';
+
+    livingBtn.disabled = false;
+    nonlivingBtn.disabled = false;
+    livingBtn.classList.remove('selected-correct', 'selected-wrong');
+    nonlivingBtn.classList.remove('selected-correct', 'selected-wrong');
+
+    nextBtn.disabled = true;
+    nextBtn.textContent = (currentIndex === objects.length - 1) ? 'See Results 🏁' : 'Next Object ➡️';
+
+    progressText.textContent = `Object ${currentIndex + 1} of ${objects.length}`;
+    progressFill.style.width = ((currentIndex) / objects.length * 100) + '%';
+  }
+
+  function handleAnswer(choice){
+    if(answered) return;
+    answered = true;
+
+    const obj = objects[currentIndex];
+    const isCorrect = choice === obj.answer;
+
+    livingBtn.disabled = true;
+    nonlivingBtn.disabled = true;
+
+    const chosenBtn = choice === 'living' ? livingBtn : nonlivingBtn;
+    chosenBtn.classList.add(isCorrect ? 'selected-correct' : 'selected-wrong');
+
+    if(isCorrect){
+      score++;
+      feedback.classList.add('correct');
+      feedbackTitle.textContent = '✅ Correct!';
+      feedbackText.textContent = obj.correctText;
+    } else {
+      feedback.classList.add('wrong');
+      feedbackTitle.textContent = '❌ Try Again!';
+      feedbackText.textContent = obj.wrongText;
+      // highlight the correct button too
+      const correctBtn = obj.answer === 'living' ? livingBtn : nonlivingBtn;
+      correctBtn.classList.add('selected-correct');
+    }
+    feedback.classList.add('show');
+
+    nextBtn.disabled = false;
+    progressFill.style.width = ((currentIndex + 1) / objects.length * 100) + '%';
+  }
+
+  function showResults(){
+    quizCard.style.display = 'none';
+    progressWrap.style.display = 'none';
+    resultsCard.style.display = 'block';
+    scoreBox.textContent = `Score: ${score} / ${objects.length}`;
+  }
+
+  function resetAll(){
+    currentIndex = 0;
+    score = 0;
+    quizCard.style.display = 'flex';
+    progressWrap.style.display = 'flex';
+    resultsCard.style.display = 'none';
+    loadObject();
+  }
+
+  livingBtn.addEventListener('click', () => handleAnswer('living'));
+  nonlivingBtn.addEventListener('click', () => handleAnswer('nonliving'));
+
+  nextBtn.addEventListener('click', () => {
+    if(currentIndex < objects.length - 1){
+      currentIndex++;
+      loadObject();
+    } else {
+      showResults();
+    }
+  });
+
+  resetBtn.addEventListener('click', resetAll);
+  tryAgainBtn.addEventListener('click', resetAll);
+
+  loadObject();
+})();
+</script>
+
+</body>
+</html>
