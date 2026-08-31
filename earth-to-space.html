@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌍 From Earth to Space</title>
+<style>
+  :root{
+    --sky-blue-top:#4fa8e0;
+    --sky-blue-bottom:#bfe6ff;
+    --panel-bg:#fffaf0;
+    --panel-border:#f0c14b;
+    --ink:#1c2b3a;
+    --accent:#ff8a3d;
+    --accent2:#3ddc97;
+    --earth-green:#5cb85c;
+    --earth-brown:#8d6e4a;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0; height:100%;
+    font-family:'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
+    color:var(--ink);
+    background:#0b1220;
+    overflow-x:hidden;
+  }
+  h1{
+    text-align:center;
+    font-size:clamp(1.3rem, 4vw, 2.1rem);
+    margin:14px 10px 6px;
+    color:#fff;
+    text-shadow:0 2px 6px rgba(0,0,0,0.4);
+  }
+  .subtitle{
+    text-align:center;
+    color:#d7e6ff;
+    margin:0 10px 14px;
+    font-size:clamp(0.85rem, 2.2vw, 1rem);
+  }
+
+  .app{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 14px 20px;
+    align-items:flex-start;
+    justify-content:center;
+  }
+
+  /* ---------- SIMULATION STAGE ---------- */
+  .stage-wrap{
+    flex:1 1 380px;
+    max-width:460px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  #sky{
+    position:relative;
+    width:100%;
+    height:min(70vh, 560px);
+    min-height:380px;
+    border-radius:20px;
+    overflow:hidden;
+    border:4px solid #fff;
+    box-shadow:0 10px 30px rgba(0,0,0,0.5);
+    background:linear-gradient(to top, var(--sky-blue-bottom) 0%, var(--sky-blue-top) 55%, #0d1a33 100%);
+    transition:background 0.4s ease;
+  }
+
+  .stars{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+  }
+  .star{
+    position:absolute;
+    width:3px; height:3px;
+    background:#fff;
+    border-radius:50%;
+    opacity:0;
+    transition:opacity 0.5s ease;
+    box-shadow:0 0 4px 1px rgba(255,255,255,0.8);
+  }
+
+  .particles{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+  }
+  .particle{
+    position:absolute;
+    width:5px; height:5px;
+    background:rgba(255,255,255,0.85);
+    border-radius:50%;
+    transition:opacity 0.4s ease;
+  }
+
+  .cloud{
+    position:absolute;
+    font-size:2rem;
+    transition:opacity 0.5s ease, transform 0.4s ease;
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,0.15));
+  }
+
+  #earth{
+    position:absolute;
+    left:50%;
+    bottom:-60%;
+    width:230%;
+    max-width:600px;
+    transform:translateX(-50%);
+    transition:bottom 0.4s ease, transform 0.4s ease;
+  }
+  #earth svg{ width:100%; display:block; }
+
+  #astronaut{
+    position:absolute;
+    left:50%;
+    bottom:8%;
+    font-size:2.4rem;
+    transform:translate(-50%, 0);
+    transition:bottom 0.35s ease;
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,0.35));
+    z-index:5;
+  }
+
+  .altitude-badge{
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:rgba(255,255,255,0.92);
+    border:2px solid var(--accent);
+    border-radius:12px;
+    padding:6px 12px;
+    font-weight:bold;
+    font-size:0.95rem;
+    color:var(--ink);
+    z-index:6;
+    text-align:center;
+    box-shadow:0 3px 8px rgba(0,0,0,0.25);
+  }
+  .altitude-badge span{
+    display:block;
+    font-size:1.3rem;
+    color:var(--accent);
+  }
+
+  .space-msg{
+    position:absolute;
+    top:10px;
+    left:10px;
+    background:linear-gradient(135deg, #ffd166, #ff8a3d);
+    border-radius:12px;
+    padding:6px 12px;
+    font-weight:bold;
+    font-size:0.9rem;
+    color:#3a2000;
+    opacity:0;
+    transform:translateY(-10px);
+    transition:opacity 0.4s ease, transform 0.4s ease;
+    box-shadow:0 3px 8px rgba(0,0,0,0.3);
+    z-index:6;
+  }
+  .space-msg.show{ opacity:1; transform:translateY(0); }
+
+  /* ---------- CONTROLS ---------- */
+  .controls{
+    width:100%;
+    max-width:460px;
+    margin-top:16px;
+    background:var(--panel-bg);
+    border:3px solid var(--panel-border);
+    border-radius:16px;
+    padding:14px 16px;
+    box-shadow:0 6px 16px rgba(0,0,0,0.25);
+  }
+  .slider-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .slider-row label{
+    font-weight:bold;
+    font-size:0.9rem;
+    white-space:nowrap;
+  }
+  input[type="range"]{
+    flex:1;
+    accent-color:var(--accent);
+    height:6px;
+    cursor:pointer;
+  }
+  .buttons-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+  }
+  button{
+    font-family:inherit;
+    font-size:0.95rem;
+    font-weight:bold;
+    border:none;
+    border-radius:10px;
+    padding:10px 16px;
+    cursor:pointer;
+    color:#fff;
+    transition:transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow:0 3px 6px rgba(0,0,0,0.2);
+  }
+  button:active{ transform:translateY(2px) scale(0.97); }
+  button:focus-visible{ outline:3px solid #222; outline-offset:2px; }
+
+  #upBtn{ background:#3d9bff; }
+  #startBtn{ background:var(--accent2); color:#083828; }
+  #pauseBtn{ background:#ffb63d; color:#3a2500; }
+  #resetBtn{ background:#ff5d5d; }
+
+  /* ---------- INFO PANEL ---------- */
+  .info-wrap{
+    flex:1 1 320px;
+    max-width:400px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .panel{
+    background:var(--panel-bg);
+    border:3px solid var(--panel-border);
+    border-radius:16px;
+    padding:16px 18px;
+    box-shadow:0 6px 16px rgba(0,0,0,0.25);
+  }
+  .panel h2{
+    margin:0 0 10px;
+    font-size:1.15rem;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .fact-list{
+    list-style:none;
+    margin:0; padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .fact-list li{
+    background:#fff;
+    border-left:5px solid var(--accent2);
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:0.92rem;
+    transition:background 0.3s ease;
+  }
+
+  .zone-label{
+    display:inline-block;
+    margin-bottom:10px;
+    padding:4px 12px;
+    border-radius:20px;
+    font-weight:bold;
+    font-size:0.85rem;
+    color:#fff;
+  }
+
+  .explain-box{
+    background:#eaf6ff;
+    border:2px dashed #7fc2ff;
+    border-radius:12px;
+    padding:12px;
+    font-size:0.9rem;
+    line-height:1.45;
+  }
+  .explain-box strong{ color:#1264a8; }
+
+  footer{
+    text-align:center;
+    color:#a9bdd9;
+    font-size:0.82rem;
+    padding:14px 10px 26px;
+  }
+  footer strong{ color:#fff; }
+
+  @media (max-width:640px){
+    .app{ flex-direction:column; align-items:center; }
+    .stage-wrap, .info-wrap{ max-width:460px; width:100%; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🌍 From Earth to Space</h1>
+<p class="subtitle">Move the astronaut upward and watch the sky change!</p>
+
+<div class="app">
+
+  <div class="stage-wrap">
+    <div id="sky">
+      <div class="stars" id="starsLayer"></div>
+      <div class="particles" id="particlesLayer"></div>
+      <div class="cloud" id="cloud1" style="left:14%; bottom:34%;">☁️</div>
+      <div class="cloud" id="cloud2" style="left:58%; bottom:30%; font-size:2.6rem;">☁️</div>
+      <div class="cloud" id="cloud3" style="left:34%; bottom:26%; font-size:1.6rem;">☁️</div>
+
+      <div id="earth">
+        <svg viewBox="0 0 200 100">
+          <ellipse cx="100" cy="0" rx="140" ry="100" fill="#5cb85c"/>
+          <ellipse cx="60" cy="-10" rx="35" ry="20" fill="#8d6e4a" opacity="0.55"/>
+          <ellipse cx="140" cy="0" rx="28" ry="16" fill="#8d6e4a" opacity="0.5"/>
+          <ellipse cx="100" cy="-25" rx="150" ry="30" fill="#4fa8e0" opacity="0.35"/>
+        </svg>
+      </div>
+
+      <div id="astronaut">🧑‍🚀</div>
+
+      <div class="altitude-badge">Altitude<span id="altValue">0 km</span></div>
+      <div class="space-msg" id="spaceMsg">🚀 You have reached space!</div>
+    </div>
+
+    <div class="controls">
+      <div class="slider-row">
+        <label for="altSlider">🎚️ Height</label>
+        <input type="range" id="altSlider" min="0" max="100" value="0" step="1">
+      </div>
+      <div class="slider-row" style="justify-content:center;">
+        <button id="upBtn">⬆️ Up 5 km</button>
+      </div>
+      <div class="buttons-row">
+        <button id="startBtn">▶️ Start</button>
+        <button id="pauseBtn">⏸️ Pause</button>
+        <button id="resetBtn">🔄 Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-wrap">
+    <div class="panel">
+      <span class="zone-label" id="zoneLabel">Near Earth</span>
+      <h2>🧐 What Changes?</h2>
+      <ul class="fact-list" id="factList"></ul>
+    </div>
+
+    <div class="panel explain-box">
+      <strong>Did you know?</strong> The atmosphere does not suddenly end.
+      The air becomes thinner and thinner as we go higher, until there is
+      almost no air left — that's space! 🌌
+    </div>
+  </div>
+
+</div>
+
+<footer>This simulation was created by <strong>coroxlab</strong> 🚀</footer>
+
+<script>
+(function(){
+  const sky = document.getElementById('sky');
+  const earth = document.getElementById('earth');
+  const astronaut = document.getElementById('astronaut');
+  const altSlider = document.getElementById('altSlider');
+  const altValue = document.getElementById('altValue');
+  const starsLayer = document.getElementById('starsLayer');
+  const particlesLayer = document.getElementById('particlesLayer');
+  const clouds = [document.getElementById('cloud1'), document.getElementById('cloud2'), document.getElementById('cloud3')];
+  const factList = document.getElementById('factList');
+  const zoneLabel = document.getElementById('zoneLabel');
+  const spaceMsg = document.getElementById('spaceMsg');
+  const upBtn = document.getElementById('upBtn');
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const MAX_ALT = 100; // km, top of stage represents 100km ("edge of space")
+
+  // Build stars
+  const STAR_COUNT = 45;
+  const starEls = [];
+  for(let i=0;i<STAR_COUNT;i++){
+    const s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = Math.random()*100 + '%';
+    s.style.top = Math.random()*70 + '%';
+    starsLayer.appendChild(s);
+    starEls.push(s);
+  }
+
+  // Build air particles
+  const PARTICLE_COUNT = 60;
+  const particleEls = [];
+  for(let i=0;i<PARTICLE_COUNT;i++){
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random()*100 + '%';
+    p.style.top = (55 + Math.random()*45) + '%'; // concentrated near bottom (Earth)
+    particlesLayer.appendChild(p);
+    particleEls.push(p);
+  }
+
+  let altitude = 0;
+  let playing = false;
+  let timer = null;
+
+  function skyColorAt(t){
+    // t = 0 (ground) to 1 (100km)
+    // interpolate blue -> dark navy -> black
+    const stops = [
+      {t:0.0, top:[79,168,224], bottom:[191,230,255]},
+      {t:0.4, top:[40,90,160],  bottom:[110,160,210]},
+      {t:0.7, top:[15,30,70],   bottom:[35,55,100]},
+      {t:1.0, top:[3,6,18],     bottom:[10,15,35]}
+    ];
+    let a = stops[0], b = stops[stops.length-1];
+    for(let i=0;i<stops.length-1;i++){
+      if(t >= stops[i].t && t <= stops[i+1].t){ a = stops[i]; b = stops[i+1]; break; }
+    }
+    const span = (b.t - a.t) || 1;
+    const localT = (t - a.t) / span;
+    const lerp = (c1,c2) => c1.map((v,i)=> Math.round(v + (c2[i]-v)*localT));
+    const top = lerp(a.top, b.top);
+    const bottom = lerp(a.bottom, b.bottom);
+    return `linear-gradient(to top, rgb(${bottom.join(',')}) 0%, rgb(${top.join(',')}) 100%)`;
+  }
+
+  function update(){
+    const t = altitude / MAX_ALT; // 0..1
+
+    // slider + label
+    altSlider.value = altitude;
+    altValue.textContent = altitude + ' km';
+
+    // sky gradient
+    sky.style.background = skyColorAt(t);
+
+    // astronaut position (moves from 8% to ~92% of stage height)
+    const bottomPct = 8 + t * 84;
+    astronaut.style.bottom = bottomPct + '%';
+
+    // earth recedes downward and shrinks slightly
+    const earthBottom = -60 - t * 55; // percent
+    earth.style.bottom = earthBottom + '%';
+    earth.style.transform = `translateX(-50%) scale(${1 - t*0.25})`;
+
+    // clouds: visible near earth, fade out and left behind as we rise
+    const cloudFade = Math.max(0, 1 - t/0.35);
+    clouds.forEach(c => {
+      c.style.opacity = cloudFade;
+    });
+
+    // particles: many near earth, fade with altitude
+    const particleOpacity = Math.max(0, 1 - t*1.15);
+    particleEls.forEach((p, i) => {
+      // slightly randomize fade-out threshold per particle for a natural "thinning" look
+      const threshold = 0.15 + (i % 10) * 0.09;
+      p.style.opacity = t < threshold ? particleOpacity : Math.max(0, particleOpacity - (t-threshold));
+    });
+
+    // stars: appear gradually starting around 30%, full by 90%
+    starEls.forEach((s, i) => {
+      const appearAt = 0.25 + (i % 12) * 0.055;
+      const op = t > appearAt ? Math.min(1, (t - appearAt) / 0.3) : 0;
+      s.style.opacity = op;
+    });
+
+    // info panel content + zone label
+    let zoneText, zoneColor, facts;
+    if(t < 0.35){
+      zoneText = 'Near Earth';
+      zoneColor = '#3d9bff';
+      facts = ['🌬️ More air', '🔵 Blue sky', '☁️ Clouds visible', '✨ Few stars'];
+    } else if(t < 0.9){
+      zoneText = 'Rising Higher';
+      zoneColor = '#ff9d3d';
+      facts = ['🌬️ Less air', '🌆 Darker sky', '☁️ Clouds below', '✨ More stars'];
+    } else {
+      zoneText = 'Near Space';
+      zoneColor = '#8a3dff';
+      facts = ['🌬️ Very thin atmosphere', '⚫ Dark sky', '✨ Stars visible', '🌍 Earth far below'];
+    }
+    zoneLabel.textContent = zoneText;
+    zoneLabel.style.background = zoneColor;
+    factList.innerHTML = facts.map(f => `<li>${f}</li>`).join('');
+
+    // space message
+    if(altitude >= 100){
+      spaceMsg.classList.add('show');
+    } else {
+      spaceMsg.classList.remove('show');
+    }
+  }
+
+  function setAltitude(v){
+    altitude = Math.max(0, Math.min(MAX_ALT, v));
+    update();
+  }
+
+  altSlider.addEventListener('input', () => {
+    stopPlaying();
+    setAltitude(Number(altSlider.value));
+  });
+
+  upBtn.addEventListener('click', () => {
+    stopPlaying();
+    setAltitude(altitude + 5);
+  });
+
+  function stopPlaying(){
+    playing = false;
+    if(timer){ clearInterval(timer); timer = null; }
+  }
+
+  startBtn.addEventListener('click', () => {
+    if(playing) return;
+    playing = true;
+    timer = setInterval(() => {
+      if(altitude >= MAX_ALT){
+        stopPlaying();
+        return;
+      }
+      setAltitude(altitude + 1);
+    }, 120);
+  });
+
+  pauseBtn.addEventListener('click', stopPlaying);
+
+  resetBtn.addEventListener('click', () => {
+    stopPlaying();
+    setAltitude(0);
+  });
+
+  update();
+})();
+</script>
+
+</body>
+</html>
