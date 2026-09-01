@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Build a Plant 🌱</title>
+<style>
+  :root{
+    --bg1:#F3FBEF;
+    --bg2:#DFF3D6;
+    --ink:#26401F;
+    --ink-dim:#658A57;
+    --card:#FFFFFF;
+    --green:#4CAF50;
+    --green-dark:#2E7D32;
+    --brown:#8D6E4A;
+    --brown-dark:#6B4F30;
+    --pink:#FF6FA5;
+    --purple:#8E5CD9;
+    --sky1:#CDEBFF;
+    --sky2:#EAF7FF;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0; width:100%; min-height:100%;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    background: linear-gradient(180deg, var(--bg1), var(--bg2) 85%);
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  .app{
+    width:100%; min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding: 14px 12px 18px; gap:10px;
+  }
+
+  /* ---------------- HEADER ---------------- */
+  header{ text-align:center; width:100%; max-width:640px; }
+  h1{ margin:0; font-size: clamp(19px,4.4vw,28px); color:#26401F; text-shadow:0 2px 0 rgba(255,255,255,0.6); }
+  h1 .leaf{ display:inline-block; animation: sway 2.6s ease-in-out infinite; transform-origin:70% 90%; }
+  @keyframes sway{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(-14deg); } }
+  .tagline{ margin:3px 0 0; font-size: clamp(11px,2.2vw,14px); color:var(--ink-dim); }
+
+  .counter-row{ width:100%; max-width:640px; display:flex; align-items:center; gap:10px; }
+  .counter-track{ flex:1; height:11px; background:rgba(255,255,255,0.7); border-radius:20px; overflow:hidden; border:2px solid #C7E8B8; }
+  .counter-fill{ height:100%; background: linear-gradient(90deg,#8BC34A,#4CAF50); border-radius:20px; width:0%; transition: width .4s ease; }
+  .counter-chip{ flex:0 0 auto; background:#fff; border:2px solid #C7E8B8; border-radius:20px; padding:5px 12px; font-size: clamp(11px,2.1vw,13px); font-weight:bold; white-space:nowrap; }
+
+  /* ---------------- TRAY ---------------- */
+  .tray-card{
+    width:100%; max-width:640px; background:var(--card); border-radius:20px;
+    box-shadow: 0 10px 24px rgba(38,64,31,0.13); border:3px solid #fff; padding:10px 12px;
+  }
+  .tray-label{ font-size: clamp(10.5px,2vw,12px); font-weight:bold; color:var(--ink-dim); margin-bottom:6px; text-align:center; }
+  .tray{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .chip{
+    touch-action:none; user-select:none; -webkit-user-select:none;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    width: clamp(64px,17vw,84px); height: clamp(64px,17vw,84px);
+    background: linear-gradient(180deg,#FFFFFF,#F3FBEF);
+    border:2px solid #C7E8B8; border-radius:16px; cursor:grab;
+    transition: box-shadow .15s ease, transform .12s ease;
+  }
+  .chip:active{ cursor:grabbing; }
+  .chip .em{ font-size: clamp(24px,6vw,34px); }
+  .chip .lb{ font-size: clamp(8.5px,1.7vw,10px); font-weight:bold; color:var(--ink); }
+  .chip.hidden{ visibility:hidden; pointer-events:none; }
+  .chip.shake{ animation: shakeX .45s ease; }
+  @keyframes shakeX{
+    0%,100%{ transform:translateX(0); }
+    20%{ transform:translateX(-8px); }
+    40%{ transform:translateX(7px); }
+    60%{ transform:translateX(-5px); }
+    80%{ transform:translateX(4px); }
+  }
+
+  /* ghost element used while dragging */
+  .ghost{
+    position:fixed; z-index:999; pointer-events:none;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    width: clamp(64px,17vw,84px); height: clamp(64px,17vw,84px);
+    background: linear-gradient(180deg,#FFFFFF,#F3FBEF);
+    border:2px solid var(--green); border-radius:16px;
+    box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+    transform: scale(1.12);
+  }
+  .ghost .em{ font-size: clamp(24px,6vw,34px); }
+  .ghost .lb{ font-size: clamp(8.5px,1.7vw,10px); font-weight:bold; color:var(--ink); }
+
+  /* ---------------- SCENE ---------------- */
+  .scene-card{
+    width:100%; max-width:640px; background:var(--card); border-radius:24px;
+    box-shadow: 0 12px 28px rgba(38,64,31,0.15); border:3px solid #ffffff;
+    padding:12px; display:flex; flex-direction:column; gap:10px;
+  }
+  .scene{
+    position:relative; width:100%; height: clamp(260px, 62vw, 380px);
+    border-radius:18px; overflow:hidden;
+    background: linear-gradient(180deg, var(--sky2) 0%, var(--sky1) 55%, var(--sky1) 58%, var(--brown) 58%, var(--brown-dark) 100%);
+  }
+  .sun{
+    position:absolute; top:6%; right:8%; width:13%; aspect-ratio:1/1; border-radius:50%;
+    background: radial-gradient(circle, #FFF3B0, #FFD966 70%);
+    box-shadow: 0 0 22px 8px rgba(255,217,102,0.5);
+  }
+  .cloud1{ position:absolute; top:12%; left:8%; width:34px; height:14px; background:#fff; border-radius:20px; opacity:0.9; }
+  .cloud1::before, .cloud1::after{ content:''; position:absolute; background:#fff; border-radius:50%; }
+  .cloud1::before{ width:20px; height:20px; top:-10px; left:4px; }
+  .cloud1::after{ width:16px; height:16px; top:-7px; left:16px; }
+
+  .zone{
+    position:absolute;
+    border:3px dashed rgba(46,125,50,0.35);
+    border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    transition: border-color .2s ease, background .2s ease;
+  }
+  .zone.filled{ border-style:solid; border-color:transparent; cursor:pointer; }
+  .zone.drag-hover{ border-color: var(--green-dark); background: rgba(76,175,80,0.12); }
+
+  #zone-flower{ top:6%; height:20%; width:24%; left:38%; border-radius:50%; }
+  #zone-leaves{ top:24%; height:20%; width:46%; left:27%; border-radius:16px; }
+  #zone-stem{ top:30%; height:29%; width:12%; left:44%; border-radius:8px; }
+  #zone-roots{ top:59%; height:28%; width:44%; left:28%; border-radius:0 0 40px 40px; }
+
+  .zone.snap{ animation: snapPop .5s ease; }
+  @keyframes snapPop{
+    0%{ transform:scale(0.4); }
+    60%{ transform:scale(1.15); }
+    100%{ transform:scale(1); }
+  }
+
+  /* placed visuals */
+  .placed-stem{
+    width: 24%; height:100%;
+    background: linear-gradient(180deg,#8BC34A,#4E8F2A);
+    border-radius: 40px;
+  }
+  .placed-flower{ font-size: clamp(30px,7.5vw,48px); display:inline-block; }
+  .placed-leaves{ display:flex; align-items:center; justify-content:space-between; width:100%; padding:0 4%; }
+  .placed-leaves .lf{ font-size: clamp(26px,6.4vw,40px); }
+  .placed-leaves .lf.mirror{ transform: scaleX(-1); }
+  .placed-roots{ width:90%; height:90%; }
+
+  /* ---------------- MESSAGE BANNER ---------------- */
+  .msg-banner{
+    text-align:center; font-size: clamp(12px,2.6vw,14.5px); font-weight:bold;
+    min-height:1.6em; color:#B71C1C; opacity:0; transition: opacity .2s ease;
+  }
+  .msg-banner.show{ opacity:1; }
+
+  /* ---------------- INFO PANEL ---------------- */
+  .info-panel{
+    background: linear-gradient(135deg, rgba(76,175,80,0.08), rgba(142,92,217,0.06));
+    border:2px dashed #C7E8B8; border-radius:16px; padding:12px 16px;
+    display:flex; flex-direction:column; gap:5px; align-items:center; text-align:center;
+    min-height:70px; justify-content:center;
+  }
+  .info-panel .placeholder{ font-size: clamp(11.5px,2.3vw,13.5px); color:var(--ink-dim); }
+  .info-title{ font-size: clamp(14px,2.9vw,17px); font-weight:bold; color:#26401F; }
+  .info-text{ font-size: clamp(12px,2.3vw,14px); color:var(--ink); line-height:1.5; max-width:50ch; }
+
+  /* ---------------- COMPLETE SCREEN ---------------- */
+  .complete{ display:none; text-align:center; flex-direction:column; gap:12px; align-items:center; }
+  .complete.active{ display:flex; }
+  .complete .trophy{ font-size: clamp(50px,12vw,80px); animation: bounce 1.4s ease-in-out infinite; }
+  @keyframes bounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+  .complete h2{ margin:0; font-size: clamp(19px,4.2vw,26px); color:#26401F; }
+  .complete p{ margin:0; font-size: clamp(13px,2.8vw,16px); color:var(--ink-dim); max-width:44ch; line-height:1.5; }
+  .try-again{
+    display:flex; align-items:center; gap:8px;
+    font-family:inherit; font-weight:bold; font-size: clamp(14px,3vw,16px);
+    background: linear-gradient(180deg,#79D4A0,#43A047); color:#fff;
+    border:none; border-radius:26px; padding:12px 26px; cursor:pointer;
+    box-shadow: 0 6px 0 #2E7031, 0 8px 14px rgba(0,0,0,0.15);
+    transition: transform .08s ease;
+  }
+  .try-again:active{ transform: translateY(4px); box-shadow: 0 2px 0 #2E7031, 0 4px 8px rgba(0,0,0,0.15); }
+
+  footer{ font-size: clamp(10.5px,2vw,12.5px); color:var(--ink-dim); text-align:center; opacity:0.9; }
+  footer b{ color:#26401F; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="leaf">🌱</span> Build a Plant</h1>
+    <p class="tagline">Drag each part to where it belongs, then tap it to learn its job!</p>
+  </header>
+
+  <div class="counter-row">
+    <div class="counter-track"><div class="counter-fill" id="counterFill"></div></div>
+    <div class="counter-chip" id="counterChip">🧩 Parts Placed: 0 / 4</div>
+  </div>
+
+  <div class="tray-card">
+    <div class="tray-label">🧺 Drag a part onto the plant below</div>
+    <div class="tray" id="tray"></div>
+  </div>
+
+  <div class="scene-card" id="sceneCard">
+    <div class="scene" id="scene">
+      <div class="sun"></div>
+      <div class="cloud1"></div>
+      <div class="zone" id="zone-flower" data-part="flower"></div>
+      <div class="zone" id="zone-leaves" data-part="leaves"></div>
+      <div class="zone" id="zone-stem" data-part="stem"></div>
+      <div class="zone" id="zone-roots" data-part="roots"></div>
+    </div>
+
+    <div class="msg-banner" id="msgBanner"></div>
+
+    <div class="info-panel" id="infoPanel">
+      <div class="placeholder" id="infoPlaceholder">👆 Tap any part to learn what it does!</div>
+      <div id="infoContent" style="display:none;">
+        <div class="info-title" id="infoTitle"></div>
+        <div class="info-text" id="infoText"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scene-card complete" id="completeCard">
+    <div class="trophy">🎉</div>
+    <h2>Plant Complete!</h2>
+    <p>Great job! You built a plant and learned what each part does. Every part of a plant has an important job.</p>
+    <button class="try-again" id="buildAgainBtn">🔄 Build Again</button>
+  </div>
+
+  <footer>This simulation was created by <b>COROX LAB</b></footer>
+</div>
+
+<script>
+(function(){
+  /* =====================================================================
+     DATA
+     ===================================================================== */
+  const PARTS = {
+    roots:  { emoji:'🌱', label:'Roots',  title:'🌱 Roots',  info:'Roots hold the plant firmly in the soil and absorb water and minerals from the soil.' },
+    stem:   { emoji:'🌿', label:'Stem',   title:'🌿 Stem',   info:'The stem supports the plant and carries water and nutrients to different parts of the plant.' },
+    leaves: { emoji:'🍃', label:'Leaves', title:'🍃 Leaves', info:'Leaves make food for the plant using sunlight, water and carbon dioxide.' },
+    flower: { emoji:'🌸', label:'Flower', title:'🌸 Flower', info:'Flowers help plants reproduce and produce seeds.' },
+  };
+  const ORDER = ['roots','stem','leaves','flower'];
+
+  const tray = document.getElementById('tray');
+  const counterFill = document.getElementById('counterFill');
+  const counterChip = document.getElementById('counterChip');
+  const msgBanner = document.getElementById('msgBanner');
+  const infoPlaceholder = document.getElementById('infoPlaceholder');
+  const infoContent = document.getElementById('infoContent');
+  const infoTitle = document.getElementById('infoTitle');
+  const infoText = document.getElementById('infoText');
+  const sceneCard = document.getElementById('sceneCard');
+  const completeCard = document.getElementById('completeCard');
+  const buildAgainBtn = document.getElementById('buildAgainBtn');
+
+  const zones = {};
+  ['flower','leaves','stem','roots'].forEach(k => zones[k] = document.getElementById('zone-'+k));
+
+  const placed = new Set();
+  let msgTimeout = null;
+
+  /* =====================================================================
+     BUILD TRAY CHIPS
+     ===================================================================== */
+  function buildTray(){
+    tray.innerHTML = '';
+    ORDER.forEach(key => {
+      const p = PARTS[key];
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.dataset.part = key;
+      chip.innerHTML = `<span class="em">${p.emoji}</span><span class="lb">${p.label}</span>`;
+      chip.addEventListener('pointerdown', onPointerDown);
+      tray.appendChild(chip);
+    });
+  }
+
+  /* =====================================================================
+     DRAG LOGIC (Pointer Events — works for mouse, touch, pen alike)
+     ===================================================================== */
+  let dragState = null;
+
+  function onPointerDown(e){
+    const chip = e.currentTarget;
+    if(chip.classList.contains('hidden')) return;
+    e.preventDefault();
+
+    const rect = chip.getBoundingClientRect();
+    const ghost = document.createElement('div');
+    ghost.className = 'ghost';
+    ghost.innerHTML = chip.innerHTML;
+    document.body.appendChild(ghost);
+
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+    positionGhost(ghost, e.clientX, e.clientY, offsetX, offsetY);
+
+    chip.classList.add('hidden');
+
+    dragState = { chip, ghost, part: chip.dataset.part, offsetX, offsetY, startX: e.clientX, startY: e.clientY };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+  }
+
+  function positionGhost(ghost, clientX, clientY, offsetX, offsetY){
+    ghost.style.left = (clientX - offsetX) + 'px';
+    ghost.style.top = (clientY - offsetY) + 'px';
+  }
+
+  function onPointerMove(e){
+    if(!dragState) return;
+    positionGhost(dragState.ghost, e.clientX, e.clientY, dragState.offsetX, dragState.offsetY);
+
+    const zone = bestZoneUnderGhost(dragState.ghost);
+    Object.values(zones).forEach(z => z.classList.remove('drag-hover'));
+    if(zone) zone.classList.add('drag-hover');
+  }
+
+  function rectOverlapArea(a, b){
+    const x = Math.max(0, Math.min(a.right,b.right) - Math.max(a.left,b.left));
+    const y = Math.max(0, Math.min(a.bottom,b.bottom) - Math.max(a.top,b.top));
+    return x*y;
+  }
+
+  function bestZoneUnderGhost(ghost){
+    const gRect = ghost.getBoundingClientRect();
+    let best = null, bestArea = 0;
+    Object.entries(zones).forEach(([key, zoneEl]) => {
+      if(placed.has(key)) return; // already filled, skip
+      const zRect = zoneEl.getBoundingClientRect();
+      const area = rectOverlapArea(gRect, zRect);
+      if(area > bestArea){ bestArea = area; best = zoneEl; }
+    });
+    const minArea = (gRect.width * gRect.height) * 0.18;
+    return bestArea >= minArea ? best : null;
+  }
+
+  function onPointerUp(e){
+    if(!dragState) return;
+    window.removeEventListener('pointermove', onPointerMove);
+    window.removeEventListener('pointerup', onPointerUp);
+
+    const { chip, ghost, part, startX, startY } = dragState;
+    Object.values(zones).forEach(z => z.classList.remove('drag-hover'));
+    const targetZone = bestZoneUnderGhost(ghost);
+    const moved = Math.hypot(e.clientX - startX, e.clientY - startY);
+    const TAP_THRESHOLD = 8; // pixels — barely moved = treat as a tap, not a drag
+
+    ghost.remove();
+    chip.classList.remove('hidden');
+
+    if(moved < TAP_THRESHOLD){
+      // simple tap on a tray part — show what it does, just like tapping a placed part
+      showInfo(part);
+      dragState = null;
+      return;
+    }
+
+    if(!targetZone){
+      dragState = null;
+      return;
+    }
+
+    if(targetZone.dataset.part === part){
+      placePart(part, targetZone);
+      chip.remove();
+    } else {
+      chip.classList.add('shake');
+      setTimeout(() => chip.classList.remove('shake'), 460);
+      showMessage('❌ Try again! Think about where this part normally grows.');
+    }
+
+    dragState = null;
+  }
+
+  /* =====================================================================
+     PLACEMENT
+     ===================================================================== */
+  function placePart(key, zoneEl){
+    placed.add(key);
+    zoneEl.classList.add('filled');
+
+    const p = PARTS[key];
+    if(key === 'stem'){
+      zoneEl.innerHTML = '<div class="placed-stem"></div>';
+    } else if(key === 'flower'){
+      zoneEl.innerHTML = `<div class="placed-flower">${p.emoji}</div>`;
+    } else if(key === 'leaves'){
+      zoneEl.innerHTML = '<div class="placed-leaves"><span class="lf mirror">🍃</span><span class="lf">🍃</span></div>';
+    } else if(key === 'roots'){
+      zoneEl.innerHTML = `<svg class="placed-roots" viewBox="0 0 100 60" preserveAspectRatio="xMidYMin meet">
+        <path d="M50 0 L50 14 M50 14 L30 34 M50 14 L70 34 M50 14 L50 50 M30 34 L18 50 M30 34 L36 52 M70 34 L82 50 M70 34 L64 52"
+          stroke="#8D6E4A" stroke-width="4" fill="none" stroke-linecap="round"/>
+      </svg>`;
+    }
+
+    zoneEl.classList.remove('snap');
+    void zoneEl.offsetWidth; // restart animation
+    zoneEl.classList.add('snap');
+
+    zoneEl.addEventListener('click', () => showInfo(key));
+
+    updateCounter();
+    if(placed.size === ORDER.length){
+      setTimeout(finishGame, 1000);
+    }
+  }
+
+  function showInfo(key){
+    const p = PARTS[key];
+    infoPlaceholder.style.display = 'none';
+    infoContent.style.display = 'block';
+    infoTitle.textContent = p.title;
+    infoText.textContent = p.info;
+  }
+
+  function showMessage(text){
+    msgBanner.textContent = text;
+    msgBanner.classList.add('show');
+    clearTimeout(msgTimeout);
+    msgTimeout = setTimeout(() => msgBanner.classList.remove('show'), 2200);
+  }
+
+  function updateCounter(){
+    counterChip.textContent = '🧩 Parts Placed: ' + placed.size + ' / ' + ORDER.length;
+    counterFill.style.width = Math.round((placed.size / ORDER.length) * 100) + '%';
+  }
+
+  function finishGame(){
+    sceneCard.style.display = 'none';
+    completeCard.classList.add('active');
+  }
+
+  /* =====================================================================
+     RESET
+     ===================================================================== */
+  function resetAll(){
+    placed.clear();
+    updateCounter();
+    ['flower','leaves','stem','roots'].forEach(k => {
+      const fresh = zones[k].cloneNode(false); // strip old click listeners + content
+      zones[k].replaceWith(fresh);
+      zones[k] = fresh;
+    });
+
+    infoPlaceholder.style.display = 'block';
+    infoContent.style.display = 'none';
+    msgBanner.classList.remove('show');
+
+    buildTray();
+    completeCard.classList.remove('active');
+    sceneCard.style.display = 'flex';
+  }
+
+  buildAgainBtn.addEventListener('click', resetAll);
+
+  /* =====================================================================
+     INIT
+     ===================================================================== */
+  buildTray();
+  updateCounter();
+})();
+</script>
+</body>
+</html>
