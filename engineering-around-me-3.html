@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>🏙️ Engineering Around Me</title>
+<style>
+  :root{
+    --ink:#1c2b3a;
+    --ink-dim:#5b6c82;
+    --card:#ffffff;
+    --green:#2ecc71;
+    --green-dark:#1f9c56;
+    --sky1:#bfe4ff;
+    --sky2:#eaf7ff;
+    --road:#5b6b78;
+    --road-dark:#41505c;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0; width:100%; min-height:100%;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    background: linear-gradient(180deg,#eef8ff,#dff1ff 85%);
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  .app{
+    width:100%; min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding: 16px 12px 22px; gap:12px;
+  }
+
+  /* ---------------- HEADER ---------------- */
+  header{ text-align:center; width:100%; max-width:760px; }
+  h1{ margin:0; font-size: clamp(20px,4.6vw,30px); color:#15263d; text-shadow:0 2px 0 rgba(255,255,255,0.6); }
+  h1 .ic{ display:inline-block; animation: bob 2.6s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-4px); } }
+  .tagline{ margin:4px 0 0; font-size: clamp(12px,2.3vw,14.5px); color:var(--ink-dim); }
+
+  /* ---------------- PROGRESS ---------------- */
+  .counter-row{ width:100%; max-width:760px; display:flex; align-items:center; gap:10px; }
+  .counter-track{ flex:1; height:11px; background:rgba(255,255,255,0.7); border-radius:20px; overflow:hidden; border:2px solid #cfe0f7; }
+  .counter-fill{ height:100%; background: linear-gradient(90deg,#42a5f5,#1f9c56); border-radius:20px; width:0%; transition: width .4s ease; }
+  .counter-chip{ flex:0 0 auto; background:#fff; border:2px solid #cfe0f7; border-radius:20px; padding:5px 12px; font-size: clamp(11.5px,2.1vw,13px); font-weight:bold; white-space:nowrap; }
+
+  /* ---------------- SCENE ---------------- */
+  .scene-card{
+    width:100%; max-width:760px; background:var(--card); border-radius:24px;
+    box-shadow: 0 12px 28px rgba(10,30,60,0.15); border:3px solid #ffffff;
+    padding:12px; display:flex; flex-direction:column; gap:10px;
+  }
+  .scene{
+    position:relative; width:100%; height: clamp(280px, 58vw, 420px);
+    border-radius:18px; overflow:hidden;
+    background: linear-gradient(180deg, var(--sky1) 0%, var(--sky2) 70%);
+  }
+  .sun-deco{
+    position:absolute; top:6%; right:6%; width:11%; aspect-ratio:1/1; border-radius:50%;
+    background: radial-gradient(circle, #fff3b0, #ffd966 70%);
+    box-shadow: 0 0 18px 6px rgba(255,217,102,0.5);
+  }
+  .cloud-deco{ position:absolute; background:#fff; border-radius:20px; opacity:0.9; }
+  .cloud-deco::before, .cloud-deco::after{ content:''; position:absolute; background:#fff; border-radius:50%; }
+
+  .road-strip{
+    position:absolute; left:0; right:0; bottom:0; height:26%;
+    background: linear-gradient(180deg, var(--road), var(--road-dark));
+  }
+  .road-strip::before{
+    content:''; position:absolute; left:0; right:0; top:38%; height:6%;
+    background: repeating-linear-gradient(90deg, #fff 0 22px, transparent 22px 46px);
+    opacity:0.85;
+  }
+  .tree{ position:absolute; bottom:26%; font-size: clamp(22px,4.8vw,34px); filter:drop-shadow(0 3px 2px rgba(0,0,0,0.25)); z-index:1; }
+
+  /* ---------------- CLICKABLE CITY OBJECTS ---------------- */
+  .city-obj{
+    position:absolute; bottom:26%; transform:translateX(-50%);
+    display:flex; flex-direction:column; align-items:center;
+    cursor:pointer; -webkit-user-select:none; user-select:none;
+    touch-action:manipulation; z-index:2;
+  }
+  .city-obj .icon{
+    font-size: clamp(34px,8vw,60px);
+    filter:drop-shadow(0 3px 3px rgba(0,0,0,0.3));
+    transition: transform .15s ease;
+  }
+  .city-obj:active .icon{ transform:scale(0.92); }
+
+  .city-obj.pop .icon{ animation: popIt .4s ease; }
+  @keyframes popIt{ 0%{ transform:scale(1);} 50%{ transform:scale(1.15);} 100%{ transform:scale(1);} }
+
+  /* subtle one-time glow the moment an object is first found */
+  .city-obj.just-found .icon{ animation: popIt .4s ease, discoverGlow .8s ease; }
+  @keyframes discoverGlow{
+    0%{ filter:drop-shadow(0 3px 3px rgba(0,0,0,0.3)); }
+    45%{ filter:drop-shadow(0 0 14px rgba(46,204,113,0.85)); }
+    100%{ filter:drop-shadow(0 3px 3px rgba(0,0,0,0.3)); }
+  }
+
+  .found-badge{
+    position:absolute; top:-6px; right:-6px; font-size: clamp(13px,2.6vw,16px);
+    background:#fff; border-radius:50%; box-shadow:0 2px 5px rgba(0,0,0,0.3);
+    display:none; line-height:1;
+  }
+  .city-obj.found .found-badge{ display:block; }
+  .city-obj.just-found .found-badge{ animation: badgePop .35s ease; }
+  @keyframes badgePop{
+    0%{ transform:scale(0); opacity:0; }
+    100%{ transform:scale(1); opacity:1; }
+  }
+
+  /* street light custom shape */
+  .light-pole{ width:4px; height: clamp(34px,6.4vw,52px); background:#78909c; border-radius:2px; }
+  .light-bulb{
+    width: clamp(16px,3.4vw,22px); height: clamp(16px,3.4vw,22px); border-radius:50%;
+    background: radial-gradient(circle,#fff8d6,#ffd966 70%);
+    box-shadow: 0 0 14px 6px rgba(255,217,102,0.75);
+    margin-bottom:-2px;
+    animation: bulbGlow 2.4s ease-in-out infinite;
+  }
+  @keyframes bulbGlow{ 0%,100%{ box-shadow:0 0 10px 4px rgba(255,217,102,0.55);} 50%{ box-shadow:0 0 18px 8px rgba(255,217,102,0.9);} }
+
+  /* traffic signal custom shape */
+  .signal-pole{ width:3px; height: clamp(22px,4.4vw,32px); background:#78909c; }
+  .signal-box{
+    width: clamp(16px,3.4vw,22px); height: clamp(34px,7vw,48px);
+    background:#263238; border-radius:5px; display:flex; flex-direction:column;
+    align-items:center; justify-content:space-around; padding:3px 0;
+  }
+  .signal-box .dot{ width:55%; aspect-ratio:1/1; border-radius:50%; opacity:0.3; }
+  .signal-box .dot.red{ background:#ff5252; animation: sigRed 4.5s infinite; }
+  .signal-box .dot.yellow{ background:#ffd740; animation: sigYellow 4.5s infinite; }
+  .signal-box .dot.green{ background:#69f0ae; animation: sigGreen 4.5s infinite; }
+  @keyframes sigRed{ 0%,33%{opacity:1;} 34%,100%{opacity:0.3;} }
+  @keyframes sigGreen{ 0%,33%{opacity:0.3;} 34%,66%{opacity:1;} 67%,100%{opacity:0.3;} }
+  @keyframes sigYellow{ 0%,66%{opacity:0.3;} 67%,80%{opacity:1;} 81%,100%{opacity:0.3;} }
+
+  .car-obj .icon{ animation: carIdle 1.6s ease-in-out infinite; }
+  @keyframes carIdle{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-3px);} }
+
+  /* ---------------- EXPLANATION PANEL ---------------- */
+  .info-panel{
+    background: linear-gradient(135deg, rgba(255,140,66,0.08), rgba(47,128,237,0.06));
+    border:2px dashed #cfe0f7; border-radius:16px; padding:12px 16px;
+    display:flex; flex-direction:column; gap:5px; align-items:center; text-align:center;
+    min-height:70px; justify-content:center;
+  }
+  .info-panel .placeholder{ font-size: clamp(11.5px,2.3vw,13.5px); color:var(--ink-dim); }
+  .info-title{ font-size: clamp(14px,2.9vw,17px); font-weight:bold; color:#15263d; }
+  .info-text{ font-size: clamp(12px,2.3vw,14px); color:var(--ink); line-height:1.5; max-width:58ch; font-style:italic; }
+  .info-dept{
+    margin-top:2px; font-size: clamp(11px,2.1vw,12.5px); font-weight:bold;
+    color:#1f6fd6; background:#eaf3ff; border:1.5px solid #cfe0f7;
+    border-radius:20px; padding:3px 12px; white-space:nowrap;
+  }
+
+  /* ---------------- COMPLETE SCREEN ---------------- */
+  .complete{ display:none; text-align:center; flex-direction:column; gap:12px; align-items:center; }
+  .complete.active{ display:flex; }
+  .complete .trophy{ font-size: clamp(50px,12vw,80px); animation: bounce 1.4s ease-in-out infinite; }
+  @keyframes bounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+  .complete h2{ margin:0; font-size: clamp(19px,4.2vw,26px); color:#15263d; }
+  .complete p{ margin:0; font-size: clamp(13px,2.8vw,16px); color:var(--ink-dim); max-width:46ch; line-height:1.5; }
+  .try-again{
+    display:flex; align-items:center; gap:8px;
+    font-family:inherit; font-weight:bold; font-size: clamp(14px,3vw,16px);
+    background: linear-gradient(180deg,#79D4A0,#43A047); color:#fff;
+    border:none; border-radius:26px; padding:12px 26px; cursor:pointer;
+    box-shadow: 0 6px 0 #2E7031, 0 8px 14px rgba(0,0,0,0.15);
+    transition: transform .08s ease;
+  }
+  .try-again:active{ transform: translateY(4px); box-shadow: 0 2px 0 #2E7031, 0 4px 8px rgba(0,0,0,0.15); }
+
+  footer{ font-size: clamp(10.5px,2vw,12.5px); color:var(--ink-dim); text-align:center; opacity:0.9; margin-top:2px; }
+  footer b{ color:#15263d; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="ic">🏙️</span> Engineering Around Me</h1>
+    <p class="tagline">Tap an object to discover the engineering behind it.</p>
+  </header>
+
+  <div class="counter-row">
+    <div class="counter-track"><div class="counter-fill" id="counterFill"></div></div>
+    <div class="counter-chip" id="counterChip">Progress: 0/8</div>
+  </div>
+
+  <div class="scene-card" id="sceneCard">
+    <div class="scene" id="scene">
+      <div class="sun-deco"></div>
+      <div class="cloud-deco" style="top:10%; left:8%; width:34px; height:14px;"></div>
+      <div class="cloud-deco" style="top:16%; left:45%; width:26px; height:11px;"></div>
+      <div class="road-strip"></div>
+
+      <div class="tree" style="left:2%;">🌳</div>
+      <div class="tree" style="left:97%; transform:translateX(-100%);">🌳</div>
+
+      <div class="city-obj" data-key="house" style="left:8%;">
+        <span class="icon">🏠</span>
+        <span class="found-badge">✅</span>
+      </div>
+
+      <div class="city-obj car-obj" data-key="car" style="left:20%;">
+        <span class="icon">🚗</span>
+        <span class="found-badge">✅</span>
+      </div>
+
+      <div class="city-obj" data-key="building" style="left:32%;">
+        <span class="icon">🏢</span>
+        <span class="found-badge">✅</span>
+      </div>
+
+      <div class="city-obj" data-key="water" style="left:44%;">
+        <span class="icon">🚰</span>
+        <span class="found-badge">✅</span>
+      </div>
+
+      <div class="city-obj" data-key="road" style="left:56%;">
+        <span class="icon">🛣️</span>
+        <span class="found-badge">✅</span>
+      </div>
+
+      <div class="city-obj" data-key="signal" style="left:68%;">
+        <div class="signal-box">
+          <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+        </div>
+        <div class="signal-pole"></div>
+        <span class="found-badge">✅</span>
+      </div>
+
+      <div class="city-obj" data-key="light" style="left:80%;">
+        <div class="light-bulb"></div>
+        <div class="light-pole"></div>
+        <span class="found-badge">✅</span>
+      </div>
+
+      <div class="city-obj" data-key="bridge" style="left:92%;">
+        <span class="icon">🌉</span>
+        <span class="found-badge">✅</span>
+      </div>
+    </div>
+
+    <div class="info-panel" id="infoPanel">
+      <div class="placeholder" id="infoPlaceholder">👆 Tap an object to see its explanation.</div>
+      <div id="infoContent" style="display:none;">
+        <div class="info-title" id="infoTitle"></div>
+        <div class="info-text" id="infoText"></div>
+        <div class="info-dept" id="infoDept"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="scene-card complete" id="completeCard">
+    <div class="trophy">🎉</div>
+    <h2>Engineering Complete!</h2>
+    <p>You discovered all 8 examples of engineering around you!</p>
+    <button class="try-again" id="exploreAgainBtn">🔄 Explore Again</button>
+  </div>
+
+  <footer>This simulation was created by <b>COROX LAB</b></footer>
+</div>
+
+<script>
+(function(){
+  const INFO = {
+    house:    { title:'🏠 House',          text:'Engineers design houses to keep families safe and comfortable.', dept:'🏗️ Civil Engineering' },
+    car:      { title:'🚗 Car',            text:'Engineers build cars with parts that make travel safe and smooth.', dept:'⚙️ Mechanical Engineering' },
+    building: { title:'🏢 Building',       text:'Engineers design tall buildings to make them strong and stable.', dept:'🏗️ Civil Engineering' },
+    water:    { title:'🚰 Water Tank',     text:'Engineers design tanks to store and supply clean water.', dept:'🏗️ Civil Engineering' },
+    road:     { title:'🛣️ Road',           text:'Engineers design roads so people and vehicles can travel safely.', dept:'🏗️ Civil Engineering' },
+    signal:   { title:'🚦 Traffic Signal', text:'Engineers use signals to control traffic and keep roads safe.', dept:'🔌 Electronics Engineering' },
+    light:    { title:'💡 Street Light',   text:'Engineers design street lights to help people see clearly at night.', dept:'⚡ Electrical Engineering' },
+    bridge:   { title:'🌉 Bridge',         text:'Engineers build bridges to help people cross rivers and roads safely.', dept:'🏗️ Civil Engineering' }
+  };
+  const TOTAL = Object.keys(INFO).length;
+
+  const counterFill = document.getElementById('counterFill');
+  const counterChip = document.getElementById('counterChip');
+  const infoPlaceholder = document.getElementById('infoPlaceholder');
+  const infoContent = document.getElementById('infoContent');
+  const infoTitle = document.getElementById('infoTitle');
+  const infoText = document.getElementById('infoText');
+  const infoDept = document.getElementById('infoDept');
+  const sceneCard = document.getElementById('sceneCard');
+  const completeCard = document.getElementById('completeCard');
+  const exploreAgainBtn = document.getElementById('exploreAgainBtn');
+  const cityObjects = document.querySelectorAll('.city-obj');
+
+  const discovered = new Set();
+
+  cityObjects.forEach(obj=>{
+    obj.addEventListener('click', ()=>{
+      const key = obj.dataset.key;
+      const data = INFO[key];
+      if(!data) return;
+
+      showInfo(data);
+
+      obj.classList.remove('pop');
+      void obj.offsetWidth;
+      obj.classList.add('pop');
+
+      if(!discovered.has(key)){
+        discovered.add(key);
+        obj.classList.add('found','just-found');
+        setTimeout(()=> obj.classList.remove('just-found'), 800);
+        updateCounter();
+        if(discovered.size === TOTAL){
+          setTimeout(showComplete, 800);
+        }
+      }
+    });
+  });
+
+  function showInfo(data){
+    infoPlaceholder.style.display = 'none';
+    infoContent.style.display = 'block';
+    infoTitle.textContent = data.title;
+    infoText.textContent = '“' + data.text + '”';
+    infoDept.textContent = data.dept;
+  }
+
+  function updateCounter(){
+    counterChip.textContent = 'Progress: ' + discovered.size + '/' + TOTAL;
+    counterFill.style.width = Math.round((discovered.size / TOTAL) * 100) + '%';
+  }
+
+  function showComplete(){
+    sceneCard.style.display = 'none';
+    completeCard.classList.add('active');
+  }
+
+  function resetAll(){
+    discovered.clear();
+    updateCounter();
+    cityObjects.forEach(obj=> obj.classList.remove('found','pop','just-found'));
+    infoPlaceholder.style.display = 'block';
+    infoContent.style.display = 'none';
+    completeCard.classList.remove('active');
+    sceneCard.style.display = 'flex';
+  }
+  exploreAgainBtn.addEventListener('click', resetAll);
+
+  updateCounter();
+})();
+</script>
+</body>
+</html>
