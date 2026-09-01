@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💪 Push → Machine → Load</title>
+<style>
+  :root{
+    --bg-top:#fef6e4;
+    --bg-bottom:#e8f7ff;
+    --ink:#1c2b3a;
+    --panel-bg:#ffffff;
+    --panel-border:#dfeeff;
+    --accent:#ff9d3d;
+    --success:#2fbf71;
+    --fail:#ff5d5d;
+    --push-color:#3d8bff;
+    --load-color:#8a5cf6;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    color:var(--ink);
+    background:linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+    overflow-x:hidden;
+  }
+
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:16px 14px 8px;
+  }
+
+  h1{
+    text-align:center;
+    font-size:clamp(1.2rem, 5vw, 1.8rem);
+    margin:4px 0 4px;
+  }
+
+  .flow-banner{
+    text-align:center;
+    background:#fff4e0;
+    border:2px dashed var(--accent);
+    border-radius:14px;
+    padding:8px 10px;
+    font-size:clamp(0.85rem, 3vw, 1.05rem);
+    font-weight:bold;
+    color:#7a4a00;
+    margin-bottom:14px;
+  }
+
+  /* ---------- STAGE ---------- */
+  .stage-panel{
+    background:var(--panel-bg);
+    border:3px solid var(--panel-border);
+    border-radius:16px;
+    padding:8px 6px 4px;
+    margin-bottom:14px;
+    box-shadow:0 6px 16px rgba(30,60,90,0.1);
+  }
+  #leverSvg{
+    width:100%;
+    height:auto;
+    display:block;
+    border-radius:10px;
+  }
+  #leverGroup{
+    transition:transform 0.6s ease;
+    transform-origin:300px 192px;
+  }
+  .push-arrow-label, .load-arrow-label{
+    font-size:15px;
+    font-weight:bold;
+  }
+  .push-arrow-label{ fill:var(--push-color); }
+  .load-arrow-label{ fill:var(--load-color); }
+  .label-pill{ fill:#ffffff; opacity:0.9; }
+  #pushCharText.pushing{
+    animation:pushBounce 0.6s ease;
+  }
+  @keyframes pushBounce{
+    0%{ transform:scale(1,1); }
+    35%{ transform:scale(1.15,0.8); }
+    70%{ transform:scale(0.95,1.08); }
+    100%{ transform:scale(1,1); }
+  }
+  #pushCharText{ transform-box: fill-box; transform-origin: center; }
+
+  .status-line{
+    text-align:center;
+    font-size:0.92rem;
+    font-weight:bold;
+    min-height:22px;
+    padding:6px 10px 10px;
+    color:#3a4a5a;
+  }
+
+  /* ---------- SLIDERS ---------- */
+  .sliders-panel{
+    background:var(--panel-bg);
+    border:3px solid var(--panel-border);
+    border-radius:16px;
+    padding:14px 16px;
+    margin-bottom:14px;
+    box-shadow:0 6px 16px rgba(30,60,90,0.1);
+  }
+  .slider-row{ margin-bottom:14px; }
+  .slider-row:last-child{ margin-bottom:0; }
+  .slider-row label{
+    display:flex;
+    justify-content:space-between;
+    font-weight:bold;
+    font-size:0.92rem;
+    margin-bottom:6px;
+  }
+  .slider-row label .val{
+    color:var(--accent);
+    font-size:1rem;
+  }
+  input[type="range"]{
+    width:100%;
+    accent-color:var(--accent);
+    height:6px;
+    cursor:pointer;
+  }
+  #pushSlider{ accent-color:var(--push-color); }
+  #loadSlider{ accent-color:var(--load-color); }
+
+  /* ---------- CONTROLS ---------- */
+  .controls{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  button.ctrl{
+    font-family:inherit;
+    font-size:0.95rem;
+    font-weight:bold;
+    color:#fff;
+    border:none;
+    border-radius:12px;
+    padding:13px 20px;
+    cursor:pointer;
+    box-shadow:0 4px 10px rgba(0,0,0,0.18);
+    transition:transform 0.15s ease, opacity 0.2s ease;
+    flex:1 1 150px;
+    max-width:220px;
+  }
+  button.ctrl:active{ transform:translateY(2px) scale(0.97); }
+  #testBtn{ background:var(--success); }
+  #resetBtn{ background:#8a8fa3; }
+
+  /* ---------- RESULT ---------- */
+  .result-panel{
+    background:var(--panel-bg);
+    border:3px solid var(--panel-border);
+    border-radius:16px;
+    padding:0 16px;
+    margin-bottom:14px;
+    text-align:center;
+    opacity:0;
+    max-height:0;
+    overflow:hidden;
+    transition:opacity 0.4s ease, max-height 0.4s ease, padding 0.4s ease;
+  }
+  .result-panel.show{
+    opacity:1;
+    max-height:200px;
+    padding:14px 16px;
+  }
+  .result-panel.success{ border-color:var(--success); }
+  .result-panel.fail{ border-color:var(--fail); }
+  .result-title{
+    font-size:1.05rem;
+    font-weight:bold;
+  }
+  .result-panel.success .result-title{ color:var(--success); }
+  .result-panel.fail .result-title{ color:var(--fail); }
+  .result-sub{
+    font-size:0.85rem;
+    color:#3a4a5a;
+    margin-top:4px;
+  }
+
+  /* ---------- INFO PANELS ---------- */
+  .panel{
+    background:var(--panel-bg);
+    border:3px solid var(--panel-border);
+    border-radius:16px;
+    padding:14px 16px;
+    margin-bottom:14px;
+    box-shadow:0 6px 16px rgba(30,60,90,0.1);
+  }
+  .panel h2{
+    margin:0 0 8px;
+    font-size:1rem;
+  }
+  .panel p{
+    font-size:0.88rem;
+    line-height:1.5;
+    margin:0 0 6px;
+    color:#3a4a5a;
+  }
+  .panel p:last-child{ margin-bottom:0; }
+  .learning-message{
+    text-align:center;
+    background:linear-gradient(135deg, var(--push-color), var(--load-color));
+    color:#fff;
+    font-weight:bold;
+    font-size:0.95rem;
+    border-radius:14px;
+    padding:12px 14px;
+    margin-bottom:14px;
+  }
+
+  /* ---------- MINI CHALLENGE ---------- */
+  .challenge-options{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:8px;
+  }
+  .opt-btn{
+    font-family:inherit;
+    text-align:left;
+    font-size:0.88rem;
+    background:#f7fafc;
+    border:2px solid #e4edf5;
+    border-radius:10px;
+    padding:10px 12px;
+    cursor:pointer;
+    transition:transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .opt-btn:active{ transform:scale(0.98); }
+  .opt-btn.correct{ border-color:var(--success); background:#e6f9ee; }
+  .opt-btn.wrong{ border-color:var(--fail); background:#ffecec; }
+  .opt-btn:disabled{ cursor:default; }
+  .challenge-feedback{
+    margin-top:8px;
+    font-size:0.88rem;
+    font-weight:bold;
+    min-height:20px;
+  }
+  .challenge-feedback.correct{ color:var(--success); }
+  .challenge-feedback.wrong{ color:var(--fail); }
+
+  footer{
+    text-align:center;
+    color:#7c8ba1;
+    font-size:0.78rem;
+    padding:8px 10px 24px;
+  }
+  footer strong{ color:#4a6178; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>💪 Push → Machine → Load</h1>
+  <div class="flow-banner">👦 Push &nbsp;→&nbsp; ⚙️ Machine &nbsp;→&nbsp; 📦 Load</div>
+
+  <div class="stage-panel">
+    <svg id="leverSvg" viewBox="0 0 600 270" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#bfe6ff"/>
+          <stop offset="100%" stop-color="#eaf7ff"/>
+        </linearGradient>
+        <linearGradient id="plankGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#e0a15f"/>
+          <stop offset="100%" stop-color="#b6773f"/>
+        </linearGradient>
+        <linearGradient id="pivotGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#a9764a"/>
+          <stop offset="100%" stop-color="#6b4527"/>
+        </linearGradient>
+        <marker id="arrowPush" markerWidth="9" markerHeight="9" refX="4.5" refY="4.5" orient="auto-start-reverse">
+          <path d="M0,0 L9,4.5 L0,9 Z" fill="#3d8bff"/>
+        </marker>
+        <marker id="arrowLoad" markerWidth="9" markerHeight="9" refX="4.5" refY="4.5" orient="auto-start-reverse">
+          <path d="M0,0 L9,4.5 L0,9 Z" fill="#8a5cf6"/>
+        </marker>
+        <filter id="softShadow" x="-40%" y="-40%" width="180%" height="180%">
+          <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.25"/>
+        </filter>
+      </defs>
+
+      <!-- sky -->
+      <rect x="0" y="0" width="600" height="270" fill="url(#skyGrad)" rx="14"/>
+      <circle cx="545" cy="42" r="22" fill="#ffe08a"/>
+      <circle cx="70" cy="50" r="16" fill="#ffffff" opacity="0.8"/>
+      <circle cx="95" cy="55" r="20" fill="#ffffff" opacity="0.8"/>
+      <circle cx="118" cy="50" r="14" fill="#ffffff" opacity="0.8"/>
+
+      <!-- ground -->
+      <rect x="0" y="232" width="600" height="38" fill="#a9dd8c" rx="0"/>
+      <line x1="0" y1="232" x2="600" y2="232" stroke="#7fc95c" stroke-width="4"/>
+
+
+      <!-- pivot -->
+      <polygon points="272,228 328,228 300,192" fill="url(#pivotGrad)" filter="url(#softShadow)"/>
+      <rect x="266" y="226" width="68" height="8" rx="3" fill="#5c4326"/>
+
+      <!-- rotating lever group -->
+      <g id="leverGroup">
+        <rect x="150" y="187" width="225" height="16" rx="6" fill="url(#plankGrad)" stroke="#8d6e4a" stroke-width="2" filter="url(#softShadow)"/>
+        <text id="pushCharText" x="150" y="180" text-anchor="middle" font-size="42">🧑</text>
+        <text id="loadCharText" x="375" y="178" text-anchor="middle" font-size="34">📦</text>
+      </g>
+    </svg>
+    <div class="status-line" id="statusLine">The machine moves the load upward.</div>
+  </div>
+
+  <div class="sliders-panel">
+    <div class="slider-row">
+      <label for="pushSlider">💪 Push Force <span class="val"><span id="pushVal">50</span> N</span></label>
+      <input type="range" id="pushSlider" min="0" max="100" value="50" step="1">
+    </div>
+    <div class="slider-row">
+      <label for="loadSlider">📦 Load <span class="val"><span id="loadVal">5</span> kg</span></label>
+      <input type="range" id="loadSlider" min="1" max="10" value="5" step="1">
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl" id="testBtn">▶ Test Machine</button>
+    <button class="ctrl" id="resetBtn">🔄 Reset</button>
+  </div>
+
+  <div class="result-panel" id="resultPanel">
+    <div class="result-title" id="resultTitle"></div>
+    <div class="result-sub" id="resultSub"></div>
+  </div>
+
+  <div class="learning-message">
+    "Machines help us use force to move or lift loads."
+  </div>
+
+  <div class="panel">
+    <h2>🔍 What Happened?</h2>
+    <p>You applied a force to the machine. The machine transferred the force and helped move the load.</p>
+    <p>Changing the amount of force changes how the machine responds.</p>
+  </div>
+
+  <div class="panel">
+    <h2>🧠 Mini Challenge</h2>
+    <p>What happens when you increase the push force?</p>
+    <div class="challenge-options" id="challengeOptions">
+      <button class="opt-btn" data-choice="A">A) The machine can move the load more easily.</button>
+      <button class="opt-btn" data-choice="B">B) The load becomes heavier.</button>
+      <button class="opt-btn" data-choice="C">C) Nothing changes.</button>
+    </div>
+    <div class="challenge-feedback" id="challengeFeedback"></div>
+  </div>
+
+  <footer>This simulation was created by <strong>COROX LAB</strong></footer>
+</div>
+
+<script>
+(function(){
+  const PUSH_ARM = 150;   // distance from pivot to push end (svg units)
+  const LOAD_ARM = 75;    // distance from pivot to load end (svg units)
+  const MECH_ADVANTAGE = PUSH_ARM / LOAD_ARM; // = 2
+  const GRAVITY = 10; // simplified for grade 6 (N per kg)
+
+  const pushSlider = document.getElementById('pushSlider');
+  const loadSlider = document.getElementById('loadSlider');
+  const pushVal = document.getElementById('pushVal');
+  const loadVal = document.getElementById('loadVal');
+  const statusLine = document.getElementById('statusLine');
+  const leverGroup = document.getElementById('leverGroup');
+  const loadArrowGroup = document.getElementById('loadArrowGroup');
+  const pushCharText = document.getElementById('pushCharText');
+  const testBtn = document.getElementById('testBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const resultPanel = document.getElementById('resultPanel');
+  const resultTitle = document.getElementById('resultTitle');
+  const resultSub = document.getElementById('resultSub');
+  const challengeOptions = document.getElementById('challengeOptions');
+  const challengeFeedback = document.getElementById('challengeFeedback');
+
+  function requiredForce(loadKg){
+    return (loadKg * GRAVITY) / MECH_ADVANTAGE;
+  }
+
+  function computeAngle(net){
+    let theta = -(net / 6);
+    theta = Math.max(-16, Math.min(16, theta));
+    return theta;
+  }
+
+  function updateStage(moveMachine){
+    const pushForce = Number(pushSlider.value);
+    const loadKg = Number(loadSlider.value);
+    pushVal.textContent = pushForce;
+    loadVal.textContent = loadKg;
+
+    const need = requiredForce(loadKg);
+    const net = pushForce - need;
+    const theta = computeAngle(net);
+    const success = net >= 0;
+
+    if(moveMachine){
+      leverGroup.style.transform = `rotate(${theta}deg)`;
+
+      if(success){
+        statusLine.textContent = `The machine moves the load upward. (Needs at least ${need.toFixed(0)} N)`;
+        statusLine.style.color = '#1f9d5c';
+      } else {
+        statusLine.textContent = `The force is too small to lift the load. (Needs at least ${need.toFixed(0)} N)`;
+        statusLine.style.color = '#c93b3b';
+      }
+    } else {
+      statusLine.textContent = 'Set the force and load, then press Test Machine.';
+      statusLine.style.color = '#3a4a5a';
+    }
+
+    return { pushForce, loadKg, need, success };
+  }
+
+  function hideResult(){
+    resultPanel.classList.remove('show', 'success', 'fail');
+  }
+
+  function testMachine(){
+    pushCharText.classList.remove('pushing');
+    void pushCharText.offsetWidth; // restart animation
+    pushCharText.classList.add('pushing');
+
+    const { need, success } = updateStage(true);
+
+    setTimeout(() => {
+      resultPanel.classList.add('show', success ? 'success' : 'fail');
+      if(success){
+        resultTitle.textContent = '✅ Load lifted!';
+        resultSub.textContent = 'Great! Your push force was enough to move the load.';
+      } else {
+        resultTitle.textContent = '❌ Not enough force! Try increasing the push force or reducing the load.';
+        resultSub.textContent = `You need at least ${need.toFixed(0)} N to lift this load.`;
+      }
+    }, 350);
+  }
+
+  function resetAll(){
+    pushSlider.value = 50;
+    loadSlider.value = 5;
+    updateStage(false);
+    leverGroup.style.transform = 'rotate(0deg)';
+    hideResult();
+    pushCharText.classList.remove('pushing');
+    challengeOptions.querySelectorAll('.opt-btn').forEach(b => {
+      b.disabled = false;
+      b.classList.remove('correct', 'wrong');
+    });
+    challengeFeedback.textContent = '';
+    challengeFeedback.classList.remove('correct', 'wrong');
+  }
+
+  pushSlider.addEventListener('input', () => { updateStage(false); hideResult(); });
+  loadSlider.addEventListener('input', () => { updateStage(false); hideResult(); });
+  testBtn.addEventListener('click', testMachine);
+  resetBtn.addEventListener('click', resetAll);
+
+  challengeOptions.querySelectorAll('.opt-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const choice = btn.dataset.choice;
+      challengeOptions.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+      if(choice === 'A'){
+        btn.classList.add('correct');
+        challengeFeedback.textContent = '✅ Correct! More push force makes it easier for the machine to move the load.';
+        challengeFeedback.classList.add('correct');
+        challengeFeedback.classList.remove('wrong');
+      } else {
+        btn.classList.add('wrong');
+        challengeOptions.querySelector('[data-choice="A"]').classList.add('correct');
+        challengeFeedback.textContent = '❌ Not quite. The correct answer is A — more force makes it easier to move the load.';
+        challengeFeedback.classList.add('wrong');
+        challengeFeedback.classList.remove('correct');
+      }
+    });
+  });
+
+  updateStage(false);
+  leverGroup.style.transform = 'rotate(0deg)';
+})();
+</script>
+
+</body>
+</html>
