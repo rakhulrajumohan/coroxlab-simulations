@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Chemistry Around Me 🔍</title>
+<style>
+  :root{
+    --bg1:#EAF7EF;
+    --bg2:#D3EFDD;
+    --ink:#1F3A2E;
+    --ink-dim:#5C7A69;
+    --card:#FFFFFF;
+    --green:#43A047;
+    --teal:#00A99D;
+    --orange:#FF8A3D;
+    --purple:#8E5CD9;
+    --wood:#C6905A;
+    --wood-dark:#A6713C;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0; width:100%; min-height:100%;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    background: linear-gradient(180deg, var(--bg1), var(--bg2) 85%);
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  .app{
+    width:100%; min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding: 14px 12px 18px; gap:10px;
+  }
+
+  /* ---------------- HEADER ---------------- */
+  header{ text-align:center; width:100%; max-width:720px; }
+  h1{
+    margin:0; font-size: clamp(19px, 4.4vw, 28px); color:#1F3A2E;
+    text-shadow: 0 2px 0 rgba(255,255,255,0.6);
+  }
+  h1 .mag{ display:inline-block; animation: swing 2.4s ease-in-out infinite; transform-origin:70% 70%; }
+  @keyframes swing{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(-16deg); } }
+  .tagline{ margin:3px 0 0; font-size: clamp(11px,2.2vw,14px); color:var(--ink-dim); }
+
+  .counter-row{
+    width:100%; max-width:720px; display:flex; align-items:center; gap:10px;
+  }
+  .counter-track{
+    flex:1; height:11px; background:rgba(255,255,255,0.7); border-radius:20px; overflow:hidden;
+    border:2px solid #BFE6CC;
+  }
+  .counter-fill{ height:100%; background: linear-gradient(90deg,#43A047,#00A99D); border-radius:20px; width:0%; transition: width .4s ease; }
+  .counter-chip{
+    flex:0 0 auto; background:#FFFFFF; border:2px solid #BFE6CC; border-radius:20px;
+    padding:5px 12px; font-size: clamp(11px,2.1vw,13px); font-weight:bold; white-space:nowrap;
+  }
+
+  /* ---------------- SCENE (home + school environment) ---------------- */
+  .scene-card{
+    width:100%; max-width:720px; background:var(--card); border-radius:24px;
+    box-shadow: 0 12px 28px rgba(31,58,46,0.15); border:3px solid #ffffff;
+    padding:14px; display:flex; flex-direction:column; gap:12px;
+  }
+  .scene{
+    position:relative; border-radius:18px; overflow:hidden;
+    background: linear-gradient(180deg, #CDEBFF 0%, #CDEBFF 62%, #EFE0BF 62%, #EFE0BF 100%);
+    padding: 14px 10px 0;
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .surface-label{
+    font-size: clamp(10px,1.9vw,12px); font-weight:bold; color:var(--ink-dim);
+    padding-left:4px;
+  }
+  .surface{
+    position:relative;
+    display:grid; grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    padding: 8px 6px 20px;
+  }
+  .surface::after{
+    content:''; position:absolute; left:0; right:0; bottom:8px; height:12px;
+    background: linear-gradient(180deg, var(--wood), var(--wood-dark));
+    border-radius: 6px;
+  }
+  .surface.shelf::after{ height:9px; }
+
+  .obj-tile{
+    position:relative; z-index:2;
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+    background:transparent; border:none; cursor:pointer; padding:4px 2px 2px;
+    font-family:inherit;
+  }
+  .obj-emoji{
+    font-size: clamp(30px, 6.4vw, 46px); line-height:1;
+    animation: idleBob 3s ease-in-out infinite;
+    filter: drop-shadow(0 3px 3px rgba(0,0,0,0.18));
+    transition: transform .18s ease;
+  }
+  .obj-tile:nth-child(2) .obj-emoji{ animation-delay:.3s; }
+  .obj-tile:nth-child(3) .obj-emoji{ animation-delay:.6s; }
+  .obj-tile:nth-child(4) .obj-emoji{ animation-delay:.9s; }
+  @keyframes idleBob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-4px); } }
+
+  .obj-tile:hover .obj-emoji{ transform: scale(1.15); }
+  .obj-tile.selected .obj-emoji{ transform: scale(1.22); }
+  .obj-name{
+    font-size: clamp(9.5px,1.7vw,11.5px); font-weight:bold; color:var(--ink);
+    margin-top:2px; text-align:center;
+  }
+  .obj-ring{
+    position:absolute; top:-4px; left:50%; width:64%; aspect-ratio:1/1; margin-left:-32%;
+    border-radius:50%; border:3px dashed rgba(67,160,71,0.0); pointer-events:none;
+    transition: border-color .2s ease;
+  }
+  .obj-tile.selected .obj-ring{ border-color: rgba(67,160,71,0.55); animation: ringPulse 1.4s ease-in-out infinite; }
+  @keyframes ringPulse{ 0%,100%{ transform:scale(1); opacity:0.7; } 50%{ transform:scale(1.12); opacity:1; } }
+
+  .badge-check{
+    position:absolute; top:-2px; right:6%; width:18px; height:18px; border-radius:50%;
+    background: var(--green); color:#fff; font-size:11px; font-weight:bold;
+    display:none; align-items:center; justify-content:center; z-index:3;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+  }
+  .obj-tile.discovered .badge-check{ display:flex; }
+
+  .obj-pulse{
+    position:absolute; top:-2px; right:6%; width:14px; height:14px; border-radius:50%;
+    background: var(--orange); z-index:3; animation: pulseDot 1.3s ease-in-out infinite;
+  }
+  .obj-tile.discovered .obj-pulse{ display:none; }
+  @keyframes pulseDot{ 0%,100%{ box-shadow:0 0 0 0 rgba(255,138,61,0.55);} 50%{ box-shadow:0 0 0 6px rgba(255,138,61,0);} }
+
+  /* ---------------- INFO PANEL ---------------- */
+  .info-panel{
+    background: linear-gradient(135deg, rgba(67,160,71,0.08), rgba(0,169,157,0.06));
+    border:2px dashed #BFE6CC; border-radius:16px; padding:14px 16px;
+    display:flex; flex-direction:column; gap:6px; align-items:center; text-align:center;
+    min-height: 96px; justify-content:center;
+  }
+  .info-panel .placeholder{ font-size: clamp(12px,2.4vw,14px); color:var(--ink-dim); }
+  .info-title{ font-size: clamp(15px,3vw,18px); font-weight:bold; color:#1F3A2E; }
+  .info-badge{
+    font-size: clamp(10.5px,2vw,12px); font-weight:bold; color:var(--teal);
+    text-transform:uppercase; letter-spacing:0.04em;
+  }
+  .info-text{ font-size: clamp(12.5px,2.4vw,14.5px); color:var(--ink); line-height:1.55; max-width:52ch; }
+
+  .panel-controls{ display:flex; justify-content:center; gap:10px; flex-wrap:wrap; }
+  .next-btn{
+    display:flex; align-items:center; gap:7px;
+    font-family:inherit; font-weight:bold; font-size: clamp(13px,2.6vw,15px);
+    background: linear-gradient(180deg,#7FD8CB,#00A99D); color:#04302B;
+    border:none; border-radius:24px; padding:10px 22px; cursor:pointer;
+    box-shadow: 0 5px 0 #007A70, 0 7px 12px rgba(0,0,0,0.14);
+    transition: transform .08s ease;
+  }
+  .next-btn:active{ transform: translateY(3px); box-shadow: 0 2px 0 #007A70, 0 3px 6px rgba(0,0,0,0.14); }
+  .next-btn:disabled{ opacity:0.5; cursor:default; }
+
+  /* ---------------- COMPLETE SCREEN ---------------- */
+  .complete{ display:none; text-align:center; flex-direction:column; gap:12px; align-items:center; }
+  .complete.active{ display:flex; }
+  .complete .trophy{ font-size: clamp(50px,12vw,80px); animation: bounce 1.4s ease-in-out infinite; }
+  @keyframes bounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+  .complete h2{ margin:0; font-size: clamp(19px,4.2vw,26px); color:#1F3A2E; }
+  .complete .scoreBig{ font-size: clamp(15px,3.2vw,18px); font-weight:bold; color:var(--purple); }
+  .complete p{ margin:0; font-size: clamp(13px,2.8vw,16px); color:var(--ink-dim); max-width:46ch; line-height:1.5; }
+  .try-again{
+    display:flex; align-items:center; gap:8px;
+    font-family:inherit; font-weight:bold; font-size: clamp(14px,3vw,16px);
+    background: linear-gradient(180deg,#79D4A0,#43A047); color:#fff;
+    border:none; border-radius:26px; padding:12px 26px; cursor:pointer;
+    box-shadow: 0 6px 0 #2E7031, 0 8px 14px rgba(0,0,0,0.15);
+    transition: transform .08s ease;
+  }
+  .try-again:active{ transform: translateY(4px); box-shadow: 0 2px 0 #2E7031, 0 4px 8px rgba(0,0,0,0.15); }
+
+  footer{
+    font-size: clamp(10.5px,2vw,12.5px); color:var(--ink-dim); text-align:center; opacity:0.9;
+  }
+  footer b{ color:#1F3A2E; }
+
+  @media (max-width:480px){
+    .surface{ grid-template-columns: repeat(4, 1fr); gap:4px; padding:6px 3px 16px; }
+    .obj-name{ display:none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="mag">🔍</span> Chemistry Around Me</h1>
+    <p class="tagline">Tap the objects at home and school to find the chemistry hiding inside!</p>
+  </header>
+
+  <div class="counter-row">
+    <div class="counter-track"><div class="counter-fill" id="counterFill"></div></div>
+    <div class="counter-chip" id="counterChip">🔎 Objects Discovered: 0 / 8</div>
+  </div>
+
+  <div class="scene-card" id="sceneCard">
+    <div class="scene">
+      <div class="surface-label">🗄️ Kitchen Shelf</div>
+      <div class="surface shelf" id="shelfRow"></div>
+      <div class="surface-label">🍽️ Table</div>
+      <div class="surface table" id="tableRow"></div>
+    </div>
+
+    <div class="info-panel" id="infoPanel">
+      <div class="placeholder" id="infoPlaceholder">👆 Tap any object above to discover its chemistry!</div>
+      <div id="infoContent" style="display:none;">
+        <div class="info-badge">🧪 Chemistry in action!</div>
+        <div class="info-title" id="infoTitle"></div>
+        <div class="info-text" id="infoText"></div>
+      </div>
+    </div>
+
+    <div class="panel-controls">
+      <button class="next-btn" id="nextBtn">➡ Next Object</button>
+    </div>
+  </div>
+
+  <div class="scene-card complete" id="completeCard">
+    <div class="trophy">🎉</div>
+    <h2>Chemistry Detective Complete!</h2>
+    <div class="scoreBig" id="finalScore">🔎 You discovered chemistry in 8 everyday objects!</div>
+    <p>Great job! Chemistry is not only found in a laboratory. It is happening in the food we eat, the things we use and the materials around us.</p>
+    <button class="try-again" id="tryAgainBtn">🔄 Explore Again</button>
+  </div>
+
+  <footer>This simulation was created by <b>COROX LAB</b></footer>
+</div>
+
+<script>
+(function(){
+  const OBJECTS = [
+    { emoji:'🧂', name:'Salt', text:'Salt is a substance made from sodium and chlorine.', surface:'shelf' },
+    { emoji:'🍞', name:'Bread', text:'Different substances and chemical changes are involved when bread is made and baked.', surface:'shelf' },
+    { emoji:'🧴', name:'Toothpaste', text:'Toothpaste contains different substances that help clean and protect teeth.', surface:'shelf' },
+    { emoji:'🔋', name:'Battery', text:'Chemical reactions inside a battery produce electrical energy.', surface:'shelf' },
+    { emoji:'🥛', name:'Milk', text:'Milk contains water, proteins, fats, sugars and minerals.', surface:'table' },
+    { emoji:'🍎', name:'Apple', text:'Apples contain water, sugars, acids and other substances.', surface:'table' },
+    { emoji:'🧼', name:'Soap', text:'Soap helps remove oily dirt by interacting with both water and grease, allowing the dirt to be washed away.', surface:'table' },
+    { emoji:'🧊', name:'Ice', text:'Water changes from solid ice to liquid water when heated.', surface:'table' },
+  ];
+
+  const shelfRow = document.getElementById('shelfRow');
+  const tableRow = document.getElementById('tableRow');
+  const counterFill = document.getElementById('counterFill');
+  const counterChip = document.getElementById('counterChip');
+  const infoPlaceholder = document.getElementById('infoPlaceholder');
+  const infoContent = document.getElementById('infoContent');
+  const infoTitle = document.getElementById('infoTitle');
+  const infoText = document.getElementById('infoText');
+  const nextBtn = document.getElementById('nextBtn');
+  const sceneCard = document.getElementById('sceneCard');
+  const completeCard = document.getElementById('completeCard');
+  const finalScore = document.getElementById('finalScore');
+  const tryAgainBtn = document.getElementById('tryAgainBtn');
+
+  const discovered = new Set();
+  let currentIndex = -1;
+  const tiles = [];
+
+  function buildTiles(){
+    OBJECTS.forEach((o, i) => {
+      const tile = document.createElement('button');
+      tile.className = 'obj-tile';
+      tile.innerHTML = `
+        <span class="obj-ring"></span>
+        <span class="badge-check">✓</span>
+        <span class="obj-pulse"></span>
+        <span class="obj-emoji">${o.emoji}</span>
+        <span class="obj-name">${o.name}</span>
+      `;
+      tile.addEventListener('click', () => selectObject(i));
+      (o.surface === 'shelf' ? shelfRow : tableRow).appendChild(tile);
+      tiles.push(tile);
+    });
+  }
+
+  function updateCounter(){
+    counterChip.textContent = '🔎 Objects Discovered: ' + discovered.size + ' / ' + OBJECTS.length;
+    counterFill.style.width = Math.round((discovered.size / OBJECTS.length) * 100) + '%';
+  }
+
+  function selectObject(index){
+    currentIndex = index;
+    const o = OBJECTS[index];
+
+    tiles.forEach((t, i) => t.classList.toggle('selected', i === index));
+
+    const isNew = !discovered.has(index);
+    discovered.add(index);
+    tiles[index].classList.add('discovered');
+    updateCounter();
+
+    infoPlaceholder.style.display = 'none';
+    infoContent.style.display = 'block';
+    infoTitle.textContent = o.emoji + ' ' + o.name;
+    infoText.textContent = o.text;
+
+    nextBtn.disabled = index >= OBJECTS.length - 1;
+    nextBtn.textContent = index >= OBJECTS.length - 1 ? '✅ All Explored!' : '➡ Next Object';
+
+    if(discovered.size === OBJECTS.length){
+      setTimeout(finishGame, 1200);
+    }
+  }
+
+  function finishGame(){
+    sceneCard.style.display = 'none';
+    completeCard.classList.add('active');
+    finalScore.textContent = '🔎 You discovered chemistry in ' + OBJECTS.length + ' everyday objects!';
+  }
+
+  nextBtn.addEventListener('click', () => {
+    const next = Math.min(OBJECTS.length - 1, currentIndex + 1);
+    selectObject(next);
+  });
+
+  tryAgainBtn.addEventListener('click', () => {
+    discovered.clear();
+    currentIndex = -1;
+    tiles.forEach(t => t.classList.remove('discovered', 'selected'));
+    updateCounter();
+    infoPlaceholder.style.display = 'block';
+    infoContent.style.display = 'none';
+    nextBtn.disabled = false;
+    nextBtn.textContent = '➡ Next Object';
+    completeCard.classList.remove('active');
+    sceneCard.style.display = 'flex';
+  });
+
+  buildTiles();
+  updateCounter();
+})();
+</script>
+</body>
+</html>
