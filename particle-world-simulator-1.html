@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>🧪 Particle World</title>
+<style>
+  :root{
+    --ink:#1c2b3a;
+    --ink-dim:#5b6c82;
+    --card:#ffffff;
+    --green:#2ecc71;
+    --green-dark:#1f9c56;
+    --blue:#2f80ed;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0; width:100%; min-height:100%;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    background: linear-gradient(180deg,#eef8ff,#dff1ff 85%);
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  .app{
+    width:100%; min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding: 16px 12px 22px; gap:12px;
+  }
+
+  header{ text-align:center; width:100%; max-width:760px; }
+  h1{ margin:0; font-size: clamp(20px,4.6vw,30px); color:#15263d; text-shadow:0 2px 0 rgba(255,255,255,0.6); }
+  h1 .ic{ display:inline-block; animation: bob 2.6s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-4px); } }
+  .tagline{ margin:4px 0 0; font-size: clamp(12px,2.3vw,14.5px); color:var(--ink-dim); }
+
+  /* ---------------- TABS ---------------- */
+  .tabs{ width:100%; max-width:760px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .tab{
+    flex:1 1 130px; max-width:180px; padding:9px 8px; border-radius:12px; border:2px solid #cfe0f7;
+    background:#fff; color:#15263d; font-weight:bold; font-size: clamp(11.5px,2.2vw,13px);
+    text-align:center; cursor:pointer; transition: all .15s ease; position:relative;
+  }
+  .tab.active{ background: linear-gradient(135deg,#3b7cff,#2350c9); color:#fff; border-color:#3b7cff; }
+  .tab.locked{ opacity:0.55; cursor:not-allowed; }
+  .tab .check{ position:absolute; top:-6px; right:-6px; font-size:12px; background:#fff; border-radius:50%; box-shadow:0 2px 4px rgba(0,0,0,0.25); display:none; }
+  .tab.visited .check{ display:block; }
+  .tab.pulse{ animation: tabPulse 1s ease 2; }
+  @keyframes tabPulse{ 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.06);} }
+
+  /* ---------------- MAIN CARD ---------------- */
+  .main-card{
+    width:100%; max-width:760px; background:var(--card); border-radius:24px;
+    box-shadow: 0 12px 28px rgba(10,30,60,0.15); border:3px solid #ffffff;
+    padding:16px; display:flex; flex-direction:column; gap:12px;
+  }
+  .panel{ display:none; flex-direction:column; gap:12px; }
+  .panel.active{ display:flex; }
+
+  .state-row{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .state-btn{
+    font-family:inherit; font-weight:bold; font-size: clamp(12px,2.4vw,14px);
+    background:#f4f8ff; color:#15263d; border:2px solid #cfe0f7; border-radius:14px;
+    padding:8px 16px; cursor:pointer; transition: all .15s ease;
+  }
+  .state-btn.active{ background: linear-gradient(135deg,#3b7cff,#2350c9); color:#fff; border-color:#3b7cff; }
+
+  .sim-canvas{
+    width:100%; height: clamp(190px,36vw,260px);
+    background: linear-gradient(180deg,#f4faff,#e9f4ff);
+    border:2px solid #cfe0f7; border-radius:16px; display:block;
+  }
+
+  .ctrl-row{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .ctrl-btn{
+    font-family:inherit; font-weight:bold; font-size: clamp(12.5px,2.5vw,14.5px);
+    border:none; border-radius:14px; padding:10px 18px; cursor:pointer;
+    color:#fff; box-shadow:0 4px 10px rgba(0,0,0,0.15); transition: transform .08s ease;
+  }
+  .ctrl-btn:active{ transform:scale(0.95); }
+  .ctrl-btn.play{ background: linear-gradient(180deg,#5aa4ff,#2f6fe0); }
+  .ctrl-btn.pause{ background: linear-gradient(180deg,#ffc158,#e0a020); }
+  .ctrl-btn.reset{ background: linear-gradient(180deg,#9aa4b8,#6b7488); }
+
+  .explain{
+    background: linear-gradient(135deg, rgba(255,140,66,0.08), rgba(47,128,237,0.06));
+    border:2px dashed #cfe0f7; border-radius:14px; padding:9px 14px;
+    font-size: clamp(11.5px,2.2vw,13.5px); color:var(--ink); text-align:center; line-height:1.5; min-height:2.8em;
+  }
+
+  .slider-row{ display:flex; align-items:center; gap:10px; }
+  .slider-row input[type=range]{ flex:1; accent-color:#2f80ed; }
+  .slider-row .val{ font-weight:bold; font-size:13px; min-width:52px; text-align:right; }
+
+  .question{ text-align:center; font-size: clamp(13.5px,2.7vw,16px); font-weight:bold; color:#15263d; }
+  .choices{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+  .choice-btn{
+    font-family:inherit; font-weight:bold; font-size: clamp(12.5px,2.4vw,14.5px);
+    background:#fff; color:#15263d; border:2px solid #cfe0f7; border-radius:14px;
+    padding:9px 16px; cursor:pointer; transition: transform .08s ease, background .15s ease, border-color .15s ease;
+  }
+  .choice-btn:hover{ border-color:#8fbcf7; }
+  .choice-btn:active{ transform:scale(0.95); }
+  .choice-btn.correct{ background:#e5faed; border-color:var(--green); color:var(--green-dark); }
+  .choice-btn.wrong{ background:#ffecec; border-color:#ff6b6b; color:#c0392b; }
+  .choice-btn:disabled{ cursor:default; }
+
+  .feedback{ text-align:center; font-size: clamp(12.5px,2.4vw,14.5px); font-weight:bold; min-height:1.4em; opacity:0; transition:opacity .2s ease; }
+  .feedback.show{ opacity:1; }
+  .feedback.ok{ color:var(--green-dark); }
+  .feedback.no{ color:#c0392b; }
+
+  .quiz-progress{ text-align:center; font-size: clamp(11.5px,2.1vw,13px); color:var(--ink-dim); font-weight:bold; }
+
+  /* ---------------- COMPLETE SCREEN ---------------- */
+  .complete{ display:none; text-align:center; flex-direction:column; gap:12px; align-items:center; }
+  .complete.active{ display:flex; }
+  .complete .trophy{ font-size: clamp(50px,12vw,80px); animation: bounce 1.4s ease-in-out infinite; }
+  @keyframes bounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+  .complete h2{ margin:0; font-size: clamp(19px,4.2vw,26px); color:#15263d; }
+  .complete p{ margin:0; font-size: clamp(13px,2.7vw,16px); color:var(--ink-dim); max-width:48ch; line-height:1.55; }
+  .complete .score{ font-weight:bold; font-size: clamp(15px,3.2vw,18px); color:var(--green-dark); }
+  .try-again{
+    display:flex; align-items:center; gap:8px;
+    font-family:inherit; font-weight:bold; font-size: clamp(14px,3vw,16px);
+    background: linear-gradient(180deg,#79D4A0,#43A047); color:#fff;
+    border:none; border-radius:26px; padding:12px 26px; cursor:pointer;
+    box-shadow: 0 6px 0 #2E7031, 0 8px 14px rgba(0,0,0,0.15);
+    transition: transform .08s ease;
+  }
+  .try-again:active{ transform: translateY(4px); box-shadow: 0 2px 0 #2E7031, 0 4px 8px rgba(0,0,0,0.15); }
+
+  footer{ font-size: clamp(10.5px,2vw,12.5px); color:var(--ink-dim); text-align:center; opacity:0.9; margin-top:2px; }
+  footer b{ color:#15263d; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="ic">🧪</span> Particle World</h1>
+    <p class="tagline">Matter is made of tiny particles. Their movement, arrangement and spacing explain many properties of matter.</p>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active visited" data-tab="particle">🧊 Particle Model<span class="check">✅</span></div>
+    <div class="tab" data-tab="diffusion">🌫️ Diffusion<span class="check">✅</span></div>
+    <div class="tab" data-tab="compress">💨 Compressibility<span class="check">✅</span></div>
+    <div class="tab locked" data-tab="test">🔒 Test</div>
+  </div>
+
+  <div class="main-card" id="mainCard">
+
+    <!-- ============ MODE 1: PARTICLE MODEL ============ -->
+    <div class="panel active" id="panel-particle">
+      <div class="state-row" id="pmStateRow">
+        <div class="state-btn active" data-state="solid">🧊 Solid</div>
+        <div class="state-btn" data-state="liquid">💧 Liquid</div>
+        <div class="state-btn" data-state="gas">💨 Gas</div>
+      </div>
+      <canvas class="sim-canvas" id="pmCanvas"></canvas>
+      <div class="ctrl-row">
+        <button class="ctrl-btn play" id="pmMotionBtn">▶ Start Motion</button>
+      </div>
+      <div class="explain" id="pmExplain"></div>
+    </div>
+
+    <!-- ============ MODE 2: DIFFUSION ============ -->
+    <div class="panel" id="panel-diffusion">
+      <canvas class="sim-canvas" id="dfCanvas"></canvas>
+      <div class="ctrl-row">
+        <button class="ctrl-btn play" id="dfStartBtn">▶ Start</button>
+        <button class="ctrl-btn pause" id="dfPauseBtn">⏸ Pause</button>
+        <button class="ctrl-btn reset" id="dfResetBtn">🔄 Reset</button>
+      </div>
+      <div class="question">What happens to the particles?</div>
+      <div class="choices" id="dfChoices"></div>
+      <div class="feedback" id="dfFeedback"></div>
+    </div>
+
+    <!-- ============ MODE 3: COMPRESSIBILITY ============ -->
+    <div class="panel" id="panel-compress">
+      <div class="state-row" id="cpStateRow">
+        <div class="state-btn active" data-state="solid">🧊 Solid</div>
+        <div class="state-btn" data-state="liquid">💧 Liquid</div>
+        <div class="state-btn" data-state="gas">💨 Gas</div>
+      </div>
+      <canvas class="sim-canvas" id="cpCanvas"></canvas>
+      <div class="slider-row">
+        <span style="font-size:13px;">Compress:</span>
+        <input type="range" id="cpSlider" min="0" max="100" value="0">
+        <span class="val" id="cpVal">0%</span>
+      </div>
+      <div class="explain" id="cpExplain"></div>
+      <div class="ctrl-row">
+        <button class="ctrl-btn reset" id="cpResetBtn">🔄 Reset</button>
+      </div>
+    </div>
+
+    <!-- ============ MODE 4: TEST ============ -->
+    <div class="panel" id="panel-test">
+      <div class="quiz-progress" id="quizProgress">Question 1 of 3</div>
+      <div class="question" id="quizQuestion"></div>
+      <div class="choices" id="quizChoices"></div>
+      <div class="feedback" id="quizFeedback"></div>
+    </div>
+
+  </div>
+
+  <div class="main-card complete" id="completeCard">
+    <div class="trophy">🎉</div>
+    <h2>Particle Explorer Complete!</h2>
+    <p>Matter is made of tiny moving particles. Their arrangement, movement and spacing help explain the properties of solids, liquids and gases.</p>
+    <div class="score" id="scoreLine">Score: 0 / 3</div>
+    <button class="try-again" id="tryAgainBtn">🔄 Try Again</button>
+  </div>
+
+  <footer>This simulation was created by <b>COROX LAB</b></footer>
+</div>
+
+<script>
+(function(){
+  /* =====================================================================
+     TAB NAVIGATION
+     ===================================================================== */
+  const tabs = document.querySelectorAll('.tab');
+  const panels = { particle: document.getElementById('panel-particle'),
+                    diffusion: document.getElementById('panel-diffusion'),
+                    compress: document.getElementById('panel-compress'),
+                    test: document.getElementById('panel-test') };
+  const visited = new Set(['particle']);
+
+  function activateTab(key){
+    const tab = [...tabs].find(t => t.dataset.tab === key);
+    if(tab && tab.classList.contains('locked')) return;
+
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === key));
+    Object.keys(panels).forEach(k => panels[k].classList.toggle('active', k === key));
+
+    if(key !== 'test'){
+      visited.add(key);
+      tabs.forEach(t => { if(t.dataset.tab === key) t.classList.add('visited'); });
+      maybeUnlockTest();
+    }
+
+    // (re)size + (re)draw the canvas belonging to the now-visible panel
+    if(key === 'particle') fitCanvas(pmCanvas), drawParticleModel();
+    if(key === 'diffusion') fitCanvas(dfCanvas), drawDiffusion();
+    if(key === 'compress') fitCanvas(cpCanvas), drawCompress();
+  }
+
+  function maybeUnlockTest(){
+    const testTab = [...tabs].find(t => t.dataset.tab === 'test');
+    if(visited.size >= 3 && testTab.classList.contains('locked')){
+      testTab.classList.remove('locked');
+      testTab.textContent = '🧠 Test Your Understanding';
+      testTab.classList.add('pulse');
+    }
+  }
+
+  tabs.forEach(t => t.addEventListener('click', ()=> activateTab(t.dataset.tab)));
+
+  /* =====================================================================
+     SHARED HELPERS
+     ===================================================================== */
+  function fitCanvas(canvas){
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+  }
+  function rand(min,max){ return min + Math.random()*(max-min); }
+
+  /* =====================================================================
+     MODE 1: PARTICLE MODEL
+     ===================================================================== */
+  const pmCanvas = document.getElementById('pmCanvas');
+  const pmCtx = pmCanvas.getContext('2d');
+  const pmMotionBtn = document.getElementById('pmMotionBtn');
+  const pmExplain = document.getElementById('pmExplain');
+
+  const PM_CONFIG = {
+    solid:  { color:'#4a90e2', explain:'Particles are packed tightly in a fixed pattern and just vibrate in place.' },
+    liquid: { color:'#22b8cf', explain:'Particles stay close together but can slide and move around each other.' },
+    gas:    { color:'#ff8a5c', explain:'Particles are far apart and move quickly and freely in every direction.' }
+  };
+  let pmState = 'solid';
+  let pmRunning = false;
+  let pmParticles = [];
+
+  function pmInit(){
+    pmParticles = [];
+    const w = pmCanvas.width, h = pmCanvas.height;
+    if(pmState === 'solid'){
+      const cols = 6, rows = 4;
+      const mx = w*0.12, my = h*0.15;
+      const gx = (w-2*mx)/(cols-1), gy = (h-2*my)/(rows-1);
+      for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+        pmParticles.push({ bx: mx+c*gx, by: my+r*gy, x:0, y:0, phase: rand(0,Math.PI*2) });
+      }
+    } else if(pmState === 'liquid'){
+      for(let i=0;i<34;i++){
+        pmParticles.push({ x: rand(w*0.08,w*0.92), y: rand(h*0.12,h*0.9), vx: rand(-0.6,0.6), vy: rand(-0.6,0.6) });
+      }
+    } else {
+      for(let i=0;i<16;i++){
+        pmParticles.push({ x: rand(w*0.06,w*0.94), y: rand(h*0.08,h*0.92), vx: rand(-2.2,2.2), vy: rand(-2.2,2.2) });
+      }
+    }
+  }
+
+  function pmStep(){
+    const w = pmCanvas.width, h = pmCanvas.height;
+    const r = pmState === 'gas' ? 6 : 8;
+    if(pmState === 'solid'){
+      pmParticles.forEach(p=>{
+        p.phase += 0.25;
+        p.x = p.bx + Math.sin(p.phase)*(pmRunning?2.2:0);
+        p.y = p.by + Math.cos(p.phase*1.3)*(pmRunning?2.2:0);
+      });
+    } else {
+      pmParticles.forEach(p=>{
+        if(pmRunning){
+          p.x += p.vx; p.y += p.vy;
+          if(p.x < r || p.x > w-r) p.vx *= -1;
+          if(p.y < r || p.y > h-r) p.vy *= -1;
+          p.x = Math.max(r, Math.min(w-r, p.x));
+          p.y = Math.max(r, Math.min(h-r, p.y));
+        }
+      });
+    }
+  }
+
+  function drawParticleModel(){
+    const w = pmCanvas.width, h = pmCanvas.height;
+    pmCtx.clearRect(0,0,w,h);
+    const color = PM_CONFIG[pmState].color;
+    const r = pmState === 'gas' ? 6 : 8;
+    pmCtx.fillStyle = color;
+    pmParticles.forEach(p=>{
+      pmCtx.beginPath();
+      pmCtx.arc(p.x, p.y, r, 0, Math.PI*2);
+      pmCtx.fill();
+    });
+  }
+
+  function pmLoop(){
+    pmStep();
+    drawParticleModel();
+    requestAnimationFrame(pmLoop);
+  }
+
+  document.getElementById('pmStateRow').addEventListener('click', (e)=>{
+    const btn = e.target.closest('.state-btn');
+    if(!btn) return;
+    document.querySelectorAll('#pmStateRow .state-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    pmState = btn.dataset.state;
+    pmExplain.textContent = PM_CONFIG[pmState].explain;
+    pmInit();
+  });
+
+  pmMotionBtn.addEventListener('click', ()=>{
+    pmRunning = !pmRunning;
+    pmMotionBtn.textContent = pmRunning ? '⏸ Pause Motion' : '▶ Start Motion';
+  });
+
+  /* =====================================================================
+     MODE 2: DIFFUSION
+     ===================================================================== */
+  const dfCanvas = document.getElementById('dfCanvas');
+  const dfCtx = dfCanvas.getContext('2d');
+  const dfChoices = document.getElementById('dfChoices');
+  const dfFeedback = document.getElementById('dfFeedback');
+  let dfParticles = [];
+  let dfRunning = false;
+
+  function dfInit(){
+    const w = dfCanvas.width, h = dfCanvas.height;
+    dfParticles = [];
+    for(let i=0;i<55;i++){
+      dfParticles.push({
+        x: rand(w*0.04, w*0.22), y: rand(h*0.06, h*0.94),
+        vx: rand(-1.6,1.6), vy: rand(-1.6,1.6)
+      });
+    }
+    dfRunning = false;
+    dfFeedback.className = 'feedback';
+    dfFeedback.textContent = '';
+    document.querySelectorAll('#dfChoices .choice-btn').forEach(b=>{ b.disabled=false; b.classList.remove('correct','wrong'); });
+  }
+
+  function dfStep(){
+    if(!dfRunning) return;
+    const w = dfCanvas.width, h = dfCanvas.height, r = 5;
+    dfParticles.forEach(p=>{
+      p.vx += rand(-0.15,0.15); p.vy += rand(-0.15,0.15);
+      p.vx = Math.max(-2.2, Math.min(2.2, p.vx));
+      p.vy = Math.max(-2.2, Math.min(2.2, p.vy));
+      p.x += p.vx; p.y += p.vy;
+      if(p.x < r || p.x > w-r) p.vx *= -1;
+      if(p.y < r || p.y > h-r) p.vy *= -1;
+      p.x = Math.max(r, Math.min(w-r, p.x));
+      p.y = Math.max(r, Math.min(h-r, p.y));
+    });
+  }
+
+  function drawDiffusion(){
+    const w = dfCanvas.width, h = dfCanvas.height;
+    dfCtx.clearRect(0,0,w,h);
+    dfCtx.fillStyle = '#8e5ae2';
+    dfParticles.forEach(p=>{
+      dfCtx.beginPath();
+      dfCtx.arc(p.x,p.y,5,0,Math.PI*2);
+      dfCtx.fill();
+    });
+  }
+
+  function dfLoop(){
+    dfStep();
+    drawDiffusion();
+    requestAnimationFrame(dfLoop);
+  }
+
+  document.getElementById('dfStartBtn').addEventListener('click', ()=>{ dfRunning = true; });
+  document.getElementById('dfPauseBtn').addEventListener('click', ()=>{ dfRunning = false; });
+  document.getElementById('dfResetBtn').addEventListener('click', dfInit);
+
+  const DF_CHOICES = [
+    { text:'They spread out evenly through the container', correct:true },
+    { text:'They stay in one place', correct:false },
+    { text:'They disappear', correct:false }
+  ];
+  DF_CHOICES.forEach(c=>{
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = c.text;
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#dfChoices .choice-btn').forEach(b=>b.disabled=true);
+      if(c.correct){
+        btn.classList.add('correct');
+        dfFeedback.textContent = '✅ Correct! Particles move randomly and spread out until they fill the space evenly.';
+        dfFeedback.className = 'feedback show ok';
+      } else {
+        btn.classList.add('wrong');
+        dfFeedback.textContent = '❌ Not quite. Particles keep moving randomly until they spread evenly through the container.';
+        dfFeedback.className = 'feedback show no';
+      }
+    });
+    dfChoices.appendChild(btn);
+  });
+
+  /* =====================================================================
+     MODE 3: COMPRESSIBILITY
+     ===================================================================== */
+  const cpCanvas = document.getElementById('cpCanvas');
+  const cpCtx = cpCanvas.getContext('2d');
+  const cpSlider = document.getElementById('cpSlider');
+  const cpVal = document.getElementById('cpVal');
+  const cpExplain = document.getElementById('cpExplain');
+
+  const CP_CONFIG = {
+    solid:  { factor:0.06, color:'#4a90e2', count:24, grid:true,
+              explain:'Solid particles are already packed tightly, so they barely move when compressed.' },
+    liquid: { factor:0.32, color:'#22b8cf', count:34, grid:false,
+              explain:'Liquid particles are close together and move only slightly when compressed.' },
+    gas:    { factor:0.82, color:'#ff8a5c', count:16, grid:false,
+              explain:'Gases are easier to compress because there are larger spaces between their particles.' }
+  };
+  let cpState = 'solid';
+  let cpParticles = [];
+
+  function cpInit(){
+    const w = cpCanvas.width, h = cpCanvas.height;
+    const cfg = CP_CONFIG[cpState];
+    cpParticles = [];
+    const topMargin = h*0.12, bottomMargin = h*0.08;
+
+    if(cfg.grid){
+      const cols = 6, rows = 4;
+      const marginFrac = 0.12; // fraction of width, independent of actual canvas width
+      for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+        cpParticles.push({ relX: marginFrac + c*(1-2*marginFrac)/(cols-1), relY:(r+0.5)/rows });
+      }
+    } else {
+      for(let i=0;i<cfg.count;i++){
+        cpParticles.push({ relX: rand(0.08,0.92), relY: rand(0.05,0.95) });
+      }
+    }
+    cpSlider.value = 0;
+    cpVal.textContent = '0%';
+  }
+
+  function drawCompress(){
+    const w = cpCanvas.width, h = cpCanvas.height;
+    cpCtx.clearRect(0,0,w,h);
+    const cfg = CP_CONFIG[cpState];
+    const topMargin = h*0.12, bottomMargin = h*0.08;
+    const fullTop = topMargin, fullBottom = h-bottomMargin;
+    const slider = cpSlider.value/100;
+    const pistonY = fullTop + (fullBottom-fullTop) * cfg.factor * slider;
+
+    // container walls
+    cpCtx.strokeStyle = '#9fb0cc'; cpCtx.lineWidth = 2;
+    cpCtx.strokeRect(w*0.06, fullTop, w*0.88, fullBottom-fullTop);
+
+    // piston
+    cpCtx.fillStyle = '#5b6b78';
+    cpCtx.fillRect(w*0.04, pistonY-8, w*0.92, 8);
+    cpCtx.fillStyle = '#3a4258';
+    cpCtx.fillRect(w*0.48, 0, w*0.04, pistonY-8);
+
+    // particles compressed into region [pistonY, fullBottom]
+    cpCtx.fillStyle = cfg.color;
+    const r = cpState === 'gas' ? 6 : 7;
+    cpParticles.forEach(p=>{
+      const x = w*0.06 + p.relX*(w*0.88);
+      const y = pistonY + p.relY*(fullBottom-pistonY);
+      cpCtx.beginPath();
+      cpCtx.arc(x,y,r,0,Math.PI*2);
+      cpCtx.fill();
+    });
+  }
+
+  document.getElementById('cpStateRow').addEventListener('click', (e)=>{
+    const btn = e.target.closest('.state-btn');
+    if(!btn) return;
+    document.querySelectorAll('#cpStateRow .state-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    cpState = btn.dataset.state;
+    cpExplain.textContent = CP_CONFIG[cpState].explain;
+    cpInit();
+    drawCompress();
+  });
+
+  cpSlider.addEventListener('input', ()=>{
+    cpVal.textContent = cpSlider.value + '%';
+    drawCompress();
+  });
+  document.getElementById('cpResetBtn').addEventListener('click', ()=>{ cpInit(); drawCompress(); });
+
+  /* =====================================================================
+     MODE 4: FINAL TEST
+     ===================================================================== */
+  const QUIZ = [
+    { q:'What is matter made of?', choices:['Tiny moving particles','Empty space only','Water only'], correct:0 },
+    { q:'Which state has particles farthest apart?', choices:['Solid','Liquid','Gas'], correct:2 },
+    { q:'Which state is easiest to compress?', choices:['Solid','Liquid','Gas'], correct:2 }
+  ];
+  let quizIndex = 0, quizScore = 0;
+
+  const quizProgress = document.getElementById('quizProgress');
+  const quizQuestion = document.getElementById('quizQuestion');
+  const quizChoices = document.getElementById('quizChoices');
+  const quizFeedback = document.getElementById('quizFeedback');
+  const completeCard = document.getElementById('completeCard');
+  const mainCard = document.getElementById('mainCard');
+  const scoreLine = document.getElementById('scoreLine');
+
+  function loadQuiz(){
+    const item = QUIZ[quizIndex];
+    quizProgress.textContent = `Question ${quizIndex+1} of ${QUIZ.length}`;
+    quizQuestion.textContent = item.q;
+    quizFeedback.className = 'feedback';
+    quizFeedback.textContent = '';
+    quizChoices.innerHTML = '';
+    item.choices.forEach((c,i)=>{
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = c;
+      btn.addEventListener('click', ()=> answerQuiz(i, btn));
+      quizChoices.appendChild(btn);
+    });
+  }
+
+  function answerQuiz(i, btn){
+    const item = QUIZ[quizIndex];
+    const allBtns = quizChoices.querySelectorAll('.choice-btn');
+    allBtns.forEach(b=>b.disabled = true);
+
+    if(i === item.correct){
+      quizScore++;
+      btn.classList.add('correct');
+      quizFeedback.textContent = '✅ Correct!';
+      quizFeedback.className = 'feedback show ok';
+    } else {
+      btn.classList.add('wrong');
+      allBtns[item.correct].classList.add('correct');
+      quizFeedback.textContent = '❌ Not quite — the highlighted answer is correct.';
+      quizFeedback.className = 'feedback show no';
+    }
+
+    setTimeout(()=>{
+      quizIndex++;
+      if(quizIndex >= QUIZ.length){
+        finishQuiz();
+      } else {
+        loadQuiz();
+      }
+    }, 1100);
+  }
+
+  function finishQuiz(){
+    mainCard.style.display = 'none';
+    document.querySelector('.tabs').style.display = 'none';
+    scoreLine.textContent = `Score: ${quizScore} / ${QUIZ.length}`;
+    completeCard.classList.add('active');
+  }
+
+  document.getElementById('tryAgainBtn').addEventListener('click', ()=>{
+    quizIndex = 0; quizScore = 0;
+    completeCard.classList.remove('active');
+    mainCard.style.display = 'flex';
+    document.querySelector('.tabs').style.display = 'flex';
+
+    visited.clear(); visited.add('particle');
+    const testTab = [...tabs].find(t=>t.dataset.tab==='test');
+    testTab.classList.add('locked');
+    testTab.classList.remove('visited','pulse');
+    testTab.textContent = '🔒 Test';
+    tabs.forEach(t=>{ if(t.dataset.tab!=='test') t.classList.remove('visited'); });
+
+    pmState='solid'; pmRunning=false; pmMotionBtn.textContent='▶ Start Motion';
+    document.querySelectorAll('#pmStateRow .state-btn').forEach(b=>b.classList.toggle('active', b.dataset.state==='solid'));
+    pmExplain.textContent = PM_CONFIG.solid.explain;
+
+    cpState='solid';
+    document.querySelectorAll('#cpStateRow .state-btn').forEach(b=>b.classList.toggle('active', b.dataset.state==='solid'));
+    cpExplain.textContent = CP_CONFIG.solid.explain;
+
+    activateTab('particle');
+    dfInit();
+    cpInit();
+    loadQuiz();
+  });
+
+  /* =====================================================================
+     RESIZE
+     ===================================================================== */
+  let resizeTimer;
+  window.addEventListener('resize', ()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(()=>{
+      fitCanvas(pmCanvas); pmInit();
+      fitCanvas(dfCanvas); dfInit();
+      fitCanvas(cpCanvas); cpInit(); drawCompress();
+    }, 150);
+  });
+
+  /* =====================================================================
+     INIT
+     ===================================================================== */
+  fitCanvas(pmCanvas); pmState='solid'; pmExplain.textContent = PM_CONFIG.solid.explain; pmInit();
+  fitCanvas(dfCanvas); dfInit();
+  fitCanvas(cpCanvas); cpState='solid'; cpExplain.textContent = CP_CONFIG.solid.explain; cpInit(); drawCompress();
+  loadQuiz();
+
+  pmLoop();
+  dfLoop();
+})();
+</script>
+</body>
+</html>
