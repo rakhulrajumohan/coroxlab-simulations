@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Choose the Right Unit 📏</title>
+<style>
+  :root{
+    --bg1:#EAF4FF;
+    --bg2:#D4E9FF;
+    --ink:#1A2B4A;
+    --ink-dim:#5C7495;
+    --card:#FFFFFF;
+    --blue:#4FA0F7;
+    --green:#43A047;
+    --red:#E64A3B;
+    --purple:#8E5CD9;
+    --orange:#FF8A3D;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0; width:100%; min-height:100%;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    background: linear-gradient(180deg, var(--bg1), var(--bg2) 80%);
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  .app{
+    width:100%; min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding: 14px 12px 18px; gap:10px;
+  }
+
+  header{ text-align:center; width:100%; max-width:640px; }
+  h1{ margin:0; font-size: clamp(20px,4.6vw,30px); color:#123159; text-shadow:0 2px 0 rgba(255,255,255,0.6); }
+  h1 .ruler{ display:inline-block; animation: wiggle 2.4s ease-in-out infinite; transform-origin:60% 70%; }
+  @keyframes wiggle{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(-12deg); } }
+  .tagline{ margin:3px 0 0; font-size: clamp(11px,2.4vw,14px); color:var(--ink-dim); }
+
+  .progress-row{ width:100%; max-width:640px; display:flex; align-items:center; gap:10px; }
+  .progress-label{ font-size: clamp(11px,2.2vw,13px); font-weight:bold; color:var(--ink-dim); flex:0 0 auto; }
+  .progress-track{ flex:1; height:10px; background:rgba(255,255,255,0.7); border-radius:20px; overflow:hidden; border:2px solid #C7DEFB; }
+  .progress-fill{ height:100%; background: linear-gradient(90deg,#4FA0F7,#8E5CD9); border-radius:20px; width:0%; transition: width .4s ease; }
+  .score-chip{ flex:0 0 auto; background:#FFFFFF; border:2px solid #C7DEFB; border-radius:20px; padding:5px 12px; font-size: clamp(11px,2.2vw,13px); font-weight:bold; }
+
+  .card{
+    width:100%; max-width:640px; background: var(--card); border-radius:24px;
+    box-shadow: 0 12px 30px rgba(26,43,74,0.14); border:3px solid #ffffff;
+    padding: 18px; display:flex; flex-direction:column; gap:14px;
+  }
+
+  .object-row{
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    background: linear-gradient(180deg,#F3F9FF,#E7F1FF);
+    border-radius:18px; border:2px dashed #BBDBFF; padding: 18px 10px;
+  }
+  .object-icon{
+    font-size: clamp(48px,13vw,78px); line-height:1;
+    animation: idleBob 2.6s ease-in-out infinite;
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.15));
+  }
+  @keyframes idleBob{ 0%,100%{ transform:translateY(0) scale(1); } 50%{ transform:translateY(-6px) scale(1.03); } }
+  .object-desc{ font-size: clamp(13px,2.8vw,15.5px); font-weight:bold; color:#123159; text-align:center; }
+
+  .question{ text-align:center; font-size: clamp(14px,3vw,17px); font-weight:bold; color:var(--ink); }
+
+  .options{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  .opt-btn{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    font-family:inherit; font-size: clamp(14px,3vw,17px); font-weight:bold;
+    background:#F3F9FF; border:2px solid #BBDBFF; color:var(--ink);
+    border-radius:16px; padding: 15px 8px; cursor:pointer;
+    transition: transform .08s ease, background .15s ease, border-color .15s ease;
+  }
+  .opt-btn:active{ transform: translateY(2px); }
+  .opt-btn:hover{ border-color: var(--blue); background:#E7F1FF; }
+  .opt-btn.correct{ background:#E3F6E6; border-color:var(--green); color:#1B5E20; animation: popIn .35s ease; }
+  .opt-btn.wrong{ background:#FDE8E6; border-color:var(--red); color:#8B241B; animation: shakeX .45s ease; }
+  .opt-btn:disabled{ cursor:default; }
+  @keyframes popIn{ 0%{ transform:scale(0.85); } 60%{ transform:scale(1.08); } 100%{ transform:scale(1); } }
+  @keyframes shakeX{
+    0%,100%{ transform:translateX(0); }
+    20%{ transform:translateX(-7px); }
+    40%{ transform:translateX(6px); }
+    60%{ transform:translateX(-4px); }
+    80%{ transform:translateX(3px); }
+  }
+
+  .feedback{
+    text-align:center; font-size: clamp(13px,2.8vw,15.5px); font-weight:bold;
+    min-height: 1.6em; padding: 4px 6px; border-radius:12px;
+  }
+  .feedback.correct{ color:#1B5E20; background:#E3F6E6; padding:9px 12px; }
+  .feedback.wrong{ color:#8B241B; background:#FDE8E6; padding:9px 12px; }
+  .feedback .explain{ display:block; font-weight:normal; font-size: clamp(11.5px,2.3vw,13px); margin-top:3px; opacity:0.9; }
+
+  .complete{ display:none; text-align:center; flex-direction:column; gap:12px; align-items:center; }
+  .complete.active{ display:flex; }
+  .complete .trophy{ font-size: clamp(50px,12vw,80px); animation: bounce 1.4s ease-in-out infinite; }
+  @keyframes bounce{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-10px); } }
+  .complete h2{ margin:0; font-size: clamp(19px,4.2vw,26px); color:#123159; }
+  .complete .scoreBig{ font-size: clamp(22px,5vw,30px); font-weight:bold; color:var(--purple); }
+  .complete p{ margin:0; font-size: clamp(13px,2.8vw,16px); color:var(--ink-dim); max-width:44ch; line-height:1.5; }
+  .try-again{
+    display:flex; align-items:center; gap:8px;
+    font-family:inherit; font-weight:bold; font-size: clamp(14px,3vw,16px);
+    background: linear-gradient(180deg,#79B8FF,#4FA0F7); color:#fff;
+    border:none; border-radius:26px; padding:12px 26px; cursor:pointer;
+    box-shadow: 0 6px 0 #2E70B0, 0 8px 14px rgba(0,0,0,0.15);
+    transition: transform .08s ease;
+  }
+  .try-again:active{ transform: translateY(4px); box-shadow: 0 2px 0 #2E70B0, 0 4px 8px rgba(0,0,0,0.15); }
+
+  footer{ font-size: clamp(10.5px,2vw,12.5px); color:var(--ink-dim); text-align:center; opacity:0.9; }
+  footer b{ color:#123159; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="ruler">📏</span> Choose the Right Unit</h1>
+    <p class="tagline">Pick the best unit to measure each object!</p>
+  </header>
+
+  <div class="progress-row">
+    <span class="progress-label" id="progressLabel">Question 1 of 10</span>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <span class="score-chip" id="scoreChip">⭐ 0</span>
+  </div>
+
+  <div class="card" id="gameCard">
+    <div class="object-row">
+      <div class="object-icon" id="objectIcon">✏️</div>
+      <div class="object-desc" id="objectDesc">Length of a pencil</div>
+    </div>
+
+    <div class="question">Which unit should we use?</div>
+    <div class="options" id="optionsRow"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <div class="card complete" id="completeCard">
+    <div class="trophy">🎉</div>
+    <h2>Great Job, Measurer!</h2>
+    <div class="scoreBig" id="finalScore">Your Score: 10 / 10</div>
+    <p>You've learned to pick the right unit for length, mass, volume, time and temperature. Keep measuring the world around you!</p>
+    <button class="try-again" id="restartBtn">🔄 Restart</button>
+  </div>
+
+  <footer>This simulation was created by <b>COROX LAB</b></footer>
+</div>
+
+<script>
+(function(){
+  const QUESTIONS = [
+    {
+      icon:'✏️', desc:'Length of a pencil',
+      options:['mm','cm','m','km'], answer:'cm',
+      explain:'A pencil is small, so we measure its length in centimetres (cm).'
+    },
+    {
+      icon:'🏫', desc:'Length of a classroom',
+      options:['cm','m','km','mm'], answer:'m',
+      explain:"A classroom is bigger than a pencil but not huge, so we use metres (m)."
+    },
+    {
+      icon:'🗺️', desc:'Distance between two cities',
+      options:['m','cm','km','mm'], answer:'km',
+      explain:'Distances between cities are very large, so we use kilometres (km).'
+    },
+    {
+      icon:'🍎', desc:'Mass of an apple',
+      options:['g','kg','mL','L'], answer:'g',
+      explain:'An apple is light, so its mass is measured in grams (g).'
+    },
+    {
+      icon:'🎒', desc:'Mass of a school bag',
+      options:['g','kg','mL','L'], answer:'kg',
+      explain:'A school bag full of books is heavier, so we use kilograms (kg).'
+    },
+    {
+      icon:'🥛', desc:'Amount of water in a glass',
+      options:['mL','L','g','kg'], answer:'mL',
+      explain:'A glass holds a small amount of liquid, measured in millilitres (mL).'
+    },
+    {
+      icon:'🪣', desc:'Water in a bucket',
+      options:['mL','L','g','kg'], answer:'L',
+      explain:'A bucket holds a much larger amount of water, so we use litres (L).'
+    },
+    {
+      icon:'🏃', desc:'Time taken to run a short race',
+      options:['seconds','minutes','hours','°C'], answer:'seconds',
+      explain:'A short race takes only a little time, so we measure it in seconds.'
+    },
+    {
+      icon:'🎂', desc:'Age of a person',
+      options:['minutes','hours','years','°C'], answer:'years',
+      explain:"A person's age covers a long period of time, so we measure it in years."
+    },
+    {
+      icon:'🌡️', desc:'Temperature of a room',
+      options:['g','°C','L','km'], answer:'°C',
+      explain:'Temperature is measured in degrees Celsius (°C).'
+    },
+  ];
+
+  let current = 0;
+  let score = 0;
+  let answeredCorrectly = false;
+  let missedThisCase = false;
+
+  const objectIcon = document.getElementById('objectIcon');
+  const objectDesc = document.getElementById('objectDesc');
+  const optionsRow = document.getElementById('optionsRow');
+  const feedback = document.getElementById('feedback');
+  const progressLabel = document.getElementById('progressLabel');
+  const progressFill = document.getElementById('progressFill');
+  const scoreChip = document.getElementById('scoreChip');
+  const gameCard = document.getElementById('gameCard');
+  const completeCard = document.getElementById('completeCard');
+  const finalScore = document.getElementById('finalScore');
+  const restartBtn = document.getElementById('restartBtn');
+
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function loadQuestion(index){
+    answeredCorrectly = false;
+    missedThisCase = false;
+    feedback.textContent = '';
+    feedback.className = 'feedback';
+
+    const q = QUESTIONS[index];
+    objectIcon.textContent = q.icon;
+    objectDesc.textContent = q.desc;
+
+    progressLabel.textContent = 'Question ' + (index+1) + ' of ' + QUESTIONS.length;
+    progressFill.style.width = Math.round((index / QUESTIONS.length) * 100) + '%';
+    scoreChip.textContent = '⭐ ' + score;
+
+    optionsRow.innerHTML = '';
+    shuffle(q.options).forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'opt-btn';
+      btn.textContent = opt;
+      btn.addEventListener('click', () => handleAnswer(opt, btn));
+      optionsRow.appendChild(btn);
+    });
+  }
+
+  function handleAnswer(selected, btn){
+    if(answeredCorrectly) return;
+    const q = QUESTIONS[current];
+    const isCorrect = selected === q.answer;
+
+    if(isCorrect){
+      answeredCorrectly = true;
+      btn.classList.add('correct');
+      feedback.innerHTML = '✅ Correct! <span class="explain">' + q.explain + '</span>';
+      feedback.className = 'feedback correct';
+      if(!missedThisCase){
+        score += 1;
+        scoreChip.textContent = '⭐ ' + score;
+      }
+      document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+
+      setTimeout(() => {
+        if(current < QUESTIONS.length - 1){
+          current += 1;
+          loadQuestion(current);
+        } else {
+          finishGame();
+        }
+      }, 1500);
+    } else {
+      missedThisCase = true;
+      btn.classList.add('wrong');
+      feedback.innerHTML = '❌ Try Again! <span class="explain">Think about the size of this object.</span>';
+      feedback.className = 'feedback wrong';
+      setTimeout(() => { btn.classList.remove('wrong'); }, 700);
+    }
+  }
+
+  function finishGame(){
+    progressLabel.textContent = 'Question ' + QUESTIONS.length + ' of ' + QUESTIONS.length;
+    progressFill.style.width = '100%';
+    gameCard.style.display = 'none';
+    completeCard.classList.add('active');
+    finalScore.textContent = 'Your Score: ' + score + ' / ' + QUESTIONS.length;
+  }
+
+  restartBtn.addEventListener('click', () => {
+    current = 0; score = 0;
+    completeCard.classList.remove('active');
+    gameCard.style.display = 'flex';
+    loadQuestion(0);
+  });
+
+  loadQuestion(0);
+})();
+</script>
+</body>
+</html>
