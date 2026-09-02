@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Sun Energy ☀️</title>
+<style>
+  :root{
+    --bg1:#0B1330;
+    --bg2:#050914;
+    --ink:#EAF3FF;
+    --ink-dim:#9FB3D0;
+    --card:rgba(15,22,45,0.85);
+    --card-border:rgba(255,255,255,0.14);
+    --cyan:#4FD8E8;
+    --yellow:#FFD966;
+    --orange:#FF9E4D;
+    --green:#66E29B;
+    --red:#FF6B6B;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0; width:100%; min-height:100%;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    background: linear-gradient(180deg, var(--bg1), var(--bg2) 80%);
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  .app{
+    width:100%; min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding: 14px 12px 18px; gap:10px;
+  }
+
+  header{ text-align:center; width:100%; max-width:760px; }
+  h1{ margin:0; font-size: clamp(19px,4.4vw,28px); color:#fff; text-shadow:0 2px 10px rgba(255,217,102,0.3); }
+  h1 .sunspin{ display:inline-block; animation: spin 6s linear infinite; }
+  @keyframes spin{ 100%{ transform:rotate(360deg); } }
+  .tagline{ margin:3px 0 0; font-size: clamp(11px,2.2vw,14px); color:var(--ink-dim); }
+
+  .stage-card{
+    width:100%; max-width:760px; background:var(--card); border:2px solid var(--card-border);
+    border-radius:20px; overflow:hidden; box-shadow: 0 12px 28px rgba(0,0,0,0.35);
+  }
+  .stage-wrap{ width:100%; height: clamp(220px, 46vw, 340px); display:flex; }
+  #stage{ width:100%; height:100%; display:block; cursor:pointer; }
+
+  .travel-label{
+    text-align:center; font-size: clamp(11px,2.1vw,13px); color:var(--ink-dim);
+    padding: 8px 14px 12px;
+  }
+  .travel-label b{ color:var(--yellow); }
+
+  /* ---------------- INFO PANEL ---------------- */
+  .info-card{
+    width:100%; max-width:760px; background:var(--card); border:2px solid var(--card-border);
+    border-radius:18px; padding:14px 18px; min-height:64px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:4px;
+  }
+  .info-card .placeholder{ font-size: clamp(11.5px,2.2vw,13.5px); color:var(--ink-dim); }
+  .info-title{ font-size: clamp(14px,2.9vw,17px); font-weight:bold; color:#fff; }
+  .info-text{ font-size: clamp(12px,2.3vw,14px); color:var(--ink-dim); line-height:1.5; max-width:56ch; }
+
+  /* ---------------- CONTROLS ---------------- */
+  .controls{
+    width:100%; max-width:760px; background:var(--card); border:2px solid var(--card-border);
+    border-radius:18px; padding:12px 16px; display:flex; flex-wrap:wrap; align-items:center; gap:12px 18px;
+  }
+  .btn-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .ctrl-btn{
+    display:flex; align-items:center; gap:6px;
+    font-family:inherit; font-weight:bold; font-size: clamp(11px,2.1vw,13px);
+    border:none; border-radius:20px; padding:9px 15px; cursor:pointer;
+    transition: transform .08s ease;
+  }
+  .ctrl-btn:active{ transform: translateY(2px); }
+  .btn-send{ background: linear-gradient(180deg,#FFDD8A,#FFB74D); color:#402700; }
+  .btn-pause{ background: linear-gradient(180deg,#B9C6DA,#8A9BB8); color:#182338; }
+  .btn-reset{ background: linear-gradient(180deg,#FF9B8A,#FF6B5B); color:#380D07; }
+  .ctrl-btn:disabled{ opacity:0.45; cursor:default; }
+
+  .slider-col{ flex:1 1 220px; min-width:190px; }
+  .slider-label{
+    display:flex; justify-content:space-between; font-size: clamp(10.5px,2vw,12.5px);
+    color:var(--ink-dim); margin-bottom:4px; font-weight:bold;
+  }
+  .slider-label span.val{ color:var(--yellow); }
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:9px; border-radius:20px;
+    background: linear-gradient(90deg,#3A2E12,#FFD966); outline:none; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:22px; height:22px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #fff, #FFD966 65%);
+    border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.4); cursor:pointer; margin-top:-1px;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:19px; height:19px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #fff, #FFD966 65%);
+    border:2px solid #fff; cursor:pointer;
+  }
+  .slider-note{ font-size: clamp(9.5px,1.8vw,11px); color:var(--ink-dim); opacity:0.8; margin-top:3px; }
+
+  /* ---------------- QUIZ ---------------- */
+  .quiz-card{
+    width:100%; max-width:760px; background:var(--card); border:2px solid var(--card-border);
+    border-radius:18px; padding:14px 16px;
+  }
+  .quiz-card h4{ margin:0 0 10px; font-size: clamp(13px,2.6vw,15.5px); color:#fff; text-align:center; }
+  .quiz-opts{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .quiz-opt{
+    flex:1 1 140px; max-width:200px;
+    font-family:inherit; font-weight:bold; font-size: clamp(12px,2.3vw,13.5px);
+    background: rgba(255,255,255,0.06); border:2px solid var(--card-border); color:var(--ink);
+    padding:12px 10px; border-radius:14px; cursor:pointer; text-align:center;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .quiz-opt:hover{ border-color: var(--cyan); }
+  .quiz-opt.correct{ background: rgba(102,226,155,0.22); border-color: var(--green); color:#fff; }
+  .quiz-opt.wrong{ background: rgba(255,107,107,0.2); border-color: var(--red); color:#fff; }
+  .quiz-feedback{
+    text-align:center; font-size: clamp(11.5px,2.2vw,13.5px); font-weight:bold;
+    margin-top:10px; min-height:1.4em;
+  }
+  .quiz-feedback.correct{ color: var(--green); }
+  .quiz-feedback.wrong{ color: var(--orange); }
+
+  footer{ font-size: clamp(10.5px,2vw,12.5px); color:var(--ink-dim); text-align:center; opacity:0.85; }
+  footer b{ color:#fff; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="sunspin">☀️</span> Sun Energy</h1>
+    <p class="tagline">Watch how light and heat travel all the way from the Sun to Earth!</p>
+  </header>
+
+  <div class="stage-card">
+    <div class="stage-wrap"><canvas id="stage"></canvas></div>
+    <div class="travel-label" id="travelLabel">Light energy travels from the <b>Sun</b> through space to <b>Earth</b>.</div>
+  </div>
+
+  <div class="info-card" id="infoCard">
+    <div class="placeholder" id="infoPlaceholder">👆 Tap the Sun or Earth to learn more — or press "Send Sunlight" below!</div>
+    <div id="infoContent" style="display:none;">
+      <div class="info-title" id="infoTitle"></div>
+      <div class="info-text" id="infoText"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="btn-row">
+      <button class="ctrl-btn btn-send" id="sendBtn">▶ Send Sunlight</button>
+      <button class="ctrl-btn btn-pause" id="pauseBtn">⏸ Pause</button>
+      <button class="ctrl-btn btn-reset" id="resetBtn">🔄 Reset</button>
+    </div>
+    <div class="slider-col">
+      <div class="slider-label"><span>☀️ Sunlight Intensity</span><span class="val" id="intensityVal">60%</span></div>
+      <input type="range" id="intensitySlider" min="10" max="100" step="1" value="60">
+      <div class="slider-note">This only changes how bright the rays look here — it doesn't change the real Sun!</div>
+    </div>
+  </div>
+
+  <div class="quiz-card">
+    <h4>🧠 Where does Earth's light and heat energy mainly come from?</h4>
+    <div class="quiz-opts">
+      <button class="quiz-opt" data-v="sun">☀️ The Sun</button>
+      <button class="quiz-opt" data-v="moon">🌙 The Moon</button>
+      <button class="quiz-opt" data-v="earth">🌍 Earth</button>
+    </div>
+    <div class="quiz-feedback" id="quizFeedback"></div>
+  </div>
+
+  <footer>This simulation was created by <b>COROX LAB</b></footer>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  const stageWrap = document.querySelector('.stage-wrap');
+  let W = 600, H = 300, DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resizeCanvas(){
+    const rect = stageWrap.getBoundingClientRect();
+    W = Math.max(260, rect.width);
+    H = Math.max(180, rect.height);
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W*DPR);
+    canvas.height = Math.round(H*DPR);
+    canvas.style.width = W+'px';
+    canvas.style.height = H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+
+  /* =====================================================================
+     STATE
+     ===================================================================== */
+  let active = false;        // Send Sunlight pressed & not paused
+  let hasStarted = false;    // has the student pressed Send Sunlight at least once
+  let intensity = 60;        // 10-100, purely visual brightness/density of rays
+  let lightLevel = 0;        // 0-1, how illuminated Earth currently is
+  let time = 0;
+  let spawnTimer = 0;
+  const rays = [];
+
+  const infoPlaceholder = document.getElementById('infoPlaceholder');
+  const infoContent = document.getElementById('infoContent');
+  const infoTitle = document.getElementById('infoTitle');
+  const infoText = document.getElementById('infoText');
+  const sendBtn = document.getElementById('sendBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const intensitySlider = document.getElementById('intensitySlider');
+  const intensityVal = document.getElementById('intensityVal');
+  const travelLabel = document.getElementById('travelLabel');
+
+  function showInfo(title, text){
+    infoPlaceholder.style.display = 'none';
+    infoContent.style.display = 'block';
+    infoTitle.textContent = title;
+    infoText.textContent = text;
+  }
+
+  const SUN_TEXT = '☀️ The Sun is our main source of energy. It provides light and heat to Earth.';
+  const EARTH_TEXT = '🌍 Earth receives light and heat energy from the Sun.';
+  const EARTH_HINT = "🌍 Earth looks a little dark right now — press \"Send Sunlight\" to light it up!";
+
+  /* =====================================================================
+     SCENE GEOMETRY
+     ===================================================================== */
+  function sunPos(){ return { x: W*0.15, y: H*0.5, r: Math.max(24, Math.min(W,H)*0.16) }; }
+  function earthPos(){ return { x: W*0.86, y: H*0.55, r: Math.max(16, Math.min(W,H)*0.10) }; }
+
+  const stars = [];
+  for(let i=0;i<70;i++){
+    stars.push({ x:Math.random(), y:Math.random(), r:Math.random()*1.4+0.4, phase:Math.random()*Math.PI*2 });
+  }
+
+  /* =====================================================================
+     DRAW HELPERS
+     ===================================================================== */
+  function drawBackground(){
+    const g = ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0, '#0E1738');
+    g.addColorStop(1, '#050914');
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,W,H);
+
+    ctx.save();
+    stars.forEach(s => {
+      const twinkle = 0.5 + 0.5*Math.sin(time*0.03 + s.phase);
+      ctx.globalAlpha = 0.5 + twinkle*0.5;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(s.x*W, s.y*H, s.r, 0, Math.PI*2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  function drawGuideLine(sun, earth){
+    ctx.save();
+    ctx.setLineDash([5,7]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(sun.x + sun.r, sun.y);
+    ctx.lineTo(earth.x - earth.r, earth.y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawSun(sun){
+    ctx.save();
+    // outer glow
+    const glow = ctx.createRadialGradient(sun.x,sun.y,sun.r*0.3, sun.x,sun.y,sun.r*2.4);
+    glow.addColorStop(0, 'rgba(255,220,120,0.55)');
+    glow.addColorStop(1, 'rgba(255,220,120,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(sun.x,sun.y,sun.r*2.4,0,Math.PI*2); ctx.fill();
+
+    // idle rotating tick rays
+    ctx.save();
+    ctx.translate(sun.x, sun.y);
+    ctx.rotate(time*0.006);
+    ctx.strokeStyle = 'rgba(255,230,150,0.8)';
+    ctx.lineWidth = Math.max(2, sun.r*0.06);
+    const rayCount = 10;
+    for(let i=0;i<rayCount;i++){
+      const ang = (i/rayCount) * Math.PI*2;
+      const inner = sun.r*1.08, outer = sun.r*1.35;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(ang)*inner, Math.sin(ang)*inner);
+      ctx.lineTo(Math.cos(ang)*outer, Math.sin(ang)*outer);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // sun body
+    const body = ctx.createRadialGradient(sun.x-sun.r*0.3,sun.y-sun.r*0.3,sun.r*0.1, sun.x,sun.y,sun.r);
+    body.addColorStop(0, '#FFF6D8');
+    body.addColorStop(0.5, '#FFD966');
+    body.addColorStop(1, '#FFA23D');
+    ctx.beginPath();
+    ctx.arc(sun.x,sun.y,sun.r,0,Math.PI*2);
+    ctx.fillStyle = body;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawEarth(earth){
+    ctx.save();
+    // night-side base sphere
+    ctx.beginPath();
+    ctx.arc(earth.x, earth.y, earth.r, 0, Math.PI*2);
+    const base = ctx.createRadialGradient(earth.x,earth.y,earth.r*0.2, earth.x,earth.y,earth.r);
+    base.addColorStop(0, '#1B3A63');
+    base.addColorStop(1, '#0B1E38');
+    ctx.fillStyle = base;
+    ctx.fill();
+
+    // land blobs (subtle, always partly visible)
+    ctx.save();
+    ctx.clip();
+    ctx.fillStyle = 'rgba(80,140,90,0.55)';
+    [[-0.3,-0.3],[0.25,0.1],[-0.1,0.35]].forEach(([dx,dy])=>{
+      ctx.beginPath();
+      ctx.ellipse(earth.x+dx*earth.r, earth.y+dy*earth.r, earth.r*0.32, earth.r*0.18, 0.4, 0, Math.PI*2);
+      ctx.fill();
+    });
+    ctx.restore();
+
+    // illuminated (sun-facing) side — clipped left hemisphere, brightness = lightLevel
+    if(lightLevel > 0.01){
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(earth.x, earth.y, earth.r, 0, Math.PI*2);
+      ctx.clip();
+      ctx.globalAlpha = lightLevel;
+      const lit = ctx.createRadialGradient(earth.x-earth.r*0.5, earth.y-earth.r*0.2, earth.r*0.1, earth.x-earth.r*0.3, earth.y, earth.r*1.1);
+      lit.addColorStop(0, 'rgba(255,244,200,0.95)');
+      lit.addColorStop(0.55, 'rgba(140,210,255,0.55)');
+      lit.addColorStop(1, 'rgba(140,210,255,0)');
+      ctx.fillStyle = lit;
+      ctx.beginPath();
+      ctx.arc(earth.x - earth.r*0.15, earth.y, earth.r*1.05, Math.PI*0.5, Math.PI*1.5);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // outline
+    ctx.beginPath();
+    ctx.arc(earth.x, earth.y, earth.r, 0, Math.PI*2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+
+    // Light / Heat badges
+    if(lightLevel > 0.15){
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, (lightLevel-0.15)/0.5);
+      const fs = Math.max(10, Math.min(13, W*0.02));
+      ctx.font = 'bold ' + fs + 'px Trebuchet MS';
+      ctx.textAlign = 'center';
+
+      ctx.fillStyle = 'rgba(255,235,150,0.95)';
+      roundRectFill(earth.x - earth.r*1.15, earth.y - earth.r*2.05, fs*4.4, fs*1.7, fs*0.85);
+      ctx.fillStyle = '#3A2A00';
+      ctx.fillText('💡 Light', earth.x - earth.r*1.15 + fs*2.2, earth.y - earth.r*2.05 + fs*1.15);
+
+      ctx.fillStyle = 'rgba(255,180,140,0.95)';
+      roundRectFill(earth.x - earth.r*1.15, earth.y + earth.r*1.55, fs*4.2, fs*1.7, fs*0.85);
+      ctx.fillStyle = '#4A1500';
+      ctx.fillText('🔥 Heat', earth.x - earth.r*1.15 + fs*2.1, earth.y + earth.r*1.55 + fs*1.15);
+      ctx.restore();
+    }
+  }
+
+  function roundRectFill(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  /* =====================================================================
+     RAYS (the animated arrows travelling Sun → Earth)
+     ===================================================================== */
+  function spawnWave(sun, earth){
+    const count = Math.round(2 + (intensity/100)*4); // 2..6 rays per wave
+    const spread = earth.r * 1.6;
+    for(let i=0;i<count;i++){
+      rays.push({
+        x: sun.x + sun.r*1.4,
+        y: (sun.y + earth.y)/2 + (Math.random()-0.5)*spread*1.4 + (Math.random()-0.5)*20,
+        speed: 1.6 + Math.random()*0.6,
+        size: 2.5 + Math.random()*1.8,
+        phase: Math.random()*Math.PI*2
+      });
+    }
+  }
+
+  function updateRays(sun, earth){
+    for(let i=rays.length-1; i>=0; i--){
+      const r = rays[i];
+      r.x += r.speed * (0.6 + intensity/160);
+      if(r.x >= earth.x - earth.r*0.2){
+        rays.splice(i,1);
+        lightLevel = Math.min(1, lightLevel + 0.05);
+      }
+    }
+  }
+
+  function drawRays(){
+    const alpha = 0.45 + (intensity/100)*0.5;
+    ctx.save();
+    rays.forEach(r => {
+      const pulse = 0.85 + 0.15*Math.sin(time*0.15 + r.phase);
+      ctx.globalAlpha = alpha * pulse;
+      ctx.fillStyle = '#FFE9A8';
+      ctx.shadowColor = 'rgba(255,220,120,0.95)';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, r.size, 0, Math.PI*2);
+      ctx.fill();
+      // subtle photon trail
+      ctx.globalAlpha = alpha * 0.18;
+      ctx.beginPath();
+      ctx.arc(r.x - 7, r.y, r.size*0.65, 0, Math.PI*2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  /* =====================================================================
+     MAIN RENDER / LOOP
+     ===================================================================== */
+  function render(){
+    const sun = sunPos(), earth = earthPos();
+    drawBackground();
+    drawGuideLine(sun, earth);
+    drawSun(sun);
+    drawRays();
+    drawEarth(earth);
+  }
+
+  function loop(){
+    time += 1;
+    if(active){
+      spawnTimer += 1;
+      const sun = sunPos(), earth = earthPos();
+      if(spawnTimer > 26){
+        spawnTimer = 0;
+        spawnWave(sun, earth);
+      }
+      updateRays(sun, earth);
+      if(rays.length === 0 && spawnTimer < 5){
+        // gentle decay if nothing arriving yet
+      }
+      // auto-show earth explanation once nicely lit, if nothing else selected recently
+      if(lightLevel > 0.5 && !earthAutoShown){
+        earthAutoShown = true;
+        showInfo('🌍 Earth', EARTH_TEXT);
+      }
+    } else {
+      // slow fade back down when paused/reset/not sending
+      lightLevel = Math.max(0, lightLevel - 0.004);
+    }
+    render();
+    requestAnimationFrame(loop);
+  }
+  let earthAutoShown = false;
+
+  /* =====================================================================
+     INTERACTION — click Sun or Earth
+     ===================================================================== */
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left, y = e.clientY - rect.top;
+    const sun = sunPos(), earth = earthPos();
+
+    if(Math.hypot(x-sun.x, y-sun.y) <= sun.r*1.3){
+      showInfo('☀️ The Sun', SUN_TEXT);
+      return;
+    }
+    if(Math.hypot(x-earth.x, y-earth.y) <= earth.r*1.5){
+      if(lightLevel > 0.15){
+        showInfo('🌍 Earth', EARTH_TEXT);
+      } else {
+        showInfo('🌍 Earth', EARTH_HINT);
+      }
+    }
+  });
+
+  /* =====================================================================
+     CONTROLS
+     ===================================================================== */
+  sendBtn.addEventListener('click', () => {
+    active = true;
+    hasStarted = true;
+    travelLabel.innerHTML = '☀️ Sunlight takes about <b>8 minutes 20 seconds</b> to reach Earth.';
+  });
+  pauseBtn.addEventListener('click', () => {
+    active = false;
+  });
+  resetBtn.addEventListener('click', () => {
+    active = false;
+    hasStarted = false;
+    lightLevel = 0;
+    rays.length = 0;
+    spawnTimer = 0;
+    earthAutoShown = false;
+    infoPlaceholder.style.display = 'block';
+    infoContent.style.display = 'none';
+    intensity = 60;
+    intensitySlider.value = 60;
+    intensityVal.textContent = '60%';
+    travelLabel.innerHTML = 'Light energy travels from the <b>Sun</b> through space to <b>Earth</b>.';
+  });
+  intensitySlider.addEventListener('input', () => {
+    intensity = parseFloat(intensitySlider.value);
+    intensityVal.textContent = Math.round(intensity) + '%';
+  });
+
+  /* =====================================================================
+     QUIZ
+     ===================================================================== */
+  const quizFeedback = document.getElementById('quizFeedback');
+  document.querySelectorAll('.quiz-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const isCorrect = btn.dataset.v === 'sun';
+      document.querySelectorAll('.quiz-opt').forEach(b => b.classList.remove('correct','wrong'));
+      btn.classList.add(isCorrect ? 'correct' : 'wrong');
+      if(!isCorrect){
+        document.querySelector('.quiz-opt[data-v="sun"]').classList.add('correct');
+      }
+      quizFeedback.textContent = isCorrect
+        ? '✅ Correct! The Sun provides most of the light and heat energy that Earth receives.'
+        : '💡 Think about which object produces its own light and heat.';
+      quizFeedback.className = 'quiz-feedback ' + (isCorrect ? 'correct' : 'wrong');
+    });
+  });
+
+  /* =====================================================================
+     INIT
+     ===================================================================== */
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  loop();
+})();
+</script>
+</body>
+</html>
