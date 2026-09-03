@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Explore the Lever ⚖️</title>
+<style>
+  :root{
+    --bg1:#FFF3E0;
+    --bg2:#FFE0B2;
+    --ink:#3B2A1A;
+    --ink-dim:#8A6741;
+    --card:#FFFFFF;
+    --green:#43A047;
+    --blue:#4FA0F7;
+    --red:#E64A3B;
+    --purple:#8E5CD9;
+    --wood:#B98252;
+    --wood-dark:#8C6039;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0; width:100%; min-height:100%;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    background: linear-gradient(180deg, var(--bg1), var(--bg2) 85%);
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  .app{
+    width:100%; min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding: 14px 12px 18px; gap:10px;
+  }
+
+  header{ text-align:center; width:100%; max-width:720px; }
+  h1{ margin:0; font-size: clamp(19px,4.4vw,28px); color:#5A3A1A; text-shadow:0 2px 0 rgba(255,255,255,0.6); }
+  h1 .ic{ display:inline-block; animation: tilt 2.6s ease-in-out infinite; transform-origin:50% 80%; }
+  @keyframes tilt{ 0%,100%{ transform:rotate(0deg); } 50%{ transform:rotate(-10deg); } }
+  .tagline{ margin:3px 0 0; font-size: clamp(11px,2.2vw,14px); color:var(--ink-dim); }
+
+  /* ---------------- MODE SELECTOR ---------------- */
+  .modes{ width:100%; max-width:720px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .mode-btn{
+    flex:1 1 150px; max-width:220px;
+    font-family:inherit; font-weight:bold; font-size: clamp(11.5px,2.2vw,13px);
+    background:#FFFFFF; border:2px solid #FFD9A0; color:var(--ink);
+    border-radius:16px; padding:10px 8px; cursor:pointer; text-align:center;
+    transition: border-color .15s ease, background .15s ease, transform .08s ease;
+  }
+  .mode-btn .big{ display:block; font-size: clamp(20px,4.4vw,26px); margin-bottom:2px; }
+  .mode-btn:active{ transform: translateY(2px); }
+  .mode-btn.active{ background: linear-gradient(180deg,#FFE9C7,#FFD9A0); border-color:#FF8A3D; box-shadow:0 3px 0 #E07B2E; }
+
+  .mode-order{
+    width:100%; max-width:720px; text-align:center; font-size: clamp(11px,2.1vw,13px);
+    color:var(--ink-dim); font-weight:bold;
+  }
+  .mode-order b{ color:var(--ink); }
+
+  /* ---------------- STAGE ---------------- */
+  .stage-card{
+    width:100%; max-width:720px; background:var(--card); border-radius:20px;
+    box-shadow: 0 12px 28px rgba(90,58,26,0.15); border:3px solid #ffffff; overflow:hidden;
+  }
+  .stage-wrap{ width:100%; height: clamp(240px, 50vw, 360px); display:flex; }
+  #stage{ width:100%; height:100%; display:block; touch-action:none; }
+
+  /* ---------------- STATUS ---------------- */
+  .status-banner{
+    width:100%; max-width:720px; text-align:center; font-weight:bold;
+    font-size: clamp(12px,2.4vw,14.5px); padding:9px 14px; border-radius:14px;
+    border:2px solid #66BB6A; background:#E9F9EC; color:#2E7D32;
+    transition: background .3s ease, color .3s ease, border-color .3s ease;
+  }
+  .status-banner.down{ border-color:#FF8A3D; background:#FFF1E0; color:#C3620F; }
+  .status-banner.up{ border-color:#4FA0F7; background:#EAF4FF; color:#1A5CA8; }
+
+  /* ---------------- CONTROLS ---------------- */
+  .controls{
+    width:100%; max-width:720px; background:var(--card); border-radius:18px;
+    box-shadow: 0 8px 20px rgba(90,58,26,0.12); border:2px solid #FFE0B2;
+    padding:12px 16px; display:flex; flex-wrap:wrap; gap:12px 20px; align-items:center;
+  }
+  .slider-item{ flex:1 1 220px; min-width:190px; }
+  .slider-label{
+    display:flex; justify-content:space-between; font-size: clamp(11px,2.1vw,12.5px);
+    font-weight:bold; color:var(--ink); margin-bottom:4px;
+  }
+  .slider-label .icon{ margin-right:4px; }
+  .slider-label span.val{ color:var(--purple); }
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:10px; border-radius:20px;
+    background: linear-gradient(90deg,#FFE9C7,#FF8A3D); outline:none; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:24px; height:24px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #fff, #FF8A3D 65%);
+    border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.3); cursor:pointer; margin-top:-1px;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:21px; height:21px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #fff, #FF8A3D 65%);
+    border:2px solid #fff; cursor:pointer;
+  }
+
+  /* ---------------- HINT ---------------- */
+  .hint-card{
+    width:100%; max-width:720px; background:#FFF6E0; border:2px dashed #FF8A3D;
+    border-radius:16px; padding:11px 16px; text-align:center;
+    font-size: clamp(12px,2.3vw,14px); color:#8A5A1A; line-height:1.5;
+  }
+  .hint-card b{ color:#D2691E; }
+
+  footer{ font-size: clamp(10.5px,2vw,12.5px); color:var(--ink-dim); text-align:center; opacity:0.9; }
+  footer b{ color:#5A3A1A; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1><span class="ic">⚖️</span> Explore the Lever</h1>
+    <p class="tagline">Drag Effort, Fulcrum and Load along the bar and watch it move!</p>
+  </header>
+
+  <div class="modes">
+    <button class="mode-btn active" data-mode="first">
+      <span class="big">⚖️</span>1st Class<br>Seesaw
+    </button>
+    <button class="mode-btn" data-mode="second">
+      <span class="big">🛒</span>2nd Class<br>Wheelbarrow
+    </button>
+    <button class="mode-btn" data-mode="third">
+      <span class="big">🧹</span>3rd Class<br>Broom
+    </button>
+  </div>
+  <div class="mode-order" id="modeOrder">Order: <b>Effort — Fulcrum — Load</b></div>
+
+  <div class="stage-card">
+    <div class="stage-wrap"><canvas id="stage"></canvas></div>
+  </div>
+
+  <div class="status-banner" id="statusBanner">⚖️ Balanced — try dragging a marker!</div>
+
+  <div class="controls">
+    <div class="slider-item">
+      <div class="slider-label"><span><span class="icon">🟢</span>Effort Force</span><span class="val" id="effortVal">5</span></div>
+      <input type="range" id="effortSlider" min="1" max="10" step="1" value="5">
+    </div>
+    <div class="slider-item">
+      <div class="slider-label"><span><span class="icon">🔴</span>Load Weight</span><span class="val" id="loadVal">5</span></div>
+      <input type="range" id="loadSlider" min="1" max="10" step="1" value="5">
+    </div>
+  </div>
+
+  <div class="hint-card">
+    💡 <b>Try it:</b> Move the fulcrum closer to the load. What happens?
+  </div>
+
+  <footer>This simulation was created by <b>COROX LAB</b></footer>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  const stageWrap = document.querySelector('.stage-wrap');
+  let W = 600, H = 320, DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  function resizeCanvas(){
+    const rect = stageWrap.getBoundingClientRect();
+    W = Math.max(260, rect.width);
+    H = Math.max(200, rect.height);
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W*DPR);
+    canvas.height = Math.round(H*DPR);
+    canvas.style.width = W+'px';
+    canvas.style.height = H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+
+  /* =====================================================================
+     STATE
+     ===================================================================== */
+  const MODES = {
+    first:  { label:'⚖️ Seesaw',      order:'Effort — Fulcrum — Load', fulcrum:0.50, effort:0.08, load:0.92 },
+    second: { label:'🛒 Wheelbarrow', order:'Fulcrum — Load — Effort', fulcrum:0.06, load:0.44,   effort:0.94 },
+    third:  { label:'🧹 Broom',       order:'Fulcrum — Effort — Load', fulcrum:0.06, effort:0.44, load:0.94 },
+  };
+
+  let fulcrumFrac = MODES.first.fulcrum;
+  let effortFrac  = MODES.first.effort;
+  let loadFrac    = MODES.first.load;
+  let effortForce = 5;
+  let loadWeight  = 5;
+  let theta = 0;         // current beam angle (radians), smoothed
+  let targetTheta = 0;
+
+  const MAX_ANGLE = 0.42; // ~24 degrees
+
+  const effortSlider = document.getElementById('effortSlider');
+  const loadSlider = document.getElementById('loadSlider');
+  const effortVal = document.getElementById('effortVal');
+  const loadVal = document.getElementById('loadVal');
+  const statusBanner = document.getElementById('statusBanner');
+  const modeOrder = document.getElementById('modeOrder');
+
+  /* =====================================================================
+     GEOMETRY (recomputed every frame; also used for drag hit-testing)
+     ===================================================================== */
+  let xMin, xMax, groundY, totalLen;
+  let pivot = {x:0,y:0};
+  let beamLeft = {x:0,y:0}, beamRight = {x:0,y:0};
+  let effortPt = {x:0,y:0}, loadPt = {x:0,y:0};
+
+  function updateGeometry(){
+    xMin = W*0.12; xMax = W*0.88;
+    groundY = H*0.66;
+    totalLen = xMax - xMin;
+
+    const pivotX = xMin + fulcrumFrac*totalLen;
+    pivot = { x: pivotX, y: groundY };
+
+    const leftArm = fulcrumFrac*totalLen;
+    const rightArm = (1-fulcrumFrac)*totalLen;
+    const c = Math.cos(theta), s = Math.sin(theta);
+    beamLeft  = { x: pivot.x - leftArm*c,  y: pivot.y - leftArm*s };
+    beamRight = { x: pivot.x + rightArm*c, y: pivot.y + rightArm*s };
+
+    const effortDist = (effortFrac - fulcrumFrac) * totalLen;
+    const loadDist    = (loadFrac - fulcrumFrac) * totalLen;
+    effortPt = { x: pivot.x + effortDist*c, y: pivot.y + effortDist*s };
+    loadPt    = { x: pivot.x + loadDist*c,   y: pivot.y + loadDist*s };
+  }
+
+  /* =====================================================================
+     PHYSICS — simplified torque balance
+     Load always pulls down on its own side. Effort's job is always to
+     oppose that (lift the load), scaled by its own distance from the
+     fulcrum — this models mechanical advantage for all 3 lever classes.
+     ===================================================================== */
+  function updatePhysics(){
+    const effortDist = (effortFrac - fulcrumFrac) * totalLen;
+    const loadDist    = (loadFrac - fulcrumFrac) * totalLen;
+    const loadSign = loadDist === 0 ? 1 : Math.sign(loadDist);
+
+    const loadTorque = loadWeight * Math.abs(loadDist);
+    const effortTorque = effortForce * Math.abs(effortDist);
+    const netTorque = loadSign * (loadTorque - effortTorque);
+
+    const K = totalLen > 0 ? MAX_ANGLE / (10 * totalLen) : 0;
+    targetTheta = Math.max(-MAX_ANGLE, Math.min(MAX_ANGLE, netTorque * K));
+    theta += (targetTheta - theta) * 0.07;
+
+    updateStatus(loadTorque, effortTorque);
+  }
+
+  function updateStatus(loadTorque, effortTorque){
+    const diff = effortTorque - loadTorque;
+    if(Math.abs(diff) < loadTorque*0.08 + 0.3){
+      statusBanner.textContent = '⚖️ Balanced! Effort and load are matched.';
+      statusBanner.className = 'status-banner';
+    } else if(diff < 0){
+      statusBanner.textContent = '⬇️ The load is winning — try more effort force, or move effort farther from the fulcrum.';
+      statusBanner.className = 'status-banner down';
+    } else {
+      statusBanner.textContent = '⬆️ Effort is lifting the load!';
+      statusBanner.className = 'status-banner up';
+    }
+  }
+
+  /* =====================================================================
+     DRAWING
+     ===================================================================== */
+  function drawGround(){
+    ctx.fillStyle = '#DDEBD3';
+    ctx.fillRect(0, groundY+6, W, H-groundY-6);
+    ctx.strokeStyle = 'rgba(90,58,26,0.25)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0,groundY+6); ctx.lineTo(W,groundY+6); ctx.stroke();
+  }
+
+  function drawSupport(){
+    const baseW = Math.max(30, Math.min(W,H)*0.09);
+    const h = Math.max(26, Math.min(W,H)*0.11);
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(pivot.x, pivot.y);
+    ctx.lineTo(pivot.x - baseW/2, pivot.y + h);
+    ctx.lineTo(pivot.x + baseW/2, pivot.y + h);
+    ctx.closePath();
+    const g = ctx.createLinearGradient(pivot.x,pivot.y,pivot.x,pivot.y+h);
+    g.addColorStop(0,'#8FA6C4'); g.addColorStop(1,'#5A729A');
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawBeam(){
+    const thick = Math.max(14, Math.min(W,H)*0.055);
+    ctx.save();
+    ctx.translate(pivot.x, pivot.y);
+    ctx.rotate(theta);
+    const leftArm = fulcrumFrac*totalLen;
+    const rightArm = (1-fulcrumFrac)*totalLen;
+
+    const g = ctx.createLinearGradient(0,-thick/2,0,thick/2);
+    g.addColorStop(0, '#C9986A');
+    g.addColorStop(0.5, var_wood());
+    g.addColorStop(1, '#7A5330');
+    ctx.fillStyle = g;
+    roundRectPath(-leftArm, -thick/2, leftArm+rightArm, thick, thick*0.3);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth=1.5; ctx.stroke();
+
+    // wood grain lines
+    ctx.strokeStyle = 'rgba(90,58,26,0.18)';
+    ctx.lineWidth = 1;
+    for(let gx=-leftArm+10; gx<rightArm-10; gx+=22){
+      ctx.beginPath(); ctx.moveTo(gx,-thick*0.3); ctx.lineTo(gx+6,thick*0.3); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function var_wood(){ return '#B98252'; }
+
+  function roundRectPath(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  function drawMarker(pt, color, glow, emoji, label, scale){
+    const r = Math.max(16, Math.min(W,H)*0.075) * scale;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, r, 0, Math.PI*2);
+    ctx.fillStyle = color;
+    ctx.shadowColor = glow;
+    ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.font = (r*1.15) + 'px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(emoji, pt.x, pt.y + r*0.05);
+
+    ctx.font = 'bold ' + Math.max(10, r*0.42) + 'px Trebuchet MS';
+    ctx.fillStyle = '#3B2A1A';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(label, pt.x, pt.y + r + 15);
+    ctx.restore();
+  }
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    const bgGrad = ctx.createLinearGradient(0,0,0,H);
+    bgGrad.addColorStop(0,'#FFF8EC'); bgGrad.addColorStop(1,'#FFEFD6');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0,0,W,H);
+
+    drawGround();
+    drawSupport();
+    drawBeam();
+
+    const effortScale = 0.75 + (effortForce/10)*0.6;
+    const loadScale = 0.75 + (loadWeight/10)*0.6;
+    drawMarker(effortPt, '#43A047', 'rgba(67,160,71,0.6)', '🟢', 'Effort', effortScale);
+    drawMarker(loadPt, '#E64A3B', 'rgba(230,74,59,0.6)', '🔴', 'Load', loadScale);
+    drawMarker(pivot, '#4FA0F7', 'rgba(79,160,247,0.6)', '🔵', 'Fulcrum', 1);
+  }
+
+  function loop(){
+    updateGeometry();
+    updatePhysics();
+    updateGeometry(); // refresh with the newly-smoothed theta for this frame's render
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  /* =====================================================================
+     DRAGGING — project pointer onto the current beam / ground track
+     ===================================================================== */
+  let dragging = null; // 'effort' | 'load' | 'fulcrum' | null
+
+  function getPos(e){
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  function hitTest(px,py){
+    const r = Math.max(16, Math.min(W,H)*0.075) * 1.3;
+    if(Math.hypot(px-effortPt.x, py-effortPt.y) <= r) return 'effort';
+    if(Math.hypot(px-loadPt.x, py-loadPt.y) <= r) return 'load';
+    if(Math.hypot(px-pivot.x, py-pivot.y) <= r) return 'fulcrum';
+    return null;
+  }
+
+  canvas.addEventListener('pointerdown', (e) => {
+    const p = getPos(e);
+    const hit = hitTest(p.x, p.y);
+    if(hit){
+      dragging = hit;
+      canvas.setPointerCapture(e.pointerId);
+    }
+  });
+
+  canvas.addEventListener('pointermove', (e) => {
+    if(!dragging) return;
+    const p = getPos(e);
+
+    if(dragging === 'fulcrum'){
+      const frac = (p.x - xMin) / (xMax - xMin);
+      fulcrumFrac = Math.max(0.03, Math.min(0.97, frac));
+    } else {
+      // project pointer onto the current (possibly tilted) beam segment
+      const dx = beamRight.x - beamLeft.x, dy = beamRight.y - beamLeft.y;
+      const lenSq = dx*dx + dy*dy || 1;
+      let t = ((p.x - beamLeft.x)*dx + (p.y - beamLeft.y)*dy) / lenSq;
+      t = Math.max(0, Math.min(1, t));
+      if(dragging === 'effort') effortFrac = t;
+      else if(dragging === 'load') loadFrac = t;
+    }
+  });
+
+  function endDrag(){ dragging = null; }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+
+  /* =====================================================================
+     MODE BUTTONS
+     ===================================================================== */
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const m = MODES[btn.dataset.mode];
+      fulcrumFrac = m.fulcrum;
+      effortFrac = m.effort;
+      loadFrac = m.load;
+      modeOrder.innerHTML = 'Order: <b>' + m.order + '</b> &nbsp; ' + m.label;
+    });
+  });
+
+  /* =====================================================================
+     SLIDERS
+     ===================================================================== */
+  effortSlider.addEventListener('input', () => {
+    effortForce = parseFloat(effortSlider.value);
+    effortVal.textContent = effortForce;
+  });
+  loadSlider.addEventListener('input', () => {
+    loadWeight = parseFloat(loadSlider.value);
+    loadVal.textContent = loadWeight;
+  });
+
+  /* =====================================================================
+     INIT
+     ===================================================================== */
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  loop();
+})();
+</script>
+</body>
+</html>
