@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>⚙️ Interactive Gears — Grade 6 Science</title>
+<style>
+  :root{
+    --bg-deep:#0a1420;
+    --bg-panel:#101f30;
+    --bg-panel-2:#0d1926;
+    --line:#1f3a52;
+    --brass:#e0a35c;
+    --brass-dark:#a9702f;
+    --copper:#5ec9c2;
+    --copper-dark:#2c8f89;
+    --text:#eaf2f7;
+    --text-dim:#93aec2;
+    --amber:#ffb454;
+    --good:#6ee7b7;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    width:100%;
+    overflow-x:hidden;
+    background:
+      radial-gradient(1100px 700px at 15% -10%, #14283b 0%, transparent 60%),
+      radial-gradient(900px 600px at 100% 110%, #10202f 0%, transparent 55%),
+      var(--bg-deep);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+
+  /* faint blueprint grid */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(94,201,194,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(94,201,194,0.05) 1px, transparent 1px);
+    background-size:34px 34px;
+    z-index:0;
+  }
+
+  .wrap{
+    position:relative;
+    z-index:1;
+    max-width:920px;
+    margin:0 auto;
+    padding:22px 16px 10px;
+  }
+
+  header{
+    text-align:center;
+    margin-bottom:14px;
+  }
+
+  header h1{
+    margin:0 0 4px;
+    font-size:clamp(22px,5vw,32px);
+    letter-spacing:0.3px;
+    color:var(--text);
+  }
+
+  header p{
+    margin:0;
+    color:var(--text-dim);
+    font-size:clamp(13px,3.2vw,15px);
+  }
+
+  .stage{
+    background:linear-gradient(180deg,var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:10px 8px 4px;
+    box-shadow:0 20px 50px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+
+  #gearSvg{
+    width:100%;
+    height:auto;
+    display:block;
+  }
+
+  .gear-label{
+    font-size:13px;
+    font-weight:600;
+    fill:var(--text);
+  }
+  .gear-sub{
+    font-size:10.5px;
+    fill:var(--text-dim);
+  }
+
+  .panel-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    margin-top:16px;
+  }
+
+  .card{
+    flex:1 1 260px;
+    background:linear-gradient(180deg,var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px 16px 14px;
+  }
+
+  .card h2{
+    margin:0 0 10px;
+    font-size:14px;
+    color:var(--copper);
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+
+  .btn-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  button{
+    font-family:inherit;
+    cursor:pointer;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:#132234;
+    color:var(--text);
+    padding:10px 12px;
+    font-size:13px;
+    font-weight:600;
+    transition:transform .12s ease, background .12s ease, border-color .12s ease;
+  }
+  button:hover{ transform:translateY(-1px); border-color:#345d7d; }
+  button:active{ transform:translateY(0px) scale(0.98); }
+
+  .preset-btn{
+    flex:1 1 100%;
+    text-align:left;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:11px 12px;
+  }
+  .preset-btn .dot{
+    width:10px;height:10px;border-radius:50%;
+    background:var(--text-dim);
+    flex:0 0 auto;
+  }
+  .preset-btn.active{
+    background:linear-gradient(90deg, rgba(94,201,194,0.16), rgba(94,201,194,0.04));
+    border-color:var(--copper-dark);
+  }
+  .preset-btn.active .dot{ background:var(--good); box-shadow:0 0 8px var(--good); }
+
+  .transport{
+    display:flex;
+    gap:8px;
+  }
+  .transport button{ flex:1; }
+  #startBtn{ background:linear-gradient(180deg,#1f7a63,#155843); border-color:#1f7a63; }
+  #pauseBtn{ background:linear-gradient(180deg,#7a5a1f,#584015); border-color:#7a5a1f; }
+  #resetBtn{ background:linear-gradient(180deg,#7a2f2f,#582020); border-color:#7a2f2f; }
+
+  .stat-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .stat{
+    background:#0c1a28;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 10px;
+  }
+  .stat .k{
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.6px;
+    color:var(--text-dim);
+    margin-bottom:3px;
+  }
+  .stat .v{
+    font-size:16px;
+    font-weight:700;
+  }
+  .stat.driver .v{ color:var(--amber); }
+  .stat.driven .v{ color:var(--copper); }
+  .stat.wide{ grid-column:1 / -1; }
+  .stat.wide .v{ font-size:15px; color:var(--good); }
+
+  .message{
+    margin-top:16px;
+    background:linear-gradient(180deg,#132a2a,#0e2020);
+    border:1px solid var(--copper-dark);
+    border-radius:14px;
+    padding:14px 16px;
+    font-size:14px;
+    line-height:1.55;
+    color:#dff5f0;
+  }
+  .message b{ color:var(--good); }
+
+  footer{
+    text-align:center;
+    color:var(--text-dim);
+    font-size:12px;
+    padding:20px 10px 26px;
+  }
+
+  @media (max-width:600px){
+    .stat-grid{ grid-template-columns:1fr 1fr; }
+    .card h2{ font-size:13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>⚙️ Interactive Gears</h1>
+    <p>See how gear size changes speed and direction when two gears mesh together.</p>
+  </header>
+
+  <div class="stage">
+    <svg id="gearSvg" viewBox="0 0 480 300" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <div class="panel-row">
+    <div class="card">
+      <h2>🧩 Choose Gear Sizes</h2>
+      <div class="btn-row" id="presetRow">
+        <button class="preset-btn" data-preset="smallLarge"><span class="dot"></span>Small Driver → Large Driven</button>
+        <button class="preset-btn" data-preset="largeSmall"><span class="dot"></span>Large Driver → Small Driven</button>
+        <button class="preset-btn" data-preset="sameSame"><span class="dot"></span>Same Size → Same Size</button>
+      </div>
+      <h2 style="margin-top:16px;">▶ Run the Experiment</h2>
+      <div class="transport">
+        <button id="startBtn">▶ Start</button>
+        <button id="pauseBtn">⏸ Pause</button>
+        <button id="resetBtn">🔄 Reset</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📊 Live Gear Info</h2>
+      <div class="stat-grid">
+        <div class="stat driver">
+          <div class="k">Driver teeth</div>
+          <div class="v" id="driverTeethVal">20 teeth</div>
+        </div>
+        <div class="stat driven">
+          <div class="k">Driven teeth</div>
+          <div class="v" id="drivenTeethVal">40 teeth</div>
+        </div>
+        <div class="stat driver">
+          <div class="k">Driver speed</div>
+          <div class="v" id="driverSpeedVal">60 RPM</div>
+        </div>
+        <div class="stat driven">
+          <div class="k">Driven speed</div>
+          <div class="v" id="drivenSpeedVal">30 RPM</div>
+        </div>
+        <div class="stat wide">
+          <div class="k">Direction</div>
+          <div class="v" id="directionVal">🔄 Opposite</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="message">
+    💡 <b>Remember:</b> Meshing gears rotate in opposite directions. A small gear driving a large gear makes the output slower, while a large gear driving a small gear makes the output faster.
+  </div>
+
+  <footer>This simulation was created by COROX LAB</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  const svg = document.getElementById("gearSvg");
+  const VB_W = 480, VB_H = 300, CENTER_Y = 150, VB_CENTER_X = 240;
+
+  const PRESETS = {
+    smallLarge: { driver: 20, driven: 40, label: "Small Driver → Large Driven" },
+    largeSmall: { driver: 40, driven: 20, label: "Large Driver → Small Driven" },
+    sameSame:   { driver: 28, driven: 28, label: "Same Size → Same Size" }
+  };
+
+  const MODULE = 2.2;      // px of pitch radius per tooth
+  const TOOTH_DEPTH = 7;   // px added/removed for tooth height
+  const DRIVER_RPM = 60;   // fixed motor speed for the driver gear
+
+  let state = {
+    presetKey: "smallLarge",
+    driverTeeth: PRESETS.smallLarge.driver,
+    drivenTeeth: PRESETS.smallLarge.driven,
+    driverAngle: 0,
+    drivenAngle: 0,
+    running: false,
+    lastTime: null
+  };
+
+  // ---------- geometry helpers ----------
+  function polar(cx, cy, r, angleDeg){
+    const a = (angleDeg - 90) * Math.PI / 180; // start at top
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  }
+
+  function gearPathD(teeth, cx, cy){
+    const pitchR = teeth * MODULE;
+    const outerR = pitchR + TOOTH_DEPTH;
+    const innerR = pitchR - TOOTH_DEPTH;
+    const step = 360 / teeth;
+    let d = "";
+    for(let i=0;i<teeth;i++){
+      const base = i*step;
+      const a0 = base;
+      const a1 = base + step*0.16;
+      const a2 = base + step*0.5;
+      const a3 = base + step*0.66;
+      const p0 = polar(cx,cy,innerR,a0);
+      const p1 = polar(cx,cy,outerR,a1);
+      const p2 = polar(cx,cy,outerR,a2);
+      const p3 = polar(cx,cy,innerR,a3);
+      if(i===0){ d += `M ${p0[0].toFixed(2)} ${p0[1].toFixed(2)} `; }
+      else{ d += `L ${p0[0].toFixed(2)} ${p0[1].toFixed(2)} `; }
+      d += `L ${p1[0].toFixed(2)} ${p1[1].toFixed(2)} `;
+      d += `L ${p2[0].toFixed(2)} ${p2[1].toFixed(2)} `;
+      d += `L ${p3[0].toFixed(2)} ${p3[1].toFixed(2)} `;
+    }
+    d += "Z";
+    return { d, pitchR, outerR, innerR };
+  }
+
+  function arcArrowD(cx, cy, r, clockwise){
+    const startA = clockwise ? -40 : 220;
+    const endA   = clockwise ? 220 : -40;
+    const p1 = polar(cx,cy,r,startA);
+    const p2 = polar(cx,cy,r,endA);
+    const sweep = clockwise ? 1 : 0;
+    return `M ${p1[0].toFixed(2)} ${p1[1].toFixed(2)} A ${r} ${r} 0 1 ${sweep} ${p2[0].toFixed(2)} ${p2[1].toFixed(2)}`;
+  }
+
+  function el(tag, attrs){
+    const e = document.createElementNS(SVG_NS, tag);
+    for(const k in attrs){ e.setAttribute(k, attrs[k]); }
+    return e;
+  }
+
+  // ---------- build / rebuild scene ----------
+  let refs = {};
+
+  function buildScene(){
+    svg.innerHTML = "";
+    refs = {};
+
+    const driverPR = state.driverTeeth * MODULE;
+    const drivenPR = state.drivenTeeth * MODULE;
+    const centerDist = driverPR + drivenPR;
+    const driverCX = VB_CENTER_X - centerDist/2;
+    const drivenCX = VB_CENTER_X + centerDist/2;
+
+    refs.driverCX = driverCX;
+    refs.drivenCX = drivenCX;
+    refs.cy = CENTER_Y;
+
+    // defs: gradients + arrowheads
+    const defs = el("defs", {});
+    const gradAmber = el("radialGradient", {id:"gradDriver", cx:"35%", cy:"30%", r:"75%"});
+    gradAmber.appendChild(el("stop",{offset:"0%","stop-color":"#ffd28a"}));
+    gradAmber.appendChild(el("stop",{offset:"55%","stop-color":"#e0a35c"}));
+    gradAmber.appendChild(el("stop",{offset:"100%","stop-color":"#a9702f"}));
+    const gradCopper = el("radialGradient", {id:"gradDriven", cx:"35%", cy:"30%", r:"75%"});
+    gradCopper.appendChild(el("stop",{offset:"0%","stop-color":"#9df0ea"}));
+    gradCopper.appendChild(el("stop",{offset:"55%","stop-color":"#5ec9c2"}));
+    gradCopper.appendChild(el("stop",{offset:"100%","stop-color":"#2c8f89"}));
+    defs.appendChild(gradAmber);
+    defs.appendChild(gradCopper);
+
+    function arrowMarker(id, color){
+      const m = el("marker", {id, markerWidth:"8", markerHeight:"8", refX:"4", refY:"4", orient:"auto"});
+      const p = el("path", {d:"M0,0 L8,4 L0,8 Z", fill:color});
+      m.appendChild(p);
+      return m;
+    }
+    defs.appendChild(arrowMarker("arrowAmber", "#ffb454"));
+    defs.appendChild(arrowMarker("arrowCopper", "#5ec9c2"));
+    svg.appendChild(defs);
+
+    // direction arrows (static guides, drawn behind gears)
+    const arrowGroup = el("g", {opacity:"0.85"});
+    const driverArrowR = state.driverTeeth*MODULE + TOOTH_DEPTH + 20;
+    const drivenArrowR = state.drivenTeeth*MODULE + TOOTH_DEPTH + 20;
+    const driverArrow = el("path", {
+      d: arcArrowD(driverCX, CENTER_Y, driverArrowR, true),
+      fill:"none", stroke:"#ffb454", "stroke-width":"2.5",
+      "stroke-linecap":"round", "marker-end":"url(#arrowAmber)"
+    });
+    const drivenArrow = el("path", {
+      d: arcArrowD(drivenCX, CENTER_Y, drivenArrowR, false),
+      fill:"none", stroke:"#5ec9c2", "stroke-width":"2.5",
+      "stroke-linecap":"round", "marker-end":"url(#arrowCopper)"
+    });
+    arrowGroup.appendChild(driverArrow);
+    arrowGroup.appendChild(drivenArrow);
+    svg.appendChild(arrowGroup);
+
+    // driver gear group
+    const driverGeo = gearPathD(state.driverTeeth, driverCX, CENTER_Y);
+    const driverGroup = el("g", {id:"driverGroup"});
+    driverGroup.appendChild(el("path", {d:driverGeo.d, fill:"url(#gradDriver)", stroke:"#6b4315", "stroke-width":"1"}));
+    driverGroup.appendChild(el("circle", {cx:driverCX, cy:CENTER_Y, r:Math.max(driverGeo.innerR*0.42, 10), fill:"#3a2712", stroke:"#6b4315", "stroke-width":"1.5"}));
+    driverGroup.appendChild(el("circle", {cx:driverCX, cy:CENTER_Y, r:4, fill:"#1a1108"}));
+    // spokes for visual interest
+    for(let s=0;s<4;s++){
+      const a = s*90;
+      const p = polar(driverCX, CENTER_Y, driverGeo.innerR*0.42, a);
+      driverGroup.appendChild(el("line", {x1:driverCX, y1:CENTER_Y, x2:p[0], y2:p[1], stroke:"#6b4315", "stroke-width":"3"}));
+    }
+    svg.appendChild(driverGroup);
+
+    // driven gear group
+    const drivenGeo = gearPathD(state.drivenTeeth, drivenCX, CENTER_Y);
+    const drivenGroup = el("g", {id:"drivenGroup"});
+    drivenGroup.appendChild(el("path", {d:drivenGeo.d, fill:"url(#gradDriven)", stroke:"#1c5450", "stroke-width":"1"}));
+    drivenGroup.appendChild(el("circle", {cx:drivenCX, cy:CENTER_Y, r:Math.max(drivenGeo.innerR*0.42, 10), fill:"#0e2a28", stroke:"#1c5450", "stroke-width":"1.5"}));
+    drivenGroup.appendChild(el("circle", {cx:drivenCX, cy:CENTER_Y, r:4, fill:"#06120f"}));
+    for(let s=0;s<4;s++){
+      const a = s*90;
+      const p = polar(drivenCX, CENTER_Y, drivenGeo.innerR*0.42, a);
+      drivenGroup.appendChild(el("line", {x1:drivenCX, y1:CENTER_Y, x2:p[0], y2:p[1], stroke:"#1c5450", "stroke-width":"3"}));
+    }
+    svg.appendChild(drivenGroup);
+
+    // labels
+    const labelY = CENTER_Y + Math.max(driverGeo.outerR, drivenGeo.outerR) + 34;
+    const clampY = Math.min(labelY, VB_H - 8);
+    const driverLabel = el("text", {x:driverCX, y:clampY, "text-anchor":"middle", class:"gear-label"});
+    driverLabel.textContent = "DRIVER";
+    const drivenLabel = el("text", {x:drivenCX, y:clampY, "text-anchor":"middle", class:"gear-label"});
+    drivenLabel.textContent = "DRIVEN";
+    svg.appendChild(driverLabel);
+    svg.appendChild(drivenLabel);
+
+    refs.driverGroup = driverGroup;
+    refs.drivenGroup = drivenGroup;
+
+    applyRotation();
+  }
+
+  function applyRotation(){
+    if(refs.driverGroup){
+      refs.driverGroup.setAttribute("transform", `rotate(${state.driverAngle} ${refs.driverCX} ${refs.cy})`);
+    }
+    if(refs.drivenGroup){
+      refs.drivenGroup.setAttribute("transform", `rotate(${state.drivenAngle} ${refs.drivenCX} ${refs.cy})`);
+    }
+  }
+
+  // ---------- info panel ----------
+  function drivenRPM(){
+    return DRIVER_RPM * (state.driverTeeth / state.drivenTeeth);
+  }
+
+  function updateInfo(){
+    document.getElementById("driverTeethVal").textContent = state.driverTeeth + " teeth";
+    document.getElementById("drivenTeethVal").textContent = state.drivenTeeth + " teeth";
+    document.getElementById("driverSpeedVal").textContent = DRIVER_RPM + " RPM";
+    document.getElementById("drivenSpeedVal").textContent = Math.round(drivenRPM()*10)/10 + " RPM";
+    document.getElementById("directionVal").textContent = "🔄 Opposite";
+
+    document.querySelectorAll(".preset-btn").forEach(btn=>{
+      btn.classList.toggle("active", btn.dataset.preset === state.presetKey);
+    });
+  }
+
+  // ---------- animation ----------
+  function step(ts){
+    if(state.lastTime === null){ state.lastTime = ts; }
+    const dt = (ts - state.lastTime)/1000;
+    state.lastTime = ts;
+
+    if(state.running){
+      const driverDegPerSec = DRIVER_RPM * 6 * 0.30;
+      const drivenDegPerSec = drivenRPM() * 6 * 0.30;
+      state.driverAngle = (state.driverAngle + driverDegPerSec*dt) % 360;
+      state.drivenAngle = (state.drivenAngle - drivenDegPerSec*dt) % 360;
+      applyRotation();
+    }
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+
+  // ---------- controls ----------
+  function setPreset(key){
+    const p = PRESETS[key];
+    state.presetKey = key;
+    state.driverTeeth = p.driver;
+    state.drivenTeeth = p.driven;
+    buildScene();
+    updateInfo();
+  }
+
+  document.getElementById("presetRow").addEventListener("click", (e)=>{
+    const btn = e.target.closest(".preset-btn");
+    if(!btn) return;
+    setPreset(btn.dataset.preset);
+  });
+
+  document.getElementById("startBtn").addEventListener("click", ()=>{
+    state.running = true;
+    state.lastTime = null;
+  });
+  document.getElementById("pauseBtn").addEventListener("click", ()=>{
+    state.running = false;
+  });
+  document.getElementById("resetBtn").addEventListener("click", ()=>{
+    state.running = false;
+    state.driverAngle = 0;
+    state.drivenAngle = 0;
+    applyRotation();
+  });
+
+  // ---------- init ----------
+  setPreset("smallLarge");
+  state.running = false;
+
+})();
+</script>
+
+</body>
+</html>
