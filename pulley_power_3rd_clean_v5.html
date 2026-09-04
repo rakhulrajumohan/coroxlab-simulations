@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🪢 Pulley Power — Grade 6 Science</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b1020;color:#eef3ff;font-family:Arial,Helvetica,sans-serif}
+.wrap{max-width:1050px;margin:auto;padding:18px}
+h1{margin:0;font-size:clamp(28px,5vw,44px)}
+.sub{color:#aebbd8;margin:5px 0 16px}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.panel{background:#151d32;border:1px solid #293652;border-radius:16px;padding:13px}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+select,button{padding:10px 13px;border:0;border-radius:9px;font-weight:700;font-size:15px;cursor:pointer}
+select{background:#edf2ff;color:#111}
+button{background:#293754;color:white}
+.start{background:#24b77a}.reset{background:#a94255}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:13px 0}
+.stat{background:#0f1628;border-radius:11px;padding:11px}
+.stat small{display:block;color:#91a2c2;margin-bottom:4px}.stat strong{font-size:19px}
+#stage{position:relative;width:100%;height:min(62vw,560px);min-height:420px;background:#0f172a;border:1px solid #293652;border-radius:18px;overflow:hidden;touch-action:none}
+svg{width:100%;height:100%}
+.ceiling{stroke:#61728f;stroke-width:9;stroke-linecap:round}
+.rope{stroke:#d8bb8d;stroke-width:6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.support{stroke:#667898;stroke-width:7;stroke-linecap:round}
+.pulley{fill:#273650;stroke:#edf3ff;stroke-width:4}
+.pulley3{fill:url(#pulleyGrad);stroke:#2c1a52;stroke-width:4}
+.groove3{fill:none;stroke:#c9b6ff;stroke-width:2;opacity:.6}
+.bolt3{fill:#ffd23f;stroke:#8a5a00;stroke-width:2}
+.rope3{stroke:#2f7dfa;stroke-width:7;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.hub{fill:#0c1323;stroke:#94a7c8;stroke-width:3}.spoke{stroke:#94a7c8;stroke-width:3}
+.tooth{stroke:#edf3ff;stroke-width:5;stroke-linecap:round}
+.load{fill:#d96b55;stroke:#ffb6a0;stroke-width:3}
+.loadtext{fill:white;font-weight:700;text-anchor:middle}.label{fill:#9eafd0;font-weight:700;font-size:15px}
+.hint{fill:#dce6fb;font-weight:700;font-size:16px}
+.handle{fill:#24b77a;stroke:#d8fff0;stroke-width:3;cursor:grab;pointer-events:all;touch-action:none}.arrow{stroke:#24b77a;stroke-width:5;stroke-linecap:round}.hand{pointer-events:none}
+.forcePanel{margin-top:12px;background:#151d32;border:1px solid #344463;border-radius:16px;padding:15px}
+.forceTop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.forceTitle{font-size:20px;font-weight:800}.forceNum{font-size:28px;font-weight:800}
+.bar{height:18px;background:#29354d;border-radius:20px;overflow:hidden;margin-top:10px}
+.fill{height:100%;background:#e76f51;width:100%;transition:width .2s}
+.muted{color:#91a2c2;font-size:14px;margin-top:7px}
+.bottom{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-top:13px}
+.bottom h2{font-size:20px;margin:0 0 7px}.bottom p{color:#c8d3e9;line-height:1.45;margin:6px 0}
+#result{font-weight:800;min-height:24px}footer{text-align:center;color:#7f8dab;padding:20px 0 7px;font-size:14px}
+@media(max-width:720px){
+ .stats{grid-template-columns:repeat(2,1fr)}.bottom{grid-template-columns:1fr}
+ #stage{height:520px;min-height:430px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>🪢 Pulley Power</h1><div class="sub">Explore how pulleys can make lifting a load easier.</div></div>
+    <div class="panel controls">
+      <label for="count">Number of Pulleys</label>
+      <select id="count"><option value="1">1 Pulley</option><option value="2">2 Pulleys</option><option value="3">3 Pulleys</option><option value="4">4 Pulleys</option></select>
+      <button class="start" id="start">▶ Start</button><button id="pause">⏸ Pause</button><button class="reset" id="reset">🔄 Reset</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><small>Load</small><strong>100 N</strong></div>
+    <div class="stat"><small>Pulleys</small><strong id="pi">1</strong></div>
+    <div class="stat"><small>Supporting rope sections</small><strong id="si">1</strong></div>
+    <div class="stat"><small>Required Force</small><strong id="fi">100 N</strong></div>
+  </div>
+
+  <div id="stage">
+    <svg id="svg" viewBox="0 0 1000 600" preserveAspectRatio="none">
+      <defs>
+        <radialGradient id="pulleyGrad" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stop-color="#c9b6ff"/>
+          <stop offset="55%" stop-color="#8a5fe0"/>
+          <stop offset="100%" stop-color="#4a2f7a"/>
+        </radialGradient>
+      </defs>
+      <line class="ceiling" x1="65" y1="72" x2="935" y2="72"/>
+      <g id="system"></g><g id="rope"></g><g id="load"></g><g id="drag"></g>
+    </svg>
+  </div>
+
+  <!-- Required Force is deliberately BELOW the simulation so it never covers the pulleys. -->
+  <div class="forcePanel">
+    <div class="forceTop">
+      <div class="forceTitle">💪 Required Force</div>
+      <div class="forceNum" id="fb">100 N</div>
+    </div>
+    <div class="bar"><div class="fill" id="fill"></div></div>
+    <div class="muted">More supporting rope sections → less effort</div>
+  </div>
+
+  <div class="bottom">
+    <div class="panel">
+      <h2>🎯 Challenge</h2>
+      <p>“Lift the box using the least force.”</p>
+      <p>Choose a pulley arrangement, press <b>Start</b>, then drag the green handle downward. The hand follows your pull.</p>
+      <div id="result"></div>
+    </div>
+    <div class="panel">
+      <h2>💡 Learn</h2>
+      <p>“A pulley system can reduce the force needed to lift a load. More supporting rope sections generally mean less effort, but you must pull more rope.”</p>
+    </div>
+  </div>
+  <footer>This simulation was created by COROX LAB</footer>
+</div>
+
+<script>
+const NS="http://www.w3.org/2000/svg";
+const svg=document.querySelector("#svg"),system=document.querySelector("#system"),rope=document.querySelector("#rope"),load=document.querySelector("#load"),drag=document.querySelector("#drag");
+const count=document.querySelector("#count"),pi=document.querySelector("#pi"),si=document.querySelector("#si"),fi=document.querySelector("#fi"),fb=document.querySelector("#fb"),fill=document.querySelector("#fill"),result=document.querySelector("#result");
+let n=1,running=false,dragging=false,pull=0,lastY=0,angle=0,last=0,autoPull=false,animId=0;
+const LOAD=100,R=46;
+function sections(){return n===1 ? 1 : n===2 ? 2 : n===3 ? 3 : 4}
+function force(){return LOAD/sections()}
+function E(tag,a,p){const x=document.createElementNS(NS,tag);for(const k in a)x.setAttribute(k,a[k]);(p||system).appendChild(x);return x}
+function line(x1,y1,x2,y2,p=rope){return E("line",{x1,y1,x2,y2,class:"rope"},p)}
+function path(d,p=rope){return E("path",{d,class:"rope"},p)}
+function pulley(x,y,extra=""){
+  const g=E("g",{transform:`translate(${x} ${y}) rotate(${angle})`,class:extra});
+  E("circle",{r:R,class:"pulley"},g);
+  for(let i=0;i<8;i++){const a=i*Math.PI/4;E("line",{x1:Math.cos(a)*10,y1:Math.sin(a)*10,x2:Math.cos(a)*38,y2:Math.sin(a)*38,class:"spoke"},g)}
+  E("circle",{r:10,class:"hub"},g);
+  for(let i=0;i<16;i++){const a=i*Math.PI/8;E("line",{x1:Math.cos(a)*45,y1:Math.sin(a)*45,x2:Math.cos(a)*52,y2:Math.sin(a)*52,class:"tooth"},g)}
+}
+function pulleyPurple(x,y){
+  const g=E("g",{transform:`translate(${x} ${y}) rotate(${angle})`});
+  E("circle",{r:R,class:"pulley3"},g);
+  E("circle",{r:R*0.78,class:"groove3"},g);
+  E("circle",{r:R*0.55,class:"groove3"},g);
+  E("circle",{r:12,fill:"#2c1a52"},g);
+  E("circle",{r:8,class:"bolt3"},g);
+}
+function label(x,y,s,anchor="middle"){const t=E("text",{x,y,class:"label","text-anchor":anchor});t.textContent=s}
+function drawLoad(x,y){E("line",{x1:x,y1:y,x2:x,y2:y+22,class:"support"},load);E("rect",{x:x-62,y:y+22,width:124,height:72,rx:10,class:"load"},load);const t=E("text",{x,y:y+65,class:"loadtext"});t.textContent="LOAD 100 N"}
+function drawHandle(x,y){E("circle",{cx:x,cy:y,r:19,class:"handle"},drag);const t=E("text",{x,y:y+6,class:"loadtext"});t.setAttribute("font-size","18");t.textContent="↓"}
+function drawHand(x,y){const g=E("g",{transform:`translate(${x+30} ${y-8})`,class:"hand"},drag);const t=E("text",{x:0,y:0,"font-size":"34","text-anchor":"middle"},g);t.textContent="☝️"}
+function drawHandPull(x,y){
+  // Invisible circle keeps the same draggable hit-area as the other views.
+  const hit=E("circle",{cx:x,cy:y,r:26,class:"handle"},drag);
+  hit.setAttribute("style","fill:rgba(0,0,0,0);stroke:none;");
+  const g=E("g",{transform:`translate(${x} ${y}) rotate(${-25})`,class:"hand"},drag);
+  const t=E("text",{x:0,y:14,"font-size":"54","text-anchor":"middle"},g);
+  t.textContent="✊";
+}
+function ropeAroundPulley(cx,cy,leftX,rightX,topY,freeY,loadY){
+  // Anchor/rope enters the left side, wraps around the bottom half, exits right side.
+  path(`M ${leftX} ${topY} L ${cx-R} ${cy} A ${R} ${R} 0 0 0 ${cx+R} ${cy} L ${rightX} ${freeY}`);
+}
+function draw(){
+  system.innerHTML=rope.innerHTML=load.innerHTML=drag.innerHTML="";
+  const s=sections(),F=force();
+  const rise=Math.min(220,pull/s), baseY=420-rise;
+  pi.textContent=n;si.textContent=s;fi.textContent=F+" N";fb.textContent=F+" N";fill.style.width=(F/LOAD*100)+"%";
+
+  if(n===1){
+    const fx=680,fy=160,lx=350,ly=baseY,handleX=820,handleY=390+pull;
+    pulley(fx,fy);
+    E("line",{x1:fx,y1:72,x2:fx,y2:114,class:"support"});
+    // One fixed pulley: load on one side, free end on the other.
+    path(`M ${lx} ${ly} L ${fx-R} ${fy} A ${R} ${R} 0 0 1 ${fx+R} ${fy} L ${handleX} ${handleY}`);
+    drawLoad(lx,ly);drawHandPull(handleX,handleY);
+    label(fx,fy-R-18,"Fixed");
+    
+  }
+
+  if(n===2){
+    const fx=700,fy=145,mx=430,my=baseY+15,handleX=820,handleY=360+pull;
+    pulley(fx,fy);pulley(mx,my);
+    E("line",{x1:fx,y1:72,x2:fx,y2:99,class:"support"});
+    // Correct movable-pulley connection: rope fixed to ceiling, down around movable,
+    // up over fixed pulley, then down to the student's free end.
+    path(`M 250 72 L ${mx-R} ${my} A ${R} ${R} 0 0 0 ${mx+R} ${my} L ${fx-R} ${fy} A ${R} ${R} 0 0 1 ${fx+R} ${fy} L ${handleX} ${handleY}`);
+    drawLoad(mx,my+R+8);drawHandPull(handleX,handleY);
+    label(fx,fy-R-18,"Fixed");label(mx,my+R+26,"Movable");
+  }
+
+  if(n===3){
+    // Clean 3-pulley compound arrangement:
+    // 2 fixed pulleys at the top + 1 movable pulley carrying the load.
+    // The rope travels in one consistent direction (anchor -> movable ->
+    // fixed 1 -> back across the top of the movable block -> fixed 2 -> hand)
+    // so no segment ever has to double back across an earlier one.
+    const f1x=430,f1y=140;
+    const f2x=750,f2y=140;
+    const mx=565,my=baseY-20;
+    const anchorX=230;
+    const hx=900,hy=340+pull;
+
+    pulley(f1x,f1y);
+    pulley(f2x,f2y);
+    pulley(mx,my);
+
+    // Fixed pulley supports (same simple style as the 1 & 2 pulley views).
+    E("line",{x1:f1x,y1:72,x2:f1x,y2:89,class:"support"});
+    E("line",{x1:f2x,y1:72,x2:f2x,y2:89,class:"support"});
+
+    // Single continuous rope:
+    // ceiling anchor -> under movable pulley -> over fixed pulley 1 ->
+    // across to the top of the movable block -> over fixed pulley 2 -> hand.
+    path(`M ${anchorX} 72
+          L ${mx-R} ${my}
+          A ${R} ${R} 0 0 0 ${mx+R} ${my}
+          L ${f1x+R} ${f1y}
+          A ${R} ${R} 0 0 0 ${f1x-R} ${f1y}
+          L ${mx-R*0.3} ${my-R}
+          A ${R} ${R} 0 0 1 ${mx+R*0.3} ${my-R}
+          L ${f2x-R} ${f2y}
+          A ${R} ${R} 0 0 1 ${f2x+R} ${f2y}
+          L ${hx} ${hy}`);
+
+    drawLoad(mx,my+R+8);
+    drawHandPull(hx,hy);
+
+    label(f1x,f1y-R-18,"Fixed");
+    label(f2x,f2y-R-18,"Fixed");
+    label(mx-R-14,my+5,"Movable","end");
+  }
+
+  if(n===4){
+    // 4-pulley design from the supplied reference:
+    // two fixed pulleys on top + two movable pulleys attached to the load.
+    const f1x=610,f1y=125,f2x=800,f2y=125;
+    const m1x=470,m1y=baseY+20,m2x=625,m2y=baseY+20;
+    const hx=885,hy=345+pull;
+
+    pulley(f1x,f1y); pulley(f2x,f2y);
+    pulley(m1x,m1y); pulley(m2x,m2y);
+    E("line",{x1:f1x,y1:72,x2:f1x,y2:80,class:"support"});
+    E("line",{x1:f2x,y1:72,x2:f2x,y2:80,class:"support"});
+
+    path(`M 155 72
+          L ${m1x-R} ${m1y}
+          A ${R} ${R} 0 0 0 ${m1x+R} ${m1y}
+          L ${f1x-R} ${f1y}
+          A ${R} ${R} 0 0 1 ${f1x+R} ${f1y}
+          L ${m2x+R} ${m2y}
+          A ${R} ${R} 0 0 1 ${m2x-R} ${m2y}
+          L ${f2x-R} ${f2y}
+          A ${R} ${R} 0 0 1 ${f2x+R} ${f2y}
+          L ${hx} ${hy}`);
+
+    E("line",{x1:m1x,y1:m1y+R,x2:m2x,y2:m2y+R,class:"support"},load);
+    drawLoad((m1x+m2x)/2,baseY+R+30);
+    drawHandPull(hx,hy);
+    label(f1x,f1y-R-18,"Fixed");
+    label(f2x,f2y-R-18,"Fixed");
+    label(m1x,m1y+R+25,"Movable");
+    label(m2x,m2y+R+25,"Movable");
+  }
+}
+function point(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const m=svg.getScreenCTM();return p.matrixTransform(m.inverse())}
+svg.addEventListener("pointerdown",e=>{
+  if(!running)return;
+  if(e.target?.classList?.contains("handle")){
+    dragging=true;
+    lastY=point(e).y;
+    e.preventDefault();
+    e.stopPropagation();
+  }
+});
+window.addEventListener("pointermove",e=>{
+  if(!dragging || !running)return;
+  const y=point(e).y,dy=y-lastY;
+  pull=Math.max(0,Math.min(145,pull+dy));
+  lastY=y;
+  angle+=dy*0.9;
+  draw();
+});
+window.addEventListener("pointerup",()=>dragging=false);
+window.addEventListener("pointercancel",()=>dragging=false);
+
+function animateLift(){
+  if(!running || !autoPull)return;
+  pull+=0.75;
+  angle+=0.7;
+  if(pull>=145){
+    pull=145;
+    autoPull=false;
+    running=false;
+    result.innerHTML="✅ Great! The load was lifted.";
+    document.querySelector("#start").textContent="▶ Start Again";
+  }
+  draw();
+  if(running && autoPull) animId=requestAnimationFrame(animateLift);
+}
+
+document.querySelector("#start").onclick=()=>{
+  if(pull>=145) pull=0;
+  running=true; autoPull=true; dragging=false;
+  result.textContent="";
+  document.querySelector("#start").textContent="▶ Start";
+  document.querySelector("#pause").textContent="⏸ Pause";
+  cancelAnimationFrame(animId);
+  animId=requestAnimationFrame(animateLift);
+};
+document.querySelector("#pause").onclick=()=>{
+  if(running){
+    running=false; autoPull=false; dragging=false;
+    document.querySelector("#pause").textContent="▶ Resume";
+  }else{
+    running=true; autoPull=true;
+    document.querySelector("#pause").textContent="⏸ Pause";
+    cancelAnimationFrame(animId);
+    animId=requestAnimationFrame(animateLift);
+  }
+};
+document.querySelector("#reset").onclick=()=>{
+  running=false; autoPull=false; dragging=false;
+  cancelAnimationFrame(animId);
+  pull=0; angle=0; result.textContent="";
+  document.querySelector("#start").textContent="▶ Start";
+  document.querySelector("#pause").textContent="⏸ Pause";
+  draw();
+};
+count.onchange=()=>{
+  n=+count.value; running=false; autoPull=false; dragging=false;
+  cancelAnimationFrame(animId);
+  pull=0; angle=0; result.textContent="";
+  document.querySelector("#start").textContent="▶ Start";
+  document.querySelector("#pause").textContent="⏸ Pause";
+  draw();
+};
+
+draw();
+</script>
+</body>
+</html>
