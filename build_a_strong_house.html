@@ -1,0 +1,101 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>🏠 Build a Strong House</title><style>
+*{box-sizing:border-box}html,body{overflow-x:hidden}body{margin:0;background:#08111f;color:#eef4ff;font-family:Arial,sans-serif}.wrap{max-width:1050px;margin:auto;padding:16px}h1{margin:0;font-size:clamp(28px,5vw,44px)}p{color:#c5d2e8;line-height:1.45}.sub{color:#9cafcc}.top,.row,.barTop{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.panel{background:#111c31;border:1px solid #2b3b58;border-radius:18px;padding:14px}.controls{display:flex;gap:7px;flex-wrap:wrap}.controls button{font-weight:800}.btn{border:0;border-radius:10px;padding:11px 13px;color:#fff;background:#29405e;cursor:pointer;font-weight:800}.btn:disabled{opacity:.35;cursor:not-allowed}.foundation{background:#80633f}.columns{background:#397fbd}.beams{background:#c9783c}.roof{background:#875bc5}.test{background:#e34f4b;font-size:16px}.reset{background:#a64058}.progress{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:13px 0}.step{padding:9px 4px;text-align:center;border-radius:10px;background:#0e182b;border:1px solid #2b3b58;color:#7185a5;font-size:12px;font-weight:800}.step.done{background:#12382f;border-color:#20c997;color:#fff}.step.current{border-color:#ffc857;color:#ffc857}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}.stat{background:#0e182b;border-radius:13px;padding:11px}.stat small{display:block;color:#91a5c5}.stat strong{font-size:20px}#stage{height:min(60vw,560px);min-height:430px;background:radial-gradient(circle at 50% 25%,#172947,#0b1729 60%,#07101d);border:1px solid #2b3b58;border-radius:20px;overflow:hidden}svg{width:100%;height:100%}.ground{stroke:#40536f;stroke-width:9}.foundationShape{fill:#80633f;stroke:#d1a76d;stroke-width:3}.columnShape{fill:#397fbd;stroke:#a8d5ff;stroke-width:3}.beamShape{fill:#c9783c;stroke:#ffd09b;stroke-width:3}.roofShape{fill:#875bc5;stroke:#d6c5ff;stroke-width:3}.joint{fill:#ffc857}.weightShape{fill:#e8564e;stroke:#ffb0aa;stroke-width:3}.weightText{fill:#fff;font-weight:900;text-anchor:middle}.hint{fill:#dce8fb;font-weight:800;font-size:17px;text-anchor:middle}.label{fill:#a6b9d6;font-weight:800;font-size:14px;text-anchor:middle}.crack{stroke:#ff7770;stroke-width:4;fill:none;stroke-linecap:round}.shake{animation:shake .07s infinite alternate}@keyframes shake{to{transform:translateX(4px) rotate(.5deg)}}.fall{animation:fall .7s ease-in forwards}@keyframes fall{to{transform:translateY(170px) rotate(18deg);opacity:.15}}.drop{animation:drop .4s ease-out}@keyframes drop{from{transform:translateY(-50px)}to{transform:translateY(0)}}
+.removeOut{animation:removeOut .5s ease forwards;transform-origin:50% 100%}@keyframes removeOut{0%{transform:scaleY(1) translateX(0);opacity:1}60%{transform:scaleY(.4) translateX(10px);opacity:.6}100%{transform:scaleY(.05) translateX(20px);opacity:0}}.panel2{margin-top:12px}.slider{width:100%;accent-color:#ff8c42}.bar{height:17px;background:#263751;border-radius:20px;overflow:hidden}.fill{height:100%;width:0;background:#20c997;transition:.25s}.message{background:#0b1527;border:1px solid #2b3b58;border-radius:12px;padding:11px;margin-top:9px;font-weight:800}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.challenge{border-color:#396055}footer{text-align:center;color:#7285a4;padding:20px 0 5px;font-size:14px}@media(max-width:700px){.wrap{padding:11px}.stats{grid-template-columns:1fr 1fr}.stats .stat:last-child{grid-column:1/-1}.grid{grid-template-columns:1fr}.progress{gap:4px}.step{font-size:9px}#stage{height:520px}}
+</style></head><body><div class="wrap"><div class="top"><div><h1>🏠 Build a Strong House</h1><div class="sub">Build the parts in order, add weight, and test the structure.</div></div><div class="panel controls"><button class="btn foundation" id="bf">+ Add Foundation</button><button class="btn columns" id="bc">+ Add Column</button><button class="btn beams" id="bb">+ Add Beam</button><button class="btn roof" id="br">+ Add Roof</button><button class="btn reset" id="reset">🔄 Reset</button></div></div><div class="progress"><div class="step current" id="p1">🧱 Foundation</div><div class="step" id="p2">🏗️ Columns</div><div class="step" id="p3">➖ Beams</div><div class="step" id="p4">🏠 Roof</div><div class="step" id="p5">✅ Ready to Test</div></div><div class="stats"><div class="stat"><small>Columns / Beams</small><strong id="parts">0 / 0</strong></div><div class="stat"><small>Current Strength</small><strong id="strength">0 kg</strong></div><div class="stat"><small>Weight</small><strong id="wstat">0 kg</strong></div></div><div id="hint" class="message" style="text-align:center;margin-bottom:8px;">Start by adding the foundation</div><div id="stage"><svg viewBox="0 0 1000 600" preserveAspectRatio="none"><line class="ground" x1="100" y1="545" x2="900" y2="545"/><g id="house"></g><g id="wg"></g><g id="fx"></g></svg></div><div class="panel panel2"><div class="barTop"><div><h2 style="margin:0">⚖️ Add Weight</h2><p style="margin:4px 0">Choose a load from 0 kg to 1000 kg.</p></div><strong id="wv" style="font-size:27px">0 kg</strong></div><input id="weight" class="slider" type="range" min="0" max="1000" step="10" value="0" disabled><div class="barTop" style="color:#8fa4c4;font-size:12px"><span>0 kg</span><span>500 kg</span><span>1000 kg</span></div><div style="margin-top:12px"><div class="barTop"><b>Structure strength</b><b id="sl">0 / 1000 kg</b></div><div class="bar"><div class="fill" id="fill"></div></div></div></div><div class="grid"><div class="panel challenge"><div class="barTop"><h2 style="margin:0">🎯 Challenge Mode</h2><b id="cb">Challenge 1</b></div><p id="ct">Build a house that can hold <b>500 kg</b>.</p><button class="btn" id="check">Check Challenge</button><div class="message" id="cr">Build the house first.</div></div><div class="panel"><h2 style="margin:0 0 9px">🧪 Strength Test</h2><button class="btn test" id="test" disabled>🧪 TEST STRUCTURE</button><button class="btn" id="remove" style="display:none;background:#70475e;margin-left:5px">Remove One Support</button><div class="message" id="result">Build the house first — add as many columns and beams as you like.</div></div></div><footer>This simulation was created by COROX LAB</footer></div><script>
+const N='http://www.w3.org/2000/svg',S=document.querySelector('svg'),H=document.querySelector('#house'),W=document.querySelector('#wg'),F=document.querySelector('#fx');
+const COL_X=[271,406,556,691];
+const BEAM_DEFS=[{x:260,y:250,width:480,height:30,rx:5},{x:275,y:458,width:450,height:24,rx:4}];
+let st={f:0,c:0,b:0,r:0,w:0,removedCount:0},ch=1,busy=false;
+function E(t,a,p=H){let x=document.createElementNS(N,t);for(let k in a)x.setAttribute(k,a[k]);p.appendChild(x);return x}
+function strength(){return (st.f?100:0)+st.c*150+st.b*150}
+
+function addFoundation(){
+  if(st.f)return;
+  st.f=1;
+  E('rect',{x:235,y:490,width:530,height:55,rx:8,class:'foundationShape drop'});
+  updateStats();
+}
+function addColumn(){
+  if(!st.f||st.c>=4)return;
+  const x=COL_X[st.c];
+  const g=E('g',{class:'col'+st.c+' drop'});
+  E('rect',{x,y:270,width:38,height:220,rx:5,class:'columnShape'},g);
+  E('circle',{cx:x+19,cy:270,r:8,class:'joint'},g);
+  st.c++;
+  updateStats();
+}
+function removeColumn(){
+  if(busy||st.c===0)return;
+  const idx=st.c-1;
+  const el=H.querySelector('.col'+idx);
+  if(!el)return;
+  busy=true;updateStats();
+  el.classList.add('removeOut');
+  setTimeout(()=>{
+    el.remove();
+    st.c--;
+    st.removedCount++;
+    busy=false;
+    result.textContent='Support removed! Strength is now '+strength()+' kg. Test it again.';
+    updateStats();
+    ch=3;challenge();
+  },520);
+}
+function addBeam(){
+  if(st.c===0||st.b>=2)return;
+  const d=BEAM_DEFS[st.b];
+  E('rect',{...d,class:'beamShape drop'});
+  st.b++;
+  updateStats();
+}
+function addRoof(){
+  if(st.b===0||st.r)return;
+  st.r=1;
+  E('polygon',{points:'220,250 500,105 780,250',class:'roofShape drop'});
+  updateStats();
+}
+function renderWeight(){
+  W.innerHTML='';
+  if(st.r&&st.w){let ww=70+st.w*.05,hh=25+st.w*.05,x=500-ww/2,y=105-hh,g=E('g',{class:'drop'},W);E('rect',{x,y,width:ww,height:hh,rx:8,class:'weightShape'},g);let t=E('text',{x:500,y:y+hh/2+6,class:'weightText'},g);t.textContent=st.w+' kg'}
+  updateStats();
+}
+function updateStats(){
+  document.querySelector('#parts').textContent=st.c+' / 4'+'   '+st.b+' / 2';
+  document.querySelector('#strength').textContent=strength()+' kg';
+  document.querySelector('#wstat').textContent=st.w+' kg';
+  document.querySelector('#wv').textContent=st.w+' kg';
+  document.querySelector('#sl').textContent=strength()+' / 1000 kg';
+  document.querySelector('#fill').style.width=Math.min(100,strength()/10)+'%';
+  document.querySelector('#bf').disabled=!!st.f;
+  document.querySelector('#bc').disabled=!st.f||st.c>=4;
+  document.querySelector('#bc').textContent='+ Add Column ('+st.c+'/4)';
+  document.querySelector('#bb').disabled=st.c===0||st.b>=2;
+  document.querySelector('#bb').textContent='+ Add Beam ('+st.b+'/2)';
+  document.querySelector('#br').disabled=st.b===0||!!st.r;
+  document.querySelector('#weight').disabled=!st.r;
+  document.querySelector('#test').disabled=!(st.f&&st.c>0&&st.b>0&&st.r);
+  document.querySelector('#remove').style.display=st.c>0?'inline-block':'none';
+  document.querySelector('#remove').disabled=busy||st.c===0;
+  let n=(st.f?1:0)+(st.c>0?1:0)+(st.b>0?1:0)+(st.r?1:0);
+  document.querySelector('#hint').textContent=!st.f?'Start by adding the foundation':st.c===0?'Now add some columns — you choose how many':st.b===0?'Add beams to connect the columns':!st.r?'Finish with the roof':'House ready — add weight, test it, or try removing a support!';
+  for(let i=1;i<=5;i++)document.querySelector('#p'+i).className='step';
+  [st.f,st.c>0,st.b>0,st.r].forEach((v,i)=>{if(v)document.querySelector('#p'+(i+1)).classList.add('done')});
+  if(n<4)document.querySelector('#p'+(n+1)).classList.add('current');else document.querySelector('#p5').classList.add('done');
+}
+
+bf.onclick=addFoundation;bc.onclick=addColumn;bb.onclick=addBeam;br.onclick=addRoof;
+weight.oninput=()=>{st.w=+weight.value;result.textContent='Ready to test this load.';renderWeight()};
+function collapse(){H.querySelectorAll('rect,polygon').forEach((x,i)=>{x.classList.add('shake');setTimeout(()=>x.classList.add('fall'),i*70)});['M 330 270l18 25-13 25 22 28','M 500 250l-15 30 20 25-17 32','M 670 270l15 25-20 30 18 27','M 300 458l30-12 20 18','M 690 458l-30-10-20 20'].forEach(d=>E('path',{d,class:'crack'},F));document.querySelector('#hint').textContent='💥 The structure collapsed!'}
+test.onclick=()=>{if(st.w<=strength()){result.innerHTML='✅ <b>Structure is Strong!</b><br>The foundation, columns, and beams work together to support the load.';result.style.borderColor='#20c997';document.querySelector('#hint').textContent='✅ House is standing safely!'}else{result.innerHTML='💥 <b>Structure Collapsed!</b><br>The structure could not support the load. Strong foundations and supports are important for carrying weight.';result.style.borderColor='#ef5350';collapse()}};
+remove.onclick=removeColumn;
+function challenge(){document.querySelector('#cb').textContent='Challenge '+ch;document.querySelector('#ct').innerHTML=ch===1?'Build a house that can hold <b>500 kg</b>.':ch===2?'Build a house that can hold <b>1000 kg</b>.':'Remove a support and test again.'}
+check.onclick=()=>{if(ch===1&&st.r&&st.w>=500&&st.w<=strength()){document.querySelector('#cr').textContent='✅ Challenge 1 complete!';ch=2;challenge()}else if(ch===2&&st.r&&st.w>=1000&&st.w<=strength()){document.querySelector('#cr').textContent='✅ Challenge 2 complete!';ch=3;challenge()}else if(ch===3&&st.removedCount>0){document.querySelector('#cr').textContent='✅ Challenge 3 complete! Removing a support made the structure weaker.'}else document.querySelector('#cr').textContent='Keep building and set the challenge load.'};
+reset.onclick=()=>{
+  st={f:0,c:0,b:0,r:0,w:0,removedCount:0};busy=false;
+  H.innerHTML='';W.innerHTML='';F.innerHTML='';
+  weight.value=0;ch=1;challenge();
+  result.textContent='Build the house before testing.';
+  document.querySelector('#cr').textContent='Build the house first.';
+  updateStats();
+};
+challenge();updateStats();</script></body></html>
