@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Build Your Bridge 🌉</title>
+<style>
+  :root{
+    --bg1:#0B1330; --bg2:#050914;
+    --ink:#EAF3FF; --ink-dim:#9FB3D0;
+    --card:rgba(15,22,45,0.85); --card-border:rgba(255,255,255,0.14);
+    --cyan:#4FD8E8; --orange:#FF9E4D; --yellow:#FFD966;
+    --green:#66E29B; --red:#FF6B6B; --purple:#B79CFF;
+  }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{
+    margin:0; padding:0; width:100%; min-height:100%;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    background: linear-gradient(180deg, var(--bg1), var(--bg2) 80%);
+    color:var(--ink); overflow-x:hidden;
+  }
+  .app{
+    width:100%; min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center;
+    padding: 14px 12px 18px; gap:12px;
+  }
+  header{ text-align:center; width:100%; max-width:800px; }
+  h1{ margin:0; font-size: clamp(19px,4.4vw,28px); color:#fff; text-shadow:0 2px 10px rgba(79,216,232,0.3); }
+  .tagline{ margin:3px 0 0; font-size: clamp(11px,2.2vw,14px); color:var(--ink-dim); }
+
+  .section-title{
+    width:100%; max-width:800px; text-align:center; font-size: clamp(13px,2.7vw,16px);
+    font-weight:bold; color:#fff; margin-top:4px;
+  }
+  .section-title span{ color: var(--cyan); }
+
+  .card{
+    width:100%; max-width:800px; background:var(--card); border:2px solid var(--card-border);
+    border-radius:20px; box-shadow: 0 12px 28px rgba(0,0,0,0.35); padding:14px 16px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+
+  .control-block{ display:flex; flex-direction:column; gap:6px; }
+  .control-label{ font-size: clamp(11px,2.1vw,13px); font-weight:bold; color:var(--ink); text-align:center; }
+  .seg-row{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .seg-btn{
+    flex:1 1 90px; max-width:150px;
+    font-family:inherit; font-weight:bold; font-size: clamp(11px,2.1vw,12.5px);
+    background: rgba(255,255,255,0.06); border:2px solid var(--card-border); color:var(--ink);
+    padding:9px 6px; border-radius:12px; cursor:pointer; text-align:center;
+    transition: border-color .15s ease, background .15s ease, transform .08s ease;
+  }
+  .seg-btn:active{ transform: translateY(2px); }
+  .seg-btn.active{ background: rgba(79,216,232,0.22); border-color: var(--cyan); color:#fff; }
+
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:9px; border-radius:20px;
+    background: linear-gradient(90deg,#2A3560,#FFD966); outline:none; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:22px; height:22px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #fff, #FFD966 65%);
+    border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.4); cursor:pointer; margin-top:-1px;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:19px; height:19px; border-radius:50%;
+    background: radial-gradient(circle at 35% 30%, #fff, #FFD966 65%);
+    border:2px solid #fff; cursor:pointer;
+  }
+  .thickness-labels{ display:flex; justify-content:space-between; font-size: clamp(9.5px,1.8vw,11px); color:var(--ink-dim); }
+
+  .stage-wrap{ width:100%; height: clamp(240px, 48vw, 360px); display:flex; border-radius:14px; overflow:hidden; background:#0A1024; }
+  canvas{ width:100%; height:100%; display:block; }
+
+  .controls-bar{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+  .ctrl-btn{
+    display:flex; align-items:center; gap:6px;
+    font-family:inherit; font-weight:bold; font-size: clamp(11px,2.1vw,13px);
+    border:none; border-radius:20px; padding:10px 16px; cursor:pointer;
+    transition: transform .08s ease;
+  }
+  .ctrl-btn:active{ transform: translateY(2px); }
+  .ctrl-btn:disabled{ opacity:0.4; cursor:default; }
+  .btn-build{ background: linear-gradient(180deg,#8FE0FF,#4FD8E8); color:#04302B; }
+  .btn-add{ background: linear-gradient(180deg,#FFDD8A,#FFB74D); color:#402700; }
+  .btn-remove{ background: rgba(255,255,255,0.1); color:#fff; border:2px solid var(--card-border) !important; }
+  .btn-test{ background: linear-gradient(180deg,#C7B4FF,#8E5CD9); color:#fff; }
+  .btn-reset{ background: linear-gradient(180deg,#FF9B8A,#FF6B5B); color:#380D07; }
+
+  .load-row{ display:flex; justify-content:center; gap:16px; flex-wrap:wrap; }
+  .load-chip{ font-size: clamp(11.5px,2.2vw,13.5px); font-weight:bold; color:var(--ink-dim); }
+  .load-chip b{ color:#fff; }
+
+  .meter-track{
+    width:100%; height:22px; background:rgba(255,255,255,0.08); border-radius:14px;
+    border:2px solid var(--card-border); overflow:hidden; position:relative;
+  }
+  .meter-fill{ height:100%; border-radius:14px 0 0 14px; transition: width .3s ease, background .3s ease; }
+  .meter-label{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size: clamp(10px,1.9vw,11.5px); font-weight:bold; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,0.6);
+  }
+
+  .status-banner{
+    text-align:center; font-weight:bold; font-size: clamp(13px,2.6vw,15.5px);
+    padding:10px 14px; border-radius:14px;
+    border:2px solid var(--card-border); background: rgba(255,255,255,0.05); color:var(--ink-dim);
+  }
+  .status-banner.holding{ border-color: var(--green); background: rgba(102,226,155,0.14); color: var(--green); }
+  .status-banner.collapsed{ border-color: var(--red); background: rgba(255,107,107,0.14); color: var(--red); }
+  .status-sub{ font-weight:normal; font-size:0.82em; opacity:0.9; display:block; margin-top:3px; }
+
+  .info-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:8px 16px; }
+  .info-item{ font-size: clamp(11px,2.1vw,12.5px); color:var(--ink-dim); display:flex; justify-content:space-between; gap:6px; border-bottom:1px dashed var(--card-border); padding-bottom:4px; }
+  .info-item b{ color:#fff; }
+
+  .challenge-list{ display:flex; flex-direction:column; gap:8px; }
+  .challenge-item{
+    display:flex; align-items:center; gap:10px;
+    background: rgba(255,255,255,0.05); border:2px solid var(--card-border); border-radius:12px;
+    padding:9px 12px; font-size: clamp(11px,2.1vw,12.5px);
+  }
+  .challenge-item.done{ border-color: var(--green); background: rgba(102,226,155,0.12); }
+  .challenge-badge{ font-size:16px; flex:0 0 auto; }
+  .challenge-text{ flex:1; }
+  .challenge-text b{ color:#fff; }
+
+  footer{ font-size: clamp(10.5px,2vw,12.5px); color:var(--ink-dim); text-align:center; opacity:0.85; }
+  footer b{ color:#fff; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>🌉 Build Your Bridge</h1>
+    <p class="tagline">Design a bridge, add vehicles, and test how much load it can hold!</p>
+  </header>
+
+  <div class="section-title">🛠️ Design Your <span>Bridge</span></div>
+  <div class="card">
+    <div class="control-block">
+      <div class="control-label">🌉 Bridge Type</div>
+      <div class="seg-row" id="typeButtons"></div>
+    </div>
+    <div class="control-block">
+      <div class="control-label">🧱 Material</div>
+      <div class="seg-row" id="materialButtons"></div>
+    </div>
+    <div class="control-block">
+      <div class="control-label">📏 Beam Thickness</div>
+      <input type="range" id="thicknessSlider" min="0" max="100" step="1" value="50">
+      <div class="thickness-labels"><span>Thin</span><span>Medium</span><span>Thick</span></div>
+    </div>
+    <div class="control-block">
+      <div class="control-label">🏗️ Number of Supports</div>
+      <div class="seg-row" id="supportButtons"></div>
+    </div>
+  </div>
+
+  <div class="section-title">🎮 Bridge <span>Simulation</span></div>
+  <div class="card">
+    <div class="stage-wrap"><canvas id="stage"></canvas></div>
+
+    <div class="controls-bar">
+      <button class="ctrl-btn btn-build" id="buildBtn">🌉 Build Bridge</button>
+      <button class="ctrl-btn btn-add" id="addBtn">🚗 Add Vehicle</button>
+      <button class="ctrl-btn btn-remove" id="removeBtn">➖ Remove Vehicle</button>
+      <button class="ctrl-btn btn-test" id="testBtn">🧪 TEST BRIDGE</button>
+      <button class="ctrl-btn btn-reset" id="resetBtn">🔄 Reset</button>
+    </div>
+
+    <div class="load-row">
+      <span class="load-chip">Vehicles: <b id="vehicleCount">0</b></span>
+      <span class="load-chip">Total Load: <b id="totalLoad">0</b> kg</span>
+    </div>
+
+    <div class="meter-track">
+      <div class="meter-fill" id="meterFill" style="width:0%; background:#66E29B;"></div>
+      <div class="meter-label" id="meterLabel">Current Load 0 / Capacity 0 kg</div>
+    </div>
+
+    <div class="status-banner" id="statusBanner">Design your bridge, then press TEST BRIDGE.</div>
+  </div>
+
+  <div class="section-title">📊 Live Design <span>Information</span></div>
+  <div class="card">
+    <div class="info-grid">
+      <div class="info-item"><span>Bridge Type</span><b id="infoType">Beam</b></div>
+      <div class="info-item"><span>Material</span><b id="infoMaterial">Wood</b></div>
+      <div class="info-item"><span>Beam Thickness</span><b id="infoThickness">Medium</b></div>
+      <div class="info-item"><span>Supports</span><b id="infoSupports">2</b></div>
+      <div class="info-item"><span>Estimated Capacity</span><b id="infoCapacity">0 kg</b></div>
+      <div class="info-item"><span>Current Load</span><b id="infoLoad">0 kg</b></div>
+      <div class="info-item" style="grid-column:1/-1;"><span>Bridge Status</span><b id="infoStatus">Not tested yet</b></div>
+    </div>
+  </div>
+
+  <div class="section-title">🎯 Challenge <span>Mode</span></div>
+  <div class="card">
+    <div class="challenge-list" id="challengeList"></div>
+  </div>
+
+  <footer>This simulation was created by <b>COROX LAB</b></footer>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  const stageWrap = document.querySelector('.stage-wrap');
+  let W = 600, H = 320, DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  function hexToRgbStr(hex){
+    const c = hex.replace('#','');
+    const num = parseInt(c,16);
+    return ((num>>16)&255) + ',' + ((num>>8)&255) + ',' + (num&255);
+  }
+
+  function resizeCanvas(){
+    const rect = stageWrap.getBoundingClientRect();
+    W = Math.max(260, rect.width);
+    H = Math.max(200, rect.height);
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(W*DPR);
+    canvas.height = Math.round(H*DPR);
+    canvas.style.width = W+'px';
+    canvas.style.height = H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+
+  const TYPE_FACTOR = { beam:1.0, truss:1.6, arch:1.3 };
+  const TYPE_LABEL = { beam:'Beam Bridge', truss:'Truss Bridge', arch:'Arch Bridge' };
+  const MATERIAL_FACTOR = { cardboard:0.4, wood:1.0, concrete:1.7, steel:2.2 };
+  const MATERIAL_LABEL = { cardboard:'Cardboard', wood:'Wood', concrete:'Concrete', steel:'Steel' };
+  const MATERIAL_COLOR = {
+    cardboard: ['#E4CFA0','#B79B6B'],
+    wood:      ['#C9986A','#8C6039'],
+    concrete:  ['#C7CCD4','#8B929C'],
+    steel:     ['#D8E4EE','#6C8AA3'],
+  };
+  const SUPPORT_FACTOR = { 1:0.7, 2:1.0, 3:1.3, 4:1.6 };
+  const LOAD_PER_VEHICLE = 150;
+
+  let bridgeType = 'beam';
+  let material = 'wood';
+  let thicknessPct = 50;
+  let supports = 2;
+  let vehicles = 0;
+  let tested = false;
+  let holding = null;
+  let collapseAnim = 0;
+  let collapsing = false;
+  let shakeTime = 0;
+  const enteringVehicles = [];
+
+  function buildSegRow(containerId, options, currentGetter, onSelect, labelFn){
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'seg-btn' + (opt === currentGetter() ? ' active' : '');
+      btn.textContent = labelFn ? labelFn(opt) : opt;
+      btn.addEventListener('click', () => {
+        onSelect(opt);
+        [...container.children].forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateInfoPanel();
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  buildSegRow('typeButtons', ['beam','truss','arch'], () => bridgeType, v => bridgeType = v, v => TYPE_LABEL[v]);
+  buildSegRow('materialButtons', ['wood','concrete','steel','cardboard'], () => material, v => material = v, v => MATERIAL_LABEL[v]);
+  buildSegRow('supportButtons', [1,2,3,4], () => supports, v => supports = v, v => v + (v===1?' Support':' Supports'));
+
+  const thicknessSlider = document.getElementById('thicknessSlider');
+  thicknessSlider.addEventListener('input', () => {
+    thicknessPct = parseFloat(thicknessSlider.value);
+    updateInfoPanel();
+  });
+
+  function thicknessFactor(){ return 0.6 + (thicknessPct/100)*1.2; }
+  function thicknessLabel(){
+    if(thicknessPct < 34) return 'Thin';
+    if(thicknessPct < 67) return 'Medium';
+    return 'Thick';
+  }
+  function capacityKg(){
+    const base = 300;
+    return Math.round(base * TYPE_FACTOR[bridgeType] * MATERIAL_FACTOR[material] * thicknessFactor() * SUPPORT_FACTOR[supports]);
+  }
+  function currentLoadKg(){ return vehicles * LOAD_PER_VEHICLE; }
+
+  const infoType = document.getElementById('infoType');
+  const infoMaterial = document.getElementById('infoMaterial');
+  const infoThickness = document.getElementById('infoThickness');
+  const infoSupports = document.getElementById('infoSupports');
+  const infoCapacity = document.getElementById('infoCapacity');
+  const infoLoad = document.getElementById('infoLoad');
+  const infoStatus = document.getElementById('infoStatus');
+  const vehicleCountEl = document.getElementById('vehicleCount');
+  const totalLoadEl = document.getElementById('totalLoad');
+  const meterFill = document.getElementById('meterFill');
+  const meterLabel = document.getElementById('meterLabel');
+  const statusBanner = document.getElementById('statusBanner');
+
+  function updateInfoPanel(){
+    const cap = capacityKg(), load = currentLoadKg();
+    infoType.textContent = TYPE_LABEL[bridgeType];
+    infoMaterial.textContent = MATERIAL_LABEL[material];
+    infoThickness.textContent = thicknessLabel();
+    infoSupports.textContent = supports;
+    infoCapacity.textContent = cap + ' kg';
+    infoLoad.textContent = load + ' kg';
+    infoStatus.textContent = collapsing ? 'Collapsed 💥' : (tested ? (holding ? 'Holding ✅' : 'Collapsed 💥') : 'Not tested yet');
+
+    vehicleCountEl.textContent = vehicles;
+    totalLoadEl.textContent = load;
+
+    const ratio = cap > 0 ? load/cap : 0;
+    const pct = Math.min(100, ratio*100);
+    meterFill.style.width = pct + '%';
+    meterFill.style.background = ratio < 0.7 ? '#66E29B' : ratio <= 1 ? '#FFD966' : '#FF6B6B';
+    meterLabel.textContent = 'Current Load ' + load + ' / Capacity ' + cap + ' kg';
+  }
+
+  function setStatusBanner(){
+    if(collapsing){
+      statusBanner.className = 'status-banner collapsed';
+      statusBanner.innerHTML = '💥 BRIDGE COLLAPSED! <span class="status-sub">The load was greater than the bridge\'s strength.</span>';
+    } else if(tested && holding){
+      statusBanner.className = 'status-banner holding';
+      statusBanner.innerHTML = '✅ BRIDGE IS HOLDING! <span class="status-sub">The bridge can safely support this load.</span>';
+    } else if(tested && !holding){
+      statusBanner.className = 'status-banner collapsed';
+      statusBanner.innerHTML = '💥 BRIDGE COLLAPSED! <span class="status-sub">The load was greater than the bridge\'s strength.</span>';
+    } else {
+      statusBanner.className = 'status-banner';
+      statusBanner.textContent = 'Design your bridge, then press TEST BRIDGE.';
+    }
+  }
+
+  function sagAmount(){
+    const cap = capacityKg(), load = currentLoadKg();
+    const ratio = cap > 0 ? load/cap : 0;
+    return Math.min(1.15, ratio) * Math.min(56, Math.min(W,H)*0.16);
+  }
+
+  function deckThicknessPx(){
+    return (6 + (thicknessPct/100)*20) * (Math.min(W,H)/300);
+  }
+
+  function drawScene(){
+    ctx.clearRect(0,0,W,H);
+    const bg = ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,'#132049'); bg.addColorStop(1,'#080D22');
+    ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+    const leftPier = W*0.14, rightPier = W*0.86;
+    const span = rightPier - leftPier;
+    const deckY = H*0.5;
+    const groundY = H*0.5;
+    const riverY = H*0.88;
+
+    ctx.fillStyle = '#3A6B4A';
+    ctx.fillRect(0, groundY, leftPier, H-groundY);
+    ctx.fillRect(rightPier, groundY, W-rightPier, H-groundY);
+    ctx.fillStyle = '#2A4A38';
+    ctx.fillRect(0, groundY, leftPier, 8);
+    ctx.fillRect(rightPier, groundY, W-rightPier, 8);
+
+    ctx.fillStyle = '#1B3A63';
+    ctx.fillRect(leftPier, riverY, span, H-riverY);
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
+    for(let i=0;i<5;i++){
+      ctx.fillRect(leftPier + (i*span/5) + Math.sin(shakeTime*0.02+i)*4, riverY+6, span/9, 2);
+    }
+
+    const shakeX = (holding===false && tested && !collapsing) ? Math.sin(shakeTime*0.9)*2 : 0;
+
+    if(collapsing){
+      drawCollapse(leftPier, rightPier, deckY, riverY);
+      return;
+    }
+
+    const sag = sagAmount();
+    const colors = MATERIAL_COLOR[material];
+    const thick = deckThicknessPx();
+
+    function deckY_at(xFrac){
+      return deckY + Math.sin(Math.PI*xFrac)*sag;
+    }
+
+    for(let i=1;i<=supports;i++){
+      const xFrac = i/(supports+1);
+      const x = leftPier + xFrac*span + shakeX;
+      const topY = deckY_at(xFrac) + thick*0.5;
+      ctx.fillStyle = colors[1];
+      const pw = Math.max(8, span*0.02);
+      ctx.fillRect(x-pw/2, topY, pw, riverY-topY);
+      ctx.fillStyle = 'rgba(0,0,0,0.2)';
+      ctx.fillRect(x-pw/2, riverY-6, pw, 6);
+    }
+
+    if(bridgeType === 'arch'){
+      ctx.save();
+      const archFootY = riverY - 6;                    // anchored down near the riverbed
+      const archApexY = deckY_at(0.5) + thick/2 + 2;    // rises up to meet the deck at midspan
+      const archThick = Math.max(6, deckThicknessPx()*0.8);
+      const segs = 24;
+
+      function archY_at(xFrac){
+        const t = 2*xFrac - 1;              // -1 (left foot) .. 1 (right foot)
+        const shape = Math.max(0, 1 - t*t);  // 0 at the feet, 1 at the apex
+        return archFootY - (archFootY - archApexY) * shape;
+      }
+
+      ctx.beginPath();
+      for(let i=0;i<=segs;i++){
+        const xFrac = i/segs;
+        const x = leftPier + xFrac*span + shakeX;
+        const y = archY_at(xFrac) - archThick/2;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      for(let i=segs;i>=0;i--){
+        const xFrac = i/segs;
+        const x = leftPier + xFrac*span + shakeX;
+        const y = archY_at(xFrac) + archThick/2;
+        ctx.lineTo(x,y);
+      }
+      ctx.closePath();
+      const ag = ctx.createLinearGradient(0, archApexY, 0, archFootY);
+      ag.addColorStop(0, colors[0]); ag.addColorStop(1, colors[1]);
+      ctx.fillStyle = ag;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if(bridgeType === 'truss'){
+      ctx.save();
+      const trussH = Math.min(W,H)*0.16;
+      const segs = 8;
+      const pts = [];
+      for(let i=0;i<=segs;i++){
+        const xFrac = i/segs;
+        const x = leftPier + xFrac*span + shakeX;
+        const baseY = deckY_at(xFrac) - thick/2;
+        const isPeak = (i%2===0);
+        pts.push({ x, y: isPeak ? baseY - trussH : baseY, baseY, isPeak });
+      }
+
+      // filled triangle panels for a solid, connected structure (not a floating wireframe)
+      const fillRgb = hexToRgbStr(colors[1]);
+      ctx.fillStyle = 'rgba(' + fillRgb + ',0.28)';
+      for(let i=0;i<pts.length-1;i++){
+        ctx.beginPath();
+        ctx.moveTo(pts[i].x, pts[i].baseY);
+        ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.lineTo(pts[i+1].x, pts[i+1].y);
+        ctx.lineTo(pts[i+1].x, pts[i+1].baseY);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // diagonal top chord (the zigzag)
+      ctx.strokeStyle = colors[1];
+      ctx.lineWidth = Math.max(3, span*0.009);
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      pts.forEach((p,i) => { if(i===0) ctx.moveTo(p.x,p.y); else ctx.lineTo(p.x,p.y); });
+      ctx.stroke();
+
+      // vertical struts — every peak connects straight down to the deck, so nothing floats
+      ctx.lineWidth = Math.max(2.5, span*0.006);
+      pts.forEach(p => {
+        if(p.isPeak){
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x, p.baseY);
+          ctx.stroke();
+        }
+      });
+
+      ctx.restore();
+    }
+
+    ctx.save();
+    const segCount = 26;
+    ctx.beginPath();
+    for(let i=0;i<=segCount;i++){
+      const xFrac = i/segCount;
+      const x = leftPier + xFrac*span + shakeX;
+      const y = deckY_at(xFrac) - thick/2;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    for(let i=segCount;i>=0;i--){
+      const xFrac = i/segCount;
+      const x = leftPier + xFrac*span + shakeX;
+      const y = deckY_at(xFrac) + thick/2;
+      ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    const dg = ctx.createLinearGradient(0,deckY-thick,0,deckY+thick);
+    dg.addColorStop(0, colors[0]); dg.addColorStop(1, colors[1]);
+    ctx.fillStyle = dg;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    if(material === 'cardboard'){
+      ctx.strokeStyle = 'rgba(120,90,40,0.35)';
+      ctx.lineWidth = 1;
+      for(let i=0;i<=segCount;i+=2){
+        const xFrac = i/segCount;
+        const x = leftPier + xFrac*span + shakeX;
+        const y1 = deckY_at(xFrac) - thick/2, y2 = deckY_at(xFrac) + thick/2;
+        ctx.beginPath(); ctx.moveTo(x,y1); ctx.lineTo(x,y2); ctx.stroke();
+      }
+    }
+
+    const cap = capacityKg(), load = currentLoadKg();
+    const ratio = cap>0 ? load/cap : 0;
+    if(ratio > 0.8){
+      const crackCount = ratio > 1 ? 5 : Math.round((ratio-0.8)/0.2*3);
+      ctx.strokeStyle = 'rgba(30,10,10,0.75)';
+      ctx.lineWidth = 1.4;
+      for(let i=0;i<crackCount;i++){
+        const xFrac = 0.3 + (i/Math.max(1,crackCount-1))*0.4;
+        const x = leftPier + xFrac*span + shakeX;
+        const yTop = deckY_at(xFrac) - thick/2;
+        ctx.beginPath();
+        ctx.moveTo(x, yTop);
+        ctx.lineTo(x-4, yTop+thick*0.4);
+        ctx.lineTo(x+3, yTop+thick*0.7);
+        ctx.lineTo(x-2, yTop+thick);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+
+    ctx.fillStyle = '#8B929C';
+    ctx.fillRect(leftPier-14, groundY-4, 14, 10);
+    ctx.fillRect(rightPier, groundY-4, 14, 10);
+
+    drawVehicles(leftPier, span, deckY_at, thick, shakeX);
+  }
+
+  function drawVehicles(leftPier, span, deckY_at, thick, shakeX){
+    const n = vehicles;
+    if(n === 0) return;
+    ctx.save();
+    ctx.font = Math.max(16, Math.min(W,H)*0.07) + 'px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    for(let i=0;i<n;i++){
+      const xFrac = (i+1)/(n+1);
+      const enter = enteringVehicles[i];
+      const drawFrac = enter !== undefined ? (xFrac * enter.progress) : xFrac;
+      const x = leftPier + drawFrac*span + shakeX;
+      const y = deckY_at(Math.max(0.02,Math.min(0.98,drawFrac))) - thick/2;
+      ctx.fillText('🚗', x, y+2);
+    }
+    ctx.restore();
+  }
+
+  function drawCollapse(leftPier, rightPier, deckY, riverY){
+    const t = collapseAnim;
+    const midX = (leftPier+rightPier)/2;
+    const colors = MATERIAL_COLOR[material];
+    const thick = deckThicknessPx();
+    const dropY = t*t * (riverY - deckY + 40);
+    const rot = t * 0.6;
+
+    ctx.save();
+    ctx.translate(leftPier + (midX-leftPier)/2, deckY + dropY*0.6);
+    ctx.rotate(-rot);
+    ctx.fillStyle = colors[0];
+    ctx.fillRect(-(midX-leftPier)/2, -thick/2, (midX-leftPier), thick);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(midX + (rightPier-midX)/2, deckY + dropY);
+    ctx.rotate(rot);
+    ctx.fillStyle = colors[1];
+    ctx.fillRect(-(rightPier-midX)/2, -thick/2, (rightPier-midX), thick);
+    ctx.restore();
+
+    ctx.save();
+    ctx.font = Math.max(16, Math.min(W,H)*0.07) + 'px sans-serif';
+    ctx.textAlign='center';
+    for(let i=0;i<vehicles;i++){
+      const xFrac = (i+1)/(vehicles+1);
+      const x = leftPier + xFrac*(rightPier-leftPier);
+      const y = deckY + dropY*1.3 + i*4;
+      ctx.globalAlpha = Math.max(0, 1-t*1.1);
+      ctx.fillText('🚗', x, y);
+    }
+    ctx.restore();
+
+    if(t > 0.15){
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, (t-0.15)*3);
+      ctx.font = 'bold ' + Math.max(20, Math.min(W,H)*0.09) + 'px Trebuchet MS';
+      ctx.fillStyle = '#FF6B6B';
+      ctx.textAlign = 'center';
+      ctx.fillText('💥', midX, deckY - 30);
+      ctx.restore();
+    }
+  }
+
+  function loop(){
+    shakeTime += 1;
+    enteringVehicles.forEach(e => { if(e && e.progress < 1) e.progress = Math.min(1, e.progress + 0.06); });
+
+    if(collapsing){
+      collapseAnim = Math.min(1, collapseAnim + 0.018);
+    }
+    drawScene();
+    requestAnimationFrame(loop);
+  }
+
+  const addBtn = document.getElementById('addBtn');
+  const removeBtn = document.getElementById('removeBtn');
+  const testBtn = document.getElementById('testBtn');
+  const buildBtn = document.getElementById('buildBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  function setActionButtonsEnabled(enabled){
+    addBtn.disabled = !enabled;
+    removeBtn.disabled = !enabled;
+    testBtn.disabled = !enabled;
+  }
+
+  buildBtn.addEventListener('click', () => {
+    vehicles = 0;
+    enteringVehicles.length = 0;
+    tested = false; holding = null;
+    collapsing = false; collapseAnim = 0;
+    setActionButtonsEnabled(true);
+    updateInfoPanel();
+    setStatusBanner();
+  });
+
+  addBtn.addEventListener('click', () => {
+    if(collapsing) return;
+    vehicles += 1;
+    enteringVehicles[vehicles-1] = { progress: 0 };
+    tested = false; holding = null;
+    updateInfoPanel();
+    setStatusBanner();
+  });
+
+  removeBtn.addEventListener('click', () => {
+    if(collapsing || vehicles === 0) return;
+    vehicles -= 1;
+    enteringVehicles.length = vehicles;
+    tested = false; holding = null;
+    updateInfoPanel();
+    setStatusBanner();
+  });
+
+  testBtn.addEventListener('click', () => {
+    if(collapsing) return;
+    const cap = capacityKg(), load = currentLoadKg();
+    tested = true;
+    holding = load <= cap;
+    if(!holding){
+      collapsing = true;
+      collapseAnim = 0;
+      setActionButtonsEnabled(false);
+      buildBtn.disabled = false;
+    } else {
+      checkChallenges();
+    }
+    updateInfoPanel();
+    setStatusBanner();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    bridgeType = 'beam'; material = 'wood'; thicknessPct = 50; supports = 2;
+    thicknessSlider.value = 50;
+    vehicles = 0; enteringVehicles.length = 0;
+    tested = false; holding = null; collapsing = false; collapseAnim = 0;
+    buildSegRow('typeButtons', ['beam','truss','arch'], () => bridgeType, v => bridgeType = v, v => TYPE_LABEL[v]);
+    buildSegRow('materialButtons', ['wood','concrete','steel','cardboard'], () => material, v => material = v, v => MATERIAL_LABEL[v]);
+    buildSegRow('supportButtons', [1,2,3,4], () => supports, v => supports = v, v => v + (v===1?' Support':' Supports'));
+    setActionButtonsEnabled(true);
+    updateInfoPanel();
+    setStatusBanner();
+    resetChallenges();
+  });
+
+  const CHALLENGES = [
+    { id:1, text:'Build a bridge that can hold <b>5 vehicles</b>.', done:false,
+      check: () => vehicles >= 5 && holding === true },
+    { id:2, text:'Build a bridge that can hold <b>10 vehicles</b>.', done:false,
+      check: () => vehicles >= 10 && holding === true },
+    { id:3, text:'Build the strongest bridge using <b>Cardboard</b>.', done:false,
+      check: () => material === 'cardboard' && holding === true && capacityKg() >= 400 },
+    { id:4, text:'Build a bridge holding <b>6+ vehicles</b> using only <b>1–2 supports</b>.', done:false,
+      check: () => vehicles >= 6 && holding === true && supports <= 2 },
+  ];
+
+  const challengeList = document.getElementById('challengeList');
+  function renderChallenges(){
+    challengeList.innerHTML = '';
+    CHALLENGES.forEach(c => {
+      const item = document.createElement('div');
+      item.className = 'challenge-item' + (c.done ? ' done' : '');
+      item.innerHTML = '<span class="challenge-badge">' + (c.done ? '🏆' : '⬜') + '</span><span class="challenge-text">Challenge ' + c.id + ': ' + c.text + (c.done ? ' <b>— Complete!</b>' : '') + '</span>';
+      challengeList.appendChild(item);
+    });
+  }
+  function checkChallenges(){
+    let any = false;
+    CHALLENGES.forEach(c => {
+      if(!c.done && c.check()){ c.done = true; any = true; }
+    });
+    renderChallenges();
+    if(any){
+      statusBanner.innerHTML += '<span class="status-sub">🏆 Challenge Complete!</span>';
+    }
+  }
+  function resetChallenges(){
+    CHALLENGES.forEach(c => c.done = false);
+    renderChallenges();
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  updateInfoPanel();
+  setStatusBanner();
+  renderChallenges();
+  loop();
+})();
+</script>
+</body>
+</html>
