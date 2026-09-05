@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔋 Simple Electric Circuit</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: radial-gradient(circle at 50% 20%, #16213e 0%, #0b0f1e 60%, #05070f 100%);
+    color: #eaf2ff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: clamp(1.3rem, 4vw, 2rem);
+    margin-bottom: 4px;
+    text-shadow: 0 0 12px rgba(100, 180, 255, 0.5);
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #9fb3d1;
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
+    margin-bottom: 16px;
+    max-width: 600px;
+  }
+
+  .lab-panel {
+    background: rgba(20, 28, 55, 0.7);
+    border: 2px solid #2d3f6b;
+    border-radius: 20px;
+    padding: 20px;
+    width: 100%;
+    max-width: 720px;
+    box-shadow: 0 0 30px rgba(50, 100, 200, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  /* ---------- Circuit SVG ---------- */
+  .circuit-wrap {
+    width: 100%;
+    max-width: 640px;
+  }
+
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .wire {
+    fill: none;
+    stroke: #4a5b8c;
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.3s ease;
+  }
+
+  .wire.powered {
+    stroke: #ffd54a;
+    filter: drop-shadow(0 0 6px #ffd54a);
+  }
+
+  .particle {
+    fill: #fff6c8;
+    filter: drop-shadow(0 0 4px #ffe27a);
+    opacity: 0;
+  }
+
+  .particle.active {
+    opacity: 1;
+  }
+
+  /* Battery */
+  .battery-body { fill: #3a4a75; stroke: #6d84c2; stroke-width: 2; }
+  .battery-terminal { fill: #ffd54a; }
+  .battery-label { fill: #cfe0ff; font-size: 13px; font-weight: bold; text-anchor: middle; }
+
+  /* Switch */
+  .switch-lever {
+    stroke: #d9e4ff;
+    stroke-width: 6;
+    stroke-linecap: round;
+    transform-origin: 230px 100px;
+    transition: transform 0.35s ease;
+  }
+  .switch-contact { fill: #9fb3d1; }
+
+  /* Bulb */
+  .bulb-glass {
+    fill: #33405f;
+    stroke: #6d84c2;
+    stroke-width: 2;
+    transition: fill 0.4s ease, filter 0.4s ease;
+  }
+  .bulb-glass.on {
+    fill: #fff4b0;
+    filter: drop-shadow(0 0 22px #ffe27a) drop-shadow(0 0 45px #ffcf3d);
+  }
+  .bulb-filament {
+    stroke: #5b6a92;
+    stroke-width: 2;
+    stroke-linecap: round;
+    fill: none;
+    transition: stroke 0.4s ease;
+  }
+  #bulbFilament.on .bulb-filament {
+    stroke: #ff9d2e;
+    filter: drop-shadow(0 0 4px #ff9d2e);
+  }
+  .bulb-base { fill: #6b7280; stroke: #444; stroke-width: 1; }
+
+  .glow-ring {
+    fill: url(#glowGradient);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .glow-ring.on { opacity: 1; }
+
+  /* ---------- Status ---------- */
+  .status {
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    font-weight: bold;
+    padding: 8px 20px;
+    border-radius: 12px;
+    background: rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+  }
+  .status.on { color: #ffe27a; text-shadow: 0 0 10px #ffcf3d; }
+  .status.off { color: #9fb3d1; }
+
+  /* ---------- Switch Button ---------- */
+  .switch-btn {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .toggle {
+    width: 90px;
+    height: 46px;
+    border-radius: 30px;
+    background: #2b3555;
+    border: 3px solid #4a5b8c;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+  .toggle.on {
+    background: #2d6a3e;
+    border-color: #4fdc6f;
+    box-shadow: 0 0 18px rgba(79, 220, 111, 0.5);
+  }
+  .toggle-knob {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #d9e4ff;
+    transition: left 0.3s ease, background 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  }
+  .toggle.on .toggle-knob {
+    left: 47px;
+    background: #ffffff;
+  }
+
+  .toggle-label {
+    font-size: 1.1rem;
+    font-weight: bold;
+  }
+
+  /* ---------- Learning Message ---------- */
+  .message-box {
+    background: rgba(30, 42, 78, 0.8);
+    border-left: 4px solid #4a90e2;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+    line-height: 1.4;
+    max-width: 600px;
+    text-align: center;
+    transition: border-color 0.3s ease;
+  }
+  .message-box.on { border-left-color: #ffcf3d; }
+
+  /* ---------- Challenge ---------- */
+  .challenge-box {
+    background: rgba(74, 144, 226, 0.12);
+    border: 2px dashed #4a90e2;
+    border-radius: 12px;
+    padding: 12px 18px;
+    text-align: center;
+    max-width: 600px;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+    transition: all 0.3s ease;
+  }
+  .challenge-box.success {
+    background: rgba(79, 220, 111, 0.15);
+    border-color: #4fdc6f;
+    color: #b9ffcf;
+    font-weight: bold;
+  }
+
+  /* ---------- Controls ---------- */
+  .controls {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .reset-btn {
+    background: #3a4a75;
+    color: #eaf2ff;
+    border: 2px solid #6d84c2;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+  }
+  .reset-btn:hover { background: #4a5b8c; }
+  .reset-btn:active { transform: scale(0.96); }
+
+  footer {
+    margin-top: 20px;
+    color: #6d84c2;
+    font-size: 0.85rem;
+    text-align: center;
+    padding-bottom: 10px;
+  }
+
+  @media (max-width: 420px) {
+    .lab-panel { padding: 14px; border-radius: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🔋 Simple Electric Circuit</h1>
+<p class="subtitle">Click the switch to complete the circuit and light the bulb!</p>
+
+<div class="lab-panel">
+
+  <div class="circuit-wrap">
+    <svg viewBox="0 0 530 300" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#fff6c8" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#fff6c8" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+
+      <!-- Wires: top path (battery+ -> switch), and bottom path (bulb -> battery-) -->
+      <!-- Top wire: from battery top terminal to switch -->
+      <path id="wireTop" class="wire" d="M 90 60 L 90 30 L 230 30 L 230 100" />
+      <!-- Switch to bulb -->
+      <path id="wireMid" class="wire" d="M 290 100 L 290 30 L 380 30 L 380 90" />
+      <!-- Bulb bottom to battery bottom -->
+      <path id="wireBottom" class="wire" d="M 380 108 L 380 260 L 90 260 L 90 240" />
+
+      <!-- Particles (dots) that travel along the wires when ON -->
+      <circle class="particle" r="5" id="p1"/>
+      <circle class="particle" r="5" id="p2"/>
+      <circle class="particle" r="5" id="p3"/>
+      <circle class="particle" r="5" id="p4"/>
+
+      <!-- Battery -->
+      <g>
+        <rect class="battery-body" x="60" y="60" width="60" height="180" rx="10"/>
+        <rect class="battery-terminal" x="82" y="45" width="16" height="18" rx="2"/>
+        <rect class="battery-terminal" x="82" y="237" width="16" height="18" rx="2"/>
+        <text class="battery-label" x="90" y="150">🔋</text>
+        <text class="battery-label" x="90" y="172">Battery</text>
+        <text class="battery-label" x="90" y="40" font-size="16">+</text>
+        <text class="battery-label" x="90" y="270" font-size="16">−</text>
+      </g>
+
+      <!-- Switch -->
+      <g id="switchGroup" style="cursor:pointer;">
+        <line id="switchLever" class="switch-lever" x1="230" y1="100" x2="290" y2="100"/>
+        <circle class="switch-contact" cx="230" cy="100" r="6"/>
+        <circle class="switch-contact" cx="290" cy="100" r="6"/>
+        <text class="battery-label" x="260" y="150" font-size="13">🎚️ Switch</text>
+      </g>
+
+      <!-- Bulb -->
+      <g>
+        <circle id="glowRing" class="glow-ring" cx="380" cy="60" r="70"/>
+        <circle id="bulbGlass" class="bulb-glass" cx="380" cy="60" r="38"/>
+        <g id="bulbFilament">
+          <path class="bulb-filament" d="M 362 68 Q 368 48 375 60 Q 382 72 389 60 Q 396 48 400 66"/>
+          <line class="bulb-filament" x1="362" y1="68" x2="358" y2="80"/>
+          <line class="bulb-filament" x1="400" y1="66" x2="404" y2="80"/>
+        </g>
+        <rect class="bulb-base" x="368" y="90" width="24" height="18" rx="3"/>
+        <text class="battery-label" x="432" y="95" font-size="13" text-anchor="start">💡 Bulb</text>
+      </g>
+    </svg>
+  </div>
+
+  <div id="statusText" class="status off">⚫ Bulb: OFF</div>
+
+  <div class="switch-btn">
+    <span class="toggle-label">OFF</span>
+    <div id="toggle" class="toggle">
+      <div class="toggle-knob"></div>
+    </div>
+    <span class="toggle-label">ON</span>
+  </div>
+
+  <div id="messageBox" class="message-box off">
+    ⚫ The circuit is broken, so electric current cannot flow and the bulb stays off.
+  </div>
+
+  <div id="challengeBox" class="challenge-box">
+    🎯 <strong>Mini Challenge:</strong> Can you make the bulb light? Click the switch to turn it ON!
+  </div>
+
+  <div class="controls">
+    <button id="resetBtn" class="reset-btn">🔄 Reset</button>
+  </div>
+
+</div>
+
+<footer>This simulation was created by COROX LAB</footer>
+
+<script>
+  const toggle = document.getElementById('toggle');
+  const switchGroup = document.getElementById('switchGroup');
+  const switchLever = document.getElementById('switchLever');
+  const statusText = document.getElementById('statusText');
+  const messageBox = document.getElementById('messageBox');
+  const challengeBox = document.getElementById('challengeBox');
+  const resetBtn = document.getElementById('resetBtn');
+
+  const bulbGlass = document.getElementById('bulbGlass');
+  const bulbFilament = document.getElementById('bulbFilament');
+  const glowRing = document.getElementById('glowRing');
+
+  const wireTop = document.getElementById('wireTop');
+  const wireMid = document.getElementById('wireMid');
+  const wireBottom = document.getElementById('wireBottom');
+
+  let isOn = false;
+  let challengeComplete = false;
+  let particleAnim = null;
+
+  // Particle path points (approximate loop around the circuit, matching SVG coords)
+  const loopPoints = [
+    {x: 90, y: 60}, {x: 90, y: 30}, {x: 230, y: 30}, {x: 230, y: 100}, // top wire + into switch
+    {x: 290, y: 100}, {x: 290, y: 30}, {x: 380, y: 30}, {x: 380, y: 90}, // switch to bulb
+    {x: 380, y: 108}, {x: 380, y: 260}, {x: 90, y: 260}, {x: 90, y: 240} // bulb back to battery
+  ];
+
+  const particles = [
+    document.getElementById('p1'),
+    document.getElementById('p2'),
+    document.getElementById('p3'),
+    document.getElementById('p4')
+  ];
+
+  function totalLength() {
+    let len = 0;
+    for (let i = 0; i < loopPoints.length; i++) {
+      const a = loopPoints[i];
+      const b = loopPoints[(i + 1) % loopPoints.length];
+      len += Math.hypot(b.x - a.x, b.y - a.y);
+    }
+    return len;
+  }
+
+  function pointAtDistance(dist) {
+    const total = totalLength();
+    dist = ((dist % total) + total) % total;
+    for (let i = 0; i < loopPoints.length; i++) {
+      const a = loopPoints[i];
+      const b = loopPoints[(i + 1) % loopPoints.length];
+      const segLen = Math.hypot(b.x - a.x, b.y - a.y);
+      if (dist <= segLen) {
+        const t = segLen === 0 ? 0 : dist / segLen;
+        return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+      }
+      dist -= segLen;
+    }
+    return loopPoints[0];
+  }
+
+  let offset = 0;
+  function animateParticles() {
+    offset += 4;
+    const spacing = totalLength() / particles.length;
+    particles.forEach((p, i) => {
+      const pos = pointAtDistance(offset + i * spacing);
+      p.setAttribute('cx', pos.x);
+      p.setAttribute('cy', pos.y);
+    });
+    particleAnim = requestAnimationFrame(animateParticles);
+  }
+
+  function startParticles() {
+    particles.forEach(p => p.classList.add('active'));
+    if (!particleAnim) animateParticles();
+  }
+
+  function stopParticles() {
+    particles.forEach(p => p.classList.remove('active'));
+    if (particleAnim) {
+      cancelAnimationFrame(particleAnim);
+      particleAnim = null;
+    }
+  }
+
+  function setCircuitState(on) {
+    isOn = on;
+
+    // Switch visuals
+    toggle.classList.toggle('on', on);
+    switchLever.setAttribute('transform', on ? 'rotate(0)' : 'rotate(-35)');
+
+    // Wires
+    [wireTop, wireMid, wireBottom].forEach(w => w.classList.toggle('powered', on));
+
+    // Bulb
+    bulbGlass.classList.toggle('on', on);
+    bulbFilament.classList.toggle('on', on);
+    glowRing.classList.toggle('on', on);
+
+    // Status text
+    statusText.textContent = on ? '💡 Bulb: ON' : '⚫ Bulb: OFF';
+    statusText.classList.toggle('on', on);
+    statusText.classList.toggle('off', !on);
+
+    // Message
+    messageBox.textContent = on
+      ? '💡 The circuit is complete, so electric current can flow and the bulb lights.'
+      : '⚫ The circuit is broken, so electric current cannot flow and the bulb stays off.';
+    messageBox.classList.toggle('on', on);
+    messageBox.classList.toggle('off', !on);
+
+    // Particles
+    if (on) startParticles(); else stopParticles();
+
+    // Challenge
+    if (on && !challengeComplete) {
+      challengeComplete = true;
+      challengeBox.innerHTML = '✅ <strong>Great! You completed the circuit!</strong>';
+      challengeBox.classList.add('success');
+    }
+  }
+
+  function toggleSwitch() {
+    setCircuitState(!isOn);
+  }
+
+  toggle.addEventListener('click', toggleSwitch);
+  switchGroup.addEventListener('click', toggleSwitch);
+
+  resetBtn.addEventListener('click', () => {
+    challengeComplete = false;
+    challengeBox.innerHTML = '🎯 <strong>Mini Challenge:</strong> Can you make the bulb light? Click the switch to turn it ON!';
+    challengeBox.classList.remove('success');
+    setCircuitState(false);
+  });
+
+  // Initialize
+  setCircuitState(false);
+</script>
+
+</body>
+</html>
