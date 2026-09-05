@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>🤖 Robot Maze</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg-deep: #060b16;
+    --bg-mid: #0c1b2e;
+    --panel: rgba(14, 26, 46, 0.78);
+    --panel-line: #1f3a5f;
+    --cyan: #22e3ff;
+    --lime: #7CFF6B;
+    --magenta: #ff4fd8;
+    --amber: #ffb020;
+    --ink: #dcecff;
+    --ink-dim: #7f9bc2;
+  }
+
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  body {
+    font-family: 'Segoe UI', system-ui, Arial, sans-serif;
+    background:
+      radial-gradient(circle at 15% 0%, #10233d 0%, transparent 45%),
+      radial-gradient(circle at 85% 10%, #14203a 0%, transparent 40%),
+      linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 55%, #040810 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 14px 10px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: clamp(1.25rem, 4.2vw, 1.9rem);
+    letter-spacing: 0.3px;
+    text-shadow: 0 0 14px rgba(34, 227, 255, 0.45);
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--ink-dim);
+    font-size: clamp(0.78rem, 2.4vw, 0.92rem);
+    margin: 4px 0 2px;
+    max-width: 480px;
+  }
+
+  .goal-line {
+    text-align: center;
+    color: var(--lime);
+    font-size: clamp(0.74rem, 2.2vw, 0.85rem);
+    margin-bottom: 12px;
+    max-width: 480px;
+  }
+
+  .lab-panel {
+    background: var(--panel);
+    border: 2px solid var(--panel-line);
+    border-radius: 18px;
+    padding: 14px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: 0 0 34px rgba(34, 150, 220, 0.12), inset 0 0 40px rgba(10, 20, 40, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* ---------- Level tabs ---------- */
+  .level-tabs {
+    display: flex;
+    gap: 6px;
+    width: 100%;
+  }
+  .level-tab {
+    flex: 1;
+    text-align: center;
+    background: rgba(30, 48, 80, 0.55);
+    border: 2px solid var(--panel-line);
+    color: var(--ink-dim);
+    border-radius: 10px;
+    padding: 7px 4px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .level-tab.active {
+    color: #04141f;
+    background: var(--cyan);
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(34, 227, 255, 0.55);
+  }
+  .level-tab:active { transform: scale(0.96); }
+
+  /* ---------- HUD ---------- */
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
+  }
+  .hud-chip {
+    background: rgba(0,0,0,0.28);
+    border: 1px solid var(--panel-line);
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
+    color: var(--ink-dim);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hud-chip .num {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: var(--lime);
+    font-size: 0.95rem;
+  }
+  .hud-chip .best {
+    font-family: 'Courier New', monospace;
+    color: var(--amber);
+  }
+
+  /* ---------- Maze ---------- */
+  .maze-outer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+  .maze-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    background-color: #060d1a;
+    background-image:
+      linear-gradient(rgba(34, 227, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(34, 227, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+    border: 2px solid var(--panel-line);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: inset 0 0 24px rgba(0,0,0,0.6);
+  }
+  .maze-grid {
+    display: grid;
+    width: 100%;
+    height: 100%;
+  }
+  .cell {
+    position: relative;
+    border: 1px solid rgba(31, 58, 95, 0.35);
+  }
+  .cell.open { background: rgba(255,255,255,0.015); }
+  .cell.wall {
+    background: repeating-linear-gradient(135deg, #24344f, #24344f 4px, #1a2740 4px, #1a2740 8px);
+    border-color: #34507e;
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.6);
+  }
+  .cell.dest {
+    background: rgba(255, 79, 216, 0.10);
+  }
+  .cell.dest::after {
+    content: "🏁";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: min(6vw, 26px);
+    filter: drop-shadow(0 0 6px rgba(255, 79, 216, 0.85));
+    animation: destPulse 1.6s ease-in-out infinite;
+  }
+  @keyframes destPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+
+  .cell.hint-glow {
+    box-shadow: inset 0 0 0 3px var(--amber), 0 0 10px rgba(255,176,32,0.7);
+    animation: hintFlash 0.6s ease-in-out infinite;
+  }
+  @keyframes hintFlash { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+  .robot {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    transition: left 0.22s ease, top 0.22s ease;
+    pointer-events: none;
+  }
+  .robot .robot-face {
+    font-size: min(7vw, 30px);
+    filter: drop-shadow(0 0 8px rgba(34, 227, 255, 0.8));
+    transition: transform 0.15s ease;
+  }
+  .robot.shake .robot-face { animation: shake 0.3s ease; }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+  .robot.win .robot-face { animation: winSpin 0.6s ease; }
+  @keyframes winSpin { from { transform: rotate(0deg) scale(1); } to { transform: rotate(360deg) scale(1.25); } }
+
+  /* ---------- Banner ---------- */
+  .banner {
+    border-radius: 10px;
+    padding: 8px 14px;
+    text-align: center;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    width: 100%;
+    min-height: 1.2em;
+    transition: opacity 0.2s ease;
+  }
+  .banner.hidden { visibility: hidden; opacity: 0; }
+  .banner.blocked { background: rgba(255, 176, 32, 0.14); border: 2px solid var(--amber); color: #ffe2ad; }
+  .banner.hint { background: rgba(34, 227, 255, 0.12); border: 2px solid var(--cyan); color: #c9f6ff; }
+  .banner.win { background: rgba(124, 255, 107, 0.14); border: 2px solid var(--lime); color: #ddffd4; }
+
+  /* ---------- D-pad ---------- */
+  .dpad {
+    display: grid;
+    grid-template-columns: 64px 64px 64px;
+    grid-template-rows: 56px 56px 56px;
+    gap: 6px;
+    justify-content: center;
+  }
+  .dpad-btn {
+    background: linear-gradient(160deg, #1c3155, #12213a);
+    border: 2px solid #35507e;
+    border-radius: 14px;
+    color: var(--ink);
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+    box-shadow: 0 3px 0 #0c1830, 0 0 10px rgba(34,227,255,0.08);
+  }
+  .dpad-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #0c1830; }
+  .dpad-btn.up { grid-column: 2; grid-row: 1; }
+  .dpad-btn.left { grid-column: 1; grid-row: 2; }
+  .dpad-btn.center { grid-column: 2; grid-row: 2; background: rgba(255,255,255,0.03); border-color: #1f3a5f; box-shadow:none; cursor:default; }
+  .dpad-btn.right { grid-column: 3; grid-row: 2; }
+  .dpad-btn.down { grid-column: 2; grid-row: 3; }
+  .dpad-btn span.lbl {
+    position: absolute;
+    margin-top: 34px;
+    font-size: 0.55rem;
+    color: var(--ink-dim);
+    font-weight: 700;
+  }
+  .dpad-btn { position: relative; }
+
+  /* ---------- Controls ---------- */
+  .controls {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+  }
+  .run-btn {
+    background: linear-gradient(135deg, #2d6a3e, #4fdc6f);
+    color: #06210f;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 18px;
+    font-size: 0.92rem;
+    cursor: pointer;
+    box-shadow: 0 0 14px rgba(79, 220, 111, 0.35);
+  }
+  .hint-btn {
+    background: linear-gradient(135deg, #7a5a10, #ffb020);
+    color: #2c1c00;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    padding: 11px 18px;
+    font-size: 0.92rem;
+    cursor: pointer;
+    box-shadow: 0 0 14px rgba(255, 176, 32, 0.35);
+  }
+  .ctrl-btn {
+    background: #1c2c4a;
+    color: var(--ink);
+    border: 2px solid #35507e;
+    border-radius: 10px;
+    padding: 9px 14px;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+  .run-btn:active, .hint-btn:active, .ctrl-btn:active { transform: scale(0.96); }
+
+  /* ---------- Win overlay ---------- */
+  .win-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 8, 18, 0.82);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .win-overlay.show { opacity: 1; pointer-events: auto; }
+  .win-card {
+    background: linear-gradient(160deg, #10233d, #0a1526);
+    border: 2px solid var(--lime);
+    border-radius: 18px;
+    padding: 26px 22px;
+    max-width: 360px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(124, 255, 107, 0.3);
+    transform: scale(0.9);
+    transition: transform 0.25s ease;
+  }
+  .win-overlay.show .win-card { transform: scale(1); }
+  .win-card h2 { color: var(--lime); font-size: 1.3rem; margin-bottom: 8px; text-shadow: 0 0 10px rgba(124,255,107,0.5); }
+  .win-card p { color: var(--ink); font-size: 0.9rem; line-height: 1.5; margin-bottom: 6px; }
+  .win-card .stats { color: var(--ink-dim); font-size: 0.82rem; margin-bottom: 16px; font-family: 'Courier New', monospace; }
+  .win-card .stats .num { color: var(--amber); font-weight: 700; }
+  .win-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+  footer {
+    margin-top: 16px;
+    color: #4a6690;
+    font-size: 0.8rem;
+    text-align: center;
+    padding-bottom: 8px;
+  }
+
+  @media (max-width: 360px) {
+    .dpad { grid-template-columns: 56px 56px 56px; grid-template-rows: 50px 50px 50px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>🤖 Robot Maze</h1>
+<p class="subtitle">Guide your robot through the maze using logic and planning.</p>
+<p class="goal-line">🎯 Get the robot from its start spot to the 🏁 finish without hitting a wall!</p>
+
+<div class="lab-panel">
+
+  <div class="level-tabs" id="levelTabs"></div>
+
+  <div class="hud">
+    <div class="hud-chip">📍 <span id="levelName">Level 1: Easy</span></div>
+    <div class="hud-chip">👣 Moves: <span class="num" id="movesCount">0</span><span id="bestWrap" style="display:none">&nbsp;·&nbsp;Best: <span class="best" id="bestCount">-</span></span></div>
+  </div>
+
+  <div class="maze-outer">
+    <div class="maze-wrap" id="mazeWrap">
+      <div class="maze-grid" id="mazeGrid"></div>
+      <div class="robot" id="robot"><div class="robot-face">🤖</div></div>
+    </div>
+  </div>
+
+  <div class="banner hidden" id="banner"></div>
+
+  <div class="dpad" id="dpad">
+    <div class="dpad-btn up" data-dir="up">⬆️<span class="lbl">FORWARD</span></div>
+    <div class="dpad-btn left" data-dir="left">⬅️<span class="lbl">LEFT</span></div>
+    <div class="dpad-btn center">🤖</div>
+    <div class="dpad-btn right" data-dir="right">➡️<span class="lbl">RIGHT</span></div>
+    <div class="dpad-btn down" data-dir="down">⬇️<span class="lbl">BACK</span></div>
+  </div>
+
+  <div class="controls">
+    <button class="run-btn" id="startBtn">▶ Start</button>
+    <button class="hint-btn" id="hintBtn">💡 Hint</button>
+    <button class="ctrl-btn" id="resetBtn">🔄 Reset</button>
+    <button class="ctrl-btn" id="nextBtn">⏭ Next Level</button>
+    <button class="ctrl-btn" id="clearBtn">🧹 Clear / Restart</button>
+  </div>
+
+</div>
+
+<footer>This simulation was created by COROX LAB</footer>
+
+<div class="win-overlay" id="winOverlay">
+  <div class="win-card">
+    <h2>🎉 Mission Complete!</h2>
+    <p>"Great job! You used logical thinking to guide the robot to its destination."</p>
+    <div class="stats">Moves used: <span class="num" id="winMoves">0</span> &nbsp;|&nbsp; Best: <span class="num" id="winBest">0</span></div>
+    <div class="win-actions">
+      <button class="run-btn" id="winNextBtn">⏭ Next Level</button>
+      <button class="ctrl-btn" id="winRestartBtn">🔄 Restart</button>
+      <button class="ctrl-btn" id="winReplayBtn">▶ Play Again</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // 0 = open path, 1 = wall
+  const LEVELS = [
+    {
+      name: 'Level 1: Easy',
+      start: { r: 0, c: 0 },
+      dest: { r: 4, c: 4 },
+      grid: [
+        [0,0,0,0,0],
+        [0,1,1,1,0],
+        [0,1,0,0,0],
+        [0,1,0,1,1],
+        [0,0,0,0,0],
+      ],
+    },
+    {
+      name: 'Level 2: Medium',
+      start: { r: 0, c: 0 },
+      dest: { r: 0, c: 5 },
+      grid: [
+        [0,0,1,0,0,0],
+        [0,0,1,0,1,0],
+        [0,1,1,0,1,0],
+        [0,1,0,0,1,0],
+        [0,1,0,1,1,0],
+        [0,0,0,0,0,0],
+      ],
+    },
+    {
+      name: 'Level 3: Hard',
+      start: { r: 0, c: 0 },
+      dest: { r: 6, c: 6 },
+      grid: [
+        [0,0,0,1,0,0,0],
+        [0,1,0,1,0,1,0],
+        [0,1,0,0,0,1,0],
+        [0,1,1,1,0,1,0],
+        [0,0,0,1,0,0,0],
+        [1,1,0,1,1,1,0],
+        [0,0,0,0,0,0,0],
+      ],
+    },
+  ];
+
+  let levelIndex = 0;
+  let robotPos = { r: 0, c: 0 };
+  let moves = 0;
+  let started = false;
+  let bestMoves = [null, null, null];
+  let cellEls = [];
+  let bannerTimer = null;
+  let hintTimer = null;
+
+  const mazeGrid = document.getElementById('mazeGrid');
+  const mazeWrap = document.getElementById('mazeWrap');
+  const robotEl = document.getElementById('robot');
+  const robotFace = robotEl.querySelector('.robot-face');
+  const banner = document.getElementById('banner');
+  const movesCountEl = document.getElementById('movesCount');
+  const bestWrap = document.getElementById('bestWrap');
+  const bestCountEl = document.getElementById('bestCount');
+  const levelNameEl = document.getElementById('levelName');
+  const levelTabs = document.getElementById('levelTabs');
+  const winOverlay = document.getElementById('winOverlay');
+  const winMovesEl = document.getElementById('winMoves');
+  const winBestEl = document.getElementById('winBest');
+  const nextBtn = document.getElementById('nextBtn');
+  const winNextBtn = document.getElementById('winNextBtn');
+  const winRestartBtn = document.getElementById('winRestartBtn');
+  const winReplayBtn = document.getElementById('winReplayBtn');
+
+  const DIRS = {
+    up:    { dr: -1, dc: 0, label: 'Forward' },
+    down:  { dr: 1,  dc: 0, label: 'Back' },
+    left:  { dr: 0,  dc: -1, label: 'Left' },
+    right: { dr: 0,  dc: 1, label: 'Right' },
+  };
+
+  // ---------- Level tabs ----------
+  LEVELS.forEach((lvl, i) => {
+    const tab = document.createElement('div');
+    tab.className = 'level-tab' + (i === 0 ? ' active' : '');
+    tab.textContent = 'Lvl ' + (i + 1);
+    tab.addEventListener('click', () => loadLevel(i, true));
+    levelTabs.appendChild(tab);
+  });
+
+  function setActiveTab(i) {
+    [...levelTabs.children].forEach((t, idx) => t.classList.toggle('active', idx === i));
+  }
+
+  // ---------- Build / load level ----------
+  function loadLevel(i, autoStart) {
+    levelIndex = i;
+    const lvl = LEVELS[i];
+    const rows = lvl.grid.length, cols = lvl.grid[0].length;
+
+    mazeWrap.style.aspectRatio = cols + ' / ' + rows;
+    mazeGrid.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+    mazeGrid.style.gridTemplateRows = 'repeat(' + rows + ', 1fr)';
+    mazeGrid.innerHTML = '';
+    cellEls = [];
+
+    for (let r = 0; r < rows; r++) {
+      const rowEls = [];
+      for (let c = 0; c < cols; c++) {
+        const cell = document.createElement('div');
+        const isWall = lvl.grid[r][c] === 1;
+        const isDest = r === lvl.dest.r && c === lvl.dest.c;
+        cell.className = 'cell ' + (isWall ? 'wall' : 'open') + (isDest ? ' dest' : '');
+        mazeGrid.appendChild(cell);
+        rowEls.push(cell);
+      }
+      cellEls.push(rowEls);
+    }
+
+    robotPos = { r: lvl.start.r, c: lvl.start.c };
+    moves = 0;
+    started = !!autoStart;
+    levelNameEl.textContent = lvl.name;
+    movesCountEl.textContent = '0';
+    updateBestDisplay();
+    updateLevelControls();
+    setActiveTab(i);
+    positionRobot(true);
+    hideBanner();
+    winOverlay.classList.remove('show');
+    if (!started) {
+      showBanner('hint', '▶ Press Start to begin ' + lvl.name + '!', 0);
+    }
+  }
+
+  function updateBestDisplay() {
+    const b = bestMoves[levelIndex];
+    if (b == null) { bestWrap.style.display = 'none'; }
+    else { bestWrap.style.display = ''; bestCountEl.textContent = b; }
+  }
+
+  function updateLevelControls() {
+    const isFinalLevel = levelIndex === LEVELS.length - 1;
+    nextBtn.style.display = isFinalLevel ? 'none' : '';
+    winNextBtn.style.display = isFinalLevel ? 'none' : '';
+    winRestartBtn.style.display = isFinalLevel ? '' : 'none';
+    winReplayBtn.textContent = '▶ Play Again';
+  }
+
+  function positionRobot(instant) {
+    const lvl = LEVELS[levelIndex];
+    const rows = lvl.grid.length, cols = lvl.grid[0].length;
+    const leftPct = (robotPos.c / cols) * 100;
+    const topPct = (robotPos.r / rows) * 100;
+    const wPct = (1 / cols) * 100;
+    const hPct = (1 / rows) * 100;
+    if (instant) robotEl.style.transition = 'none';
+    robotEl.style.left = leftPct + '%';
+    robotEl.style.top = topPct + '%';
+    robotEl.style.width = wPct + '%';
+    robotEl.style.height = hPct + '%';
+    if (instant) {
+      requestAnimationFrame(() => { robotEl.style.transition = ''; });
+    }
+  }
+
+  // ---------- Banner helpers ----------
+  function showBanner(type, msg, autoHideMs) {
+    clearTimeout(bannerTimer);
+    banner.className = 'banner ' + type;
+    banner.textContent = msg;
+    if (autoHideMs) {
+      bannerTimer = setTimeout(hideBanner, autoHideMs);
+    }
+  }
+  function hideBanner() {
+    banner.className = 'banner hidden';
+  }
+
+  // ---------- Movement ----------
+  function move(dir) {
+    if (!started) {
+      showBanner('hint', '▶ Press Start first!', 1400);
+      return;
+    }
+    const lvl = LEVELS[levelIndex];
+    const rows = lvl.grid.length, cols = lvl.grid[0].length;
+    const d = DIRS[dir];
+    const nr = robotPos.r + d.dr, nc = robotPos.c + d.dc;
+
+    const outOfBounds = nr < 0 || nr >= rows || nc < 0 || nc >= cols;
+    const hitsWall = !outOfBounds && lvl.grid[nr][nc] === 1;
+
+    if (outOfBounds || hitsWall) {
+      showBanner('blocked', '🧱 Blocked! Try another direction.', 1500);
+      robotEl.classList.remove('shake');
+      void robotEl.offsetWidth;
+      robotEl.classList.add('shake');
+      return;
+    }
+
+    robotPos = { r: nr, c: nc };
+    moves++;
+    movesCountEl.textContent = moves;
+    positionRobot(false);
+    hideBanner();
+
+    if (robotPos.r === lvl.dest.r && robotPos.c === lvl.dest.c) {
+      handleWin();
+    }
+  }
+
+  function handleWin() {
+    started = false;
+    robotEl.classList.add('win');
+    setTimeout(() => robotEl.classList.remove('win'), 650);
+    if (bestMoves[levelIndex] == null || moves < bestMoves[levelIndex]) {
+      bestMoves[levelIndex] = moves;
+    }
+    updateBestDisplay();
+    winMovesEl.textContent = moves;
+    winBestEl.textContent = bestMoves[levelIndex];
+    setTimeout(() => winOverlay.classList.add('show'), 300);
+  }
+
+  // ---------- Hint (BFS) ----------
+  function findPath() {
+    const lvl = LEVELS[levelIndex];
+    const rows = lvl.grid.length, cols = lvl.grid[0].length;
+    const key = (r, c) => r + ',' + c;
+    const visited = new Set([key(robotPos.r, robotPos.c)]);
+    const queue = [{ r: robotPos.r, c: robotPos.c, path: [] }];
+    const dirList = [
+      { dr: -1, dc: 0, name: 'up' },
+      { dr: 1, dc: 0, name: 'down' },
+      { dr: 0, dc: -1, name: 'left' },
+      { dr: 0, dc: 1, name: 'right' },
+    ];
+    while (queue.length) {
+      const cur = queue.shift();
+      if (cur.r === lvl.dest.r && cur.c === lvl.dest.c) return cur.path;
+      for (const d of dirList) {
+        const nr = cur.r + d.dr, nc = cur.c + d.dc;
+        if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+        if (lvl.grid[nr][nc] === 1) continue;
+        const k = key(nr, nc);
+        if (visited.has(k)) continue;
+        visited.add(k);
+        queue.push({ r: nr, c: nc, path: cur.path.concat([{ r: nr, c: nc, dir: d.name }]) });
+      }
+    }
+    return null;
+  }
+
+  function showHint() {
+    if (!started) {
+      showBanner('hint', '▶ Press Start first, then tap Hint!', 1600);
+      return;
+    }
+    const path = findPath();
+    if (!path || path.length === 0) {
+      showBanner('hint', 'You are already there — great job!', 1600);
+      return;
+    }
+    const DIR_LABEL = { up: 'Forward ⬆️', down: 'Back ⬇️', left: 'Left ⬅️', right: 'Right ➡️' };
+    const next = path[0];
+    showBanner('hint', '💡 Hint: Try going ' + DIR_LABEL[next.dir] + '.', 3200);
+
+    clearTimeout(hintTimer);
+    document.querySelectorAll('.cell.hint-glow').forEach(c => c.classList.remove('hint-glow'));
+    const glowSteps = path.slice(0, 3);
+    glowSteps.forEach(step => {
+      const cellEl = cellEls[step.r][step.c];
+      if (cellEl) cellEl.classList.add('hint-glow');
+    });
+    hintTimer = setTimeout(() => {
+      glowSteps.forEach(step => {
+        const cellEl = cellEls[step.r][step.c];
+        if (cellEl) cellEl.classList.remove('hint-glow');
+      });
+    }, 1600);
+  }
+
+  // ---------- Controls wiring ----------
+  document.getElementById('dpad').addEventListener('click', (e) => {
+    const btn = e.target.closest('.dpad-btn');
+    if (!btn || !btn.dataset.dir) return;
+    move(btn.dataset.dir);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+    if (map[e.key]) {
+      e.preventDefault();
+      move(map[e.key]);
+    }
+  });
+
+  document.getElementById('startBtn').addEventListener('click', () => {
+    loadLevel(levelIndex, true);
+  });
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    loadLevel(levelIndex, true);
+  });
+  document.getElementById('hintBtn').addEventListener('click', showHint);
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    if (levelIndex < LEVELS.length - 1) {
+      loadLevel(levelIndex + 1, true);
+    } else {
+      showBanner('win', '🏆 You finished every level! Try Clear / Restart to play again.', 3000);
+    }
+  });
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    bestMoves = [null, null, null];
+    loadLevel(0, false);
+  });
+  document.getElementById('winNextBtn').addEventListener('click', () => {
+    winOverlay.classList.remove('show');
+    if (levelIndex < LEVELS.length - 1) loadLevel(levelIndex + 1, true);
+    else loadLevel(levelIndex, false);
+  });
+  winRestartBtn.addEventListener('click', () => {
+    winOverlay.classList.remove('show');
+    loadLevel(0, true);
+  });
+
+  winReplayBtn.addEventListener('click', () => {
+    winOverlay.classList.remove('show');
+    loadLevel(levelIndex, true);
+  });
+
+  window.addEventListener('resize', () => positionRobot(true));
+
+  // ---------- Init ----------
+  loadLevel(0, false);
+})();
+</script>
+
+</body>
+</html>
