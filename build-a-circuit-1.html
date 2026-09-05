@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔧 Build a Circuit</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: radial-gradient(circle at 50% 20%, #16213e 0%, #0b0f1e 60%, #05070f 100%);
+    color: #eaf2ff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px;
+    overflow-x: hidden;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: clamp(1.2rem, 4vw, 1.8rem);
+    margin-bottom: 4px;
+    text-shadow: 0 0 12px rgba(100, 180, 255, 0.5);
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #9fb3d1;
+    font-size: clamp(0.8rem, 2.5vw, 0.95rem);
+    margin-bottom: 6px;
+    max-width: 560px;
+  }
+
+  .goal-line {
+    text-align: center;
+    color: #7fa8ff;
+    font-size: clamp(0.75rem, 2.3vw, 0.85rem);
+    margin-bottom: 14px;
+    max-width: 560px;
+  }
+
+  .lab-panel {
+    background: rgba(20, 28, 55, 0.7);
+    border: 2px solid #2d3f6b;
+    border-radius: 20px;
+    padding: 16px;
+    width: 100%;
+    max-width: 620px;
+    box-shadow: 0 0 30px rgba(50, 100, 200, 0.15);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  /* ---------- Palette ---------- */
+  .palette {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .palette-item {
+    background: rgba(58, 74, 117, 0.6);
+    border: 2px solid #4a5b8c;
+    border-radius: 12px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+    user-select: none;
+    touch-action: none;
+    min-width: 62px;
+    transition: all 0.15s ease;
+  }
+  .palette-item:active { transform: scale(0.95); }
+  .palette-item svg { width: 30px; height: 30px; display: block; }
+  .palette-item span {
+    font-size: 0.65rem;
+    color: #cfe0ff;
+    font-weight: 600;
+  }
+  .palette-item.disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .palette-hint {
+    font-size: 0.78rem;
+    color: #9fb3d1;
+    text-align: center;
+    min-height: 1.1em;
+    max-width: 520px;
+  }
+
+  /* ---------- Bench (freeform canvas) ---------- */
+  .bench-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+  .bench {
+    position: relative;
+    width: 100%;
+    height: 340px;
+    background-color: rgba(10, 14, 28, 0.85);
+    background-image: radial-gradient(#2d3f6b 1.4px, transparent 1.4px);
+    background-size: 22px 22px;
+    border: 2px solid #2d3f6b;
+    border-radius: 14px;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  .wire-layer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; }
+  .wire-layer path.wire {
+    fill: none;
+    stroke-width: 4;
+    stroke-linecap: round;
+    pointer-events: stroke;
+    cursor: pointer;
+  }
+  .wire-layer path.wire-hit { fill: none; stroke: transparent; stroke-width: 22; pointer-events: stroke; cursor: pointer; }
+  .wire-layer path.wire.powered {
+    stroke-width: 5;
+    stroke-dasharray: 10 8;
+    animation: dash 0.6s linear infinite;
+    filter: drop-shadow(0 0 4px currentColor);
+  }
+  @keyframes dash { to { stroke-dashoffset: -36; } }
+  .wire-layer path.temp-wire { fill: none; stroke: #ffd54a; stroke-width: 3; stroke-dasharray: 5 5; pointer-events: none; }
+
+  .comp {
+    position: absolute;
+    width: 74px;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+  }
+  .comp:active { cursor: grabbing; }
+  .comp-icon-box {
+    width: 74px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.5));
+    transition: filter 0.2s ease;
+  }
+  .comp-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #cfe0ff;
+    background: rgba(5, 8, 18, 0.7);
+    padding: 1px 7px;
+    border-radius: 8px;
+    margin-top: 2px;
+    white-space: nowrap;
+  }
+  .comp.powered .comp-icon-box { filter: drop-shadow(0 0 10px #ffd54a) drop-shadow(0 0 4px #ffe27a); }
+  .comp.motor-on .comp-icon-box { animation: spin 0.8s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .comp.switch-off .comp-icon-box { opacity: 0.65; }
+
+  .delete-badge {
+    position: absolute;
+    top: -6px;
+    right: -2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #c0394a;
+    color: #fff;
+    border: 2px solid rgba(255,255,255,0.4);
+    font-size: 0.7rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    touch-action: none;
+  }
+
+  .terminal {
+    position: absolute;
+    top: 22px;
+    width: 30px;
+    height: 30px;
+    margin-top: -15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 4;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .terminal.left { left: -22px; }
+  .terminal.right { right: -22px; }
+  .terminal-dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #9fb3d1;
+    border: 2px solid #eaf2ff;
+    box-shadow: 0 0 4px rgba(0,0,0,0.6);
+    transition: all 0.15s ease;
+  }
+  .terminal:hover .terminal-dot, .terminal.hot .terminal-dot {
+    background: #4fdc6f;
+    box-shadow: 0 0 10px #4fdc6f;
+    transform: scale(1.15);
+  }
+  .terminal.pos .terminal-dot { background: #e74c3c; }
+  .terminal.neg .terminal-dot { background: #2c3e50; }
+
+  /* ---------- Status ---------- */
+  .status-readouts {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .mini-status {
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.3);
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: #9fb3d1;
+  }
+  .mini-status.on { color: #ffe27a; text-shadow: 0 0 8px #ffcf3d; }
+  .mini-status.hidden { display: none; }
+
+  .banner {
+    border-radius: 12px;
+    padding: 10px 16px;
+    text-align: center;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    max-width: 600px;
+    width: 100%;
+  }
+  .banner.hidden { display: none; }
+  .banner.success { background: rgba(79, 220, 111, 0.15); border: 2px solid #4fdc6f; color: #c9ffd6; }
+  .banner.error { background: rgba(192, 57, 74, 0.15); border: 2px solid #c0394a; color: #ffd2d6; }
+
+  /* ---------- Challenges ---------- */
+  .challenges {
+    width: 100%;
+    max-width: 600px;
+    background: rgba(20, 28, 55, 0.6);
+    border: 1px solid #2d3f6b;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 0.82rem;
+  }
+  .challenge-title { font-weight: bold; margin-bottom: 6px; color: #cfe0ff; }
+  .challenge-item { padding: 3px 0; color: #9fb3d1; }
+  .challenge-item.done { color: #b9ffcf; }
+  .check { display: inline-block; width: 1.3em; }
+
+  /* ---------- Controls ---------- */
+  .controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .run-btn {
+    background: linear-gradient(135deg, #2d6a3e, #4fdc6f);
+    color: #06210f;
+    font-weight: bold;
+    border: none;
+    border-radius: 12px;
+    padding: 13px 24px;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 0 14px rgba(79, 220, 111, 0.4);
+  }
+  .ctrl-btn {
+    background: #3a4a75;
+    color: #eaf2ff;
+    border: 2px solid #6d84c2;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .ctrl-btn:active, .run-btn:active { transform: scale(0.97); }
+
+  footer {
+    margin-top: 18px;
+    color: #6d84c2;
+    font-size: 0.85rem;
+    text-align: center;
+    padding-bottom: 10px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translate(-50%, 20px);
+    background: #1c2540;
+    border: 2px solid #4fdc6f;
+    color: #eaf2ff;
+    padding: 10px 18px;
+    border-radius: 12px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    font-size: 0.88rem;
+    max-width: 90vw;
+    text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<h1>🔧 Build a Circuit</h1>
+<p class="subtitle">Tap a part to drop it on the bench, drag it anywhere, then drag between the dots to wire it up!</p>
+<p class="goal-line">Try to build: 🔋 Battery → Switch → Bulb → back to Battery — all connected freely with wires</p>
+
+<div class="lab-panel">
+
+  <div class="palette" id="palette">
+    <div class="palette-item" data-type="battery"></div>
+    <div class="palette-item" data-type="switch"></div>
+    <div class="palette-item" data-type="bulb"></div>
+    <div class="palette-item" data-type="motor"></div>
+  </div>
+  <div class="palette-hint" id="paletteHint">Tap a part above to add it. Drag a dot to another dot to connect a wire. Tap a wire to remove it.</div>
+
+  <div class="bench-wrap">
+    <div class="bench" id="bench">
+      <svg class="wire-layer" id="wireLayer"></svg>
+    </div>
+  </div>
+
+  <div class="status-readouts">
+    <div id="bulbStatus" class="mini-status hidden">💡 Bulb: OFF</div>
+    <div id="motorStatus" class="mini-status hidden">⚙️ Motor: OFF</div>
+  </div>
+
+  <div id="banner" class="banner hidden"></div>
+
+  <div class="challenges" id="challenges">
+    <div class="challenge-title">🎯 Challenges</div>
+    <div class="challenge-item" data-c="1"><span class="check">⬜</span>Make the bulb glow.</div>
+    <div class="challenge-item" data-c="2"><span class="check">⬜</span>Add a switch and control the bulb.</div>
+    <div class="challenge-item" data-c="3"><span class="check">⬜</span>Make the motor run.</div>
+    <div class="challenge-item" data-c="4"><span class="check">⬜</span>Build a circuit with both bulb and motor.</div>
+  </div>
+
+  <div class="controls">
+    <button id="runBtn" class="run-btn">▶ RUN CIRCUIT</button>
+    <button id="resetBtn" class="ctrl-btn">🔄 RESET</button>
+    <button id="clearBtn" class="ctrl-btn">🧹 Clear Bench</button>
+  </div>
+
+</div>
+
+<footer>This simulation was created by COROX LAB</footer>
+
+<script>
+(function () {
+  const COMP_W = 74, TERM_Y = 22;
+
+  let components = []; // {id, type, x, y, on}
+  let wires = [];       // {id, aId, aSide, bId, bSide, color}
+  let running = false;
+  let nextId = 1;
+  let addCount = 0;
+  let challengeDone = [false, false, false, false];
+
+  const bench = document.getElementById('bench');
+  const wireLayer = document.getElementById('wireLayer');
+  const paletteHint = document.getElementById('paletteHint');
+  const banner = document.getElementById('banner');
+  const bulbStatusEl = document.getElementById('bulbStatus');
+  const motorStatusEl = document.getElementById('motorStatus');
+
+  const LABEL = { battery: 'Battery', switch: 'Switch', bulb: 'Bulb', motor: 'Motor' };
+  const WIRE_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f1c40f', '#e67e22', '#95a5a6'];
+
+  // ---------- Icons (inline SVG, self-drawn, inspired by generic component look) ----------
+  function iconSVG(type) {
+    if (type === 'battery') {
+      return `<svg viewBox="0 0 48 60"><rect x="18" y="2" width="12" height="8" rx="2" fill="#dfe9f5"/>
+        <rect x="10" y="8" width="28" height="14" rx="4" fill="#e0533d"/>
+        <text x="24" y="19" text-anchor="middle" font-size="11" font-weight="bold" fill="#3a1610">+</text>
+        <rect x="8" y="20" width="32" height="36" rx="6" fill="#3d8bd4"/>
+        <rect x="8" y="20" width="32" height="36" rx="6" fill="none" stroke="#2a6bb0" stroke-width="1.5"/>
+        <rect x="14" y="46" width="20" height="4" rx="2" fill="#1f2f45"/></svg>`;
+    }
+    if (type === 'switch') {
+      return `<svg viewBox="0 0 48 48"><rect x="6" y="4" width="36" height="40" rx="6" fill="#cdbfa1" stroke="#1a1a1a" stroke-width="2"/>
+        <text x="24" y="14" text-anchor="middle" font-size="6" font-weight="bold" fill="#1a1a1a">OFF</text>
+        <text x="24" y="41" text-anchor="middle" font-size="6" font-weight="bold" fill="#1a1a1a">ON</text>
+        <rect x="14" y="17" width="20" height="16" rx="4" fill="#e9e2d0" stroke="#1a1a1a" stroke-width="2" class="switch-lever"/></svg>`;
+    }
+    if (type === 'bulb') {
+      return `<svg viewBox="0 0 48 48"><g stroke="#f1c40f" stroke-width="2.4" stroke-linecap="round">
+        <line x1="24" y1="1" x2="24" y2="7"/><line x1="7" y1="8" x2="11.5" y2="12"/><line x1="41" y1="8" x2="36.5" y2="12"/>
+        <line x1="2" y1="22" x2="8" y2="22"/><line x1="46" y1="22" x2="40" y2="22"/></g>
+        <circle cx="24" cy="23" r="15" fill="#ffe14d" stroke="#1a1a1a" stroke-width="1.6"/>
+        <path d="M19 27 Q19 20 24 20 Q29 20 29 27" fill="none" stroke="#1a1a1a" stroke-width="1.6"/>
+        <rect x="18" y="36" width="12" height="9" fill="#b9c2cc" stroke="#1a1a1a" stroke-width="1.2"/>
+        <line x1="18" y1="39" x2="30" y2="39" stroke="#1a1a1a" stroke-width="1"/>
+        <line x1="18" y1="42" x2="30" y2="42" stroke="#1a1a1a" stroke-width="1"/></svg>`;
+    }
+    if (type === 'motor') {
+      return `<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="#e7ecf2" stroke="#8a97a6" stroke-width="2"/>
+        <g fill="#3d8bd4" stroke="#2a6bb0" stroke-width="1">
+          <path d="M24 24 Q30 12 24 4 Q18 12 24 24 Z"/>
+          <path d="M24 24 Q36 18 44 24 Q36 30 24 24 Z"/>
+          <path d="M24 24 Q18 36 24 44 Q30 36 24 24 Z"/>
+          <path d="M24 24 Q12 30 4 24 Q12 18 24 24 Z"/>
+        </g>
+        <circle cx="24" cy="24" r="5.5" fill="#e0533d" stroke="#8c2c1e" stroke-width="1.2"/></svg>`;
+    }
+    return '';
+  }
+
+  document.querySelectorAll('.palette-item').forEach((chip) => {
+    chip.innerHTML = iconSVG(chip.dataset.type) + `<span>${LABEL[chip.dataset.type]}</span>`;
+    chip.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      addComponent(chip.dataset.type);
+    });
+  });
+
+  function hasBattery() { return components.some(c => c.type === 'battery'); }
+
+  // ---------- Add / remove components ----------
+  function addComponent(type) {
+    if (type === 'battery' && hasBattery()) {
+      showToast('Only one battery allowed — remove the old one first.');
+      return;
+    }
+    const rect = bench.getBoundingClientRect();
+    const w = Math.max(rect.width, 260), h = Math.max(rect.height, 260);
+    const col = addCount % 3, row = Math.floor(addCount / 3) % 3;
+    const x = Math.min(w - COMP_W - 30, 40 + col * 110);
+    const y = 24 + row * 96;
+    addCount++;
+    const comp = { id: nextId++, type, x, y, on: false };
+    components.push(comp);
+    buildCompEl(comp);
+    afterChange();
+  }
+
+  function removeComponent(id) {
+    components = components.filter(c => c.id !== id);
+    wires = wires.filter(w => w.aId !== id && w.bId !== id);
+    const el = document.getElementById('comp-' + id);
+    if (el) el.remove();
+    afterChange();
+  }
+
+  function buildCompEl(comp) {
+    const el = document.createElement('div');
+    el.className = 'comp';
+    el.id = 'comp-' + comp.id;
+    el.innerHTML = `
+      <div class="delete-badge">✕</div>
+      <div class="terminal left ${comp.type === 'battery' ? 'pos' : ''}" data-side="a"><div class="terminal-dot"></div></div>
+      <div class="terminal right ${comp.type === 'battery' ? 'neg' : ''}" data-side="b"><div class="terminal-dot"></div></div>
+      <div class="comp-icon-box">${iconSVG(comp.type)}</div>
+      <div class="comp-label">${LABEL[comp.type]}</div>
+    `;
+    bench.appendChild(el);
+    positionCompEl(comp);
+
+    el.querySelector('.delete-badge').addEventListener('pointerdown', (e) => {
+      e.stopPropagation();
+      removeComponent(comp.id);
+    });
+    el.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.terminal') || e.target.closest('.delete-badge')) return;
+      startCompDrag(e, comp, el);
+    });
+    el.querySelectorAll('.terminal').forEach(termEl => {
+      termEl.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        startWireDrag(e, comp, termEl.dataset.side);
+      });
+    });
+  }
+
+  function positionCompEl(comp) {
+    const el = document.getElementById('comp-' + comp.id);
+    if (el) { el.style.left = comp.x + 'px'; el.style.top = comp.y + 'px'; }
+  }
+
+  // ---------- Dragging a component ----------
+  function startCompDrag(e, comp, el) {
+    const startX = e.clientX, startY = e.clientY;
+    const origX = comp.x, origY = comp.y;
+    let moved = false;
+    const benchRect = bench.getBoundingClientRect();
+
+    function onMove(ev) {
+      const dx = ev.clientX - startX, dy = ev.clientY - startY;
+      if (!moved && Math.hypot(dx, dy) > 6) moved = true;
+      if (moved) {
+        comp.x = clamp(origX + dx, -18, benchRect.width - COMP_W + 18);
+        comp.y = clamp(origY + dy, -14, benchRect.height - 78);
+        positionCompEl(comp);
+        drawWires();
+      }
+    }
+    function onUp() {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      if (!moved && comp.type === 'switch') {
+        comp.on = !comp.on;
+        afterChange();
+      } else if (moved) {
+        afterChange();
+      }
+    }
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  }
+
+  function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+  // ---------- Dragging a wire from a terminal ----------
+  let tempLineEl = null;
+  function startWireDrag(e, comp, side) {
+    const benchRect = bench.getBoundingClientRect();
+    const from = terminalPoint(comp, side);
+    tempLineEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    tempLineEl.setAttribute('class', 'temp-wire');
+    wireLayer.appendChild(tempLineEl);
+
+    let curPt = { x: e.clientX - benchRect.left, y: e.clientY - benchRect.top };
+    updateTempLine(from, curPt);
+    clearHotTerminals();
+
+    function onMove(ev) {
+      curPt = { x: ev.clientX - benchRect.left, y: ev.clientY - benchRect.top };
+      updateTempLine(from, curPt);
+      clearHotTerminals();
+      const hit = findTerminalUnder(ev.clientX, ev.clientY, comp.id);
+      if (hit) hit.el.classList.add('hot');
+    }
+    function onUp(ev) {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      clearHotTerminals();
+      if (tempLineEl) { tempLineEl.remove(); tempLineEl = null; }
+      const hit = findTerminalUnder(ev.clientX, ev.clientY, comp.id);
+      if (hit) tryCreateWire(comp.id, side, hit.compId, hit.side);
+      else afterChange();
+    }
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+  }
+
+  function clearHotTerminals() {
+    document.querySelectorAll('.terminal.hot').forEach(t => t.classList.remove('hot'));
+  }
+
+  function findTerminalUnder(clientX, clientY, excludeCompId) {
+    const els = document.elementsFromPoint(clientX, clientY);
+    for (const el of els) {
+      const termEl = el.closest && el.closest('.terminal');
+      if (termEl) {
+        const compEl = termEl.closest('.comp');
+        const compId = +compEl.id.replace('comp-', '');
+        if (compId === excludeCompId) return null;
+        return { compId, side: termEl.dataset.side, el: termEl };
+      }
+    }
+    return null;
+  }
+
+  function tryCreateWire(aId, aSide, bId, bSide) {
+    const dup = wires.some(w =>
+      (w.aId === aId && w.aSide === aSide && w.bId === bId && w.bSide === bSide) ||
+      (w.aId === bId && w.aSide === bSide && w.bId === aId && w.bSide === aSide));
+    if (dup) { afterChange(); return; }
+    const color = WIRE_COLORS[wires.length % WIRE_COLORS.length];
+    wires.push({ id: nextId++, aId, aSide, bId, bSide, color });
+    afterChange();
+  }
+
+  function updateTempLine(from, to) {
+    tempLineEl.setAttribute('d', bezierPath(from, to));
+  }
+
+  function terminalPoint(comp, side) {
+    const x = side === 'a' ? comp.x - 8 : comp.x + COMP_W + 8;
+    const y = comp.y + TERM_Y; // matches the terminal dot's centered CSS position
+    return { x, y };
+  }
+
+  function bezierPath(p1, p2) {
+    const dx = Math.max(30, Math.abs(p2.x - p1.x) * 0.5);
+    return `M ${p1.x} ${p1.y} C ${p1.x + dx} ${p1.y}, ${p2.x - dx} ${p2.y}, ${p2.x} ${p2.y}`;
+  }
+
+  // ---------- Wire rendering ----------
+  function drawWires(result) {
+    wireLayer.innerHTML = '';
+    wires.forEach(w => {
+      const ca = components.find(c => c.id === w.aId);
+      const cb = components.find(c => c.id === w.bId);
+      if (!ca || !cb) return;
+      const p1 = terminalPoint(ca, w.aSide);
+      const p2 = terminalPoint(cb, w.bSide);
+      const d = bezierPath(p1, p2);
+
+      const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      hit.setAttribute('class', 'wire-hit');
+      hit.setAttribute('d', d);
+      hit.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        wires = wires.filter(x => x.id !== w.id);
+        afterChange();
+      });
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('class', 'wire');
+      path.setAttribute('d', d);
+      path.setAttribute('stroke', w.color);
+      const powered = running && result && result.complete && result.poweredSet &&
+        result.poweredSet.has(nodeId(w.aId, w.aSide)) && result.poweredSet.has(nodeId(w.bId, w.bSide));
+      if (powered) { path.classList.add('powered'); path.style.color = w.color; }
+
+      wireLayer.appendChild(path);
+      wireLayer.appendChild(hit);
+    });
+  }
+
+  function showToast(msg) {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'toast';
+      toast.className = 'toast';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 2400);
+  }
+
+  // ---------- Circuit evaluation (graph over terminal nodes) ----------
+  function nodeId(compId, side) { return compId + ':' + side; }
+
+  function buildGraph() {
+    const adj = new Map();
+    function addEdge(n1, n2) {
+      if (!adj.has(n1)) adj.set(n1, new Set());
+      if (!adj.has(n2)) adj.set(n2, new Set());
+      adj.get(n1).add(n2);
+      adj.get(n2).add(n1);
+    }
+    components.forEach(c => {
+      const a = nodeId(c.id, 'a'), b = nodeId(c.id, 'b');
+      if (!adj.has(a)) adj.set(a, new Set());
+      if (!adj.has(b)) adj.set(b, new Set());
+      if (c.type === 'bulb' || c.type === 'motor') addEdge(a, b);
+      if (c.type === 'switch' && c.on) addEdge(a, b);
+      // battery: no internal edge — it is the source we search across
+    });
+    wires.forEach(w => addEdge(nodeId(w.aId, w.aSide), nodeId(w.bId, w.bSide)));
+    return adj;
+  }
+
+  function evaluate() {
+    const battery = components.find(c => c.type === 'battery');
+    const hasBulbAnywhere = components.some(c => c.type === 'bulb');
+    const hasMotorAnywhere = components.some(c => c.type === 'motor');
+    const base = { hasBulb: hasBulbAnywhere, hasMotor: hasMotorAnywhere, complete: false };
+
+    if (!battery) return { ...base, reason: 'Add a 🔋 Battery to the bench to start your circuit.' };
+    if (!hasBulbAnywhere && !hasMotorAnywhere) return { ...base, reason: 'Add a 💡 Bulb or ⚙️ Motor so the circuit has something to power.' };
+
+    const adj = buildGraph();
+    const posNode = nodeId(battery.id, 'a'), negNode = nodeId(battery.id, 'b');
+    if ((adj.get(posNode) || new Set()).size === 0 && (adj.get(negNode) || new Set()).size === 0) {
+      return { ...base, reason: 'Drag a wire from each end of the battery to start the path.' };
+    }
+
+    const seen = new Set([posNode]);
+    const stack = [posNode];
+    while (stack.length) {
+      const cur = stack.pop();
+      for (const nb of (adj.get(cur) || [])) {
+        if (!seen.has(nb)) { seen.add(nb); stack.push(nb); }
+      }
+    }
+    if (!seen.has(negNode)) {
+      return { ...base, reason: 'Wire a path from the + end of the battery all the way back to the − end to complete the loop.' };
+    }
+
+    const poweredSet = seen;
+    const bulbPowered = components.some(c => c.type === 'bulb' && poweredSet.has(nodeId(c.id, 'a')));
+    const motorPowered = components.some(c => c.type === 'motor' && poweredSet.has(nodeId(c.id, 'a')));
+    if (!bulbPowered && !motorPowered) {
+      return { ...base, reason: 'Your bulb or motor isn\'t wired into the loop yet.' };
+    }
+    const switchInLoop = components.some(c => c.type === 'switch' && c.on && poweredSet.has(nodeId(c.id, 'a')));
+    return { hasBulb: hasBulbAnywhere, hasMotor: hasMotorAnywhere, complete: true, reason: '', poweredSet, bulbPowered, motorPowered, switchInLoop };
+  }
+
+  // ---------- Render ----------
+  function render() {
+    const result = evaluate();
+    components.forEach(c => {
+      const el = document.getElementById('comp-' + c.id);
+      if (!el) return;
+      const isPowered = running && result.complete && result.poweredSet && result.poweredSet.has(nodeId(c.id, 'a'));
+      el.classList.toggle('powered', !!isPowered && (c.type === 'bulb' || c.type === 'motor'));
+      el.classList.toggle('motor-on', !!isPowered && c.type === 'motor');
+      el.classList.toggle('switch-off', c.type === 'switch' && !c.on);
+      const lever = el.querySelector('.switch-lever');
+      if (lever) lever.setAttribute('y', c.on ? '30' : '17');
+    });
+    drawWires(result);
+    return result;
+  }
+
+  function updateMiniStatuses(result) {
+    if (result.hasBulb) {
+      bulbStatusEl.classList.remove('hidden');
+      const on = result.complete && result.bulbPowered;
+      bulbStatusEl.textContent = on ? '💡 Bulb: ON' : '⚫ Bulb: OFF';
+      bulbStatusEl.classList.toggle('on', on);
+    } else bulbStatusEl.classList.add('hidden');
+
+    if (result.hasMotor) {
+      motorStatusEl.classList.remove('hidden');
+      const on = result.complete && result.motorPowered;
+      motorStatusEl.textContent = on ? '⚙️ Motor: ON' : '⚙️ Motor: OFF';
+      motorStatusEl.classList.toggle('on', on);
+    } else motorStatusEl.classList.add('hidden');
+  }
+
+  function showBanner(result) {
+    banner.classList.remove('hidden', 'success', 'error');
+    if (result.complete) {
+      banner.classList.add('success');
+      let extra = result.bulbPowered && result.motorPowered
+        ? 'the bulb lights and the motor spins.'
+        : result.bulbPowered ? 'the bulb lights.' : 'the motor spins.';
+      banner.innerHTML = `✅ <strong>Circuit Complete!</strong><br>Great! Electricity can flow all the way around, and ${extra}`;
+    } else {
+      banner.classList.add('error');
+      banner.innerHTML = `❌ <strong>Circuit Incomplete</strong><br>${result.reason}`;
+    }
+  }
+  function hideBanner() { banner.classList.add('hidden'); }
+
+  function renderChallenges() {
+    document.querySelectorAll('.challenge-item').forEach(el => {
+      const c = +el.dataset.c;
+      const done = challengeDone[c - 1];
+      el.classList.toggle('done', done);
+      el.querySelector('.check').textContent = done ? '✅' : '⬜';
+    });
+  }
+
+  function checkChallenges(result) {
+    if (!result.complete) return;
+    const newly = [];
+    if (!challengeDone[0] && result.bulbPowered) { challengeDone[0] = true; newly.push(1); }
+    if (!challengeDone[1] && result.bulbPowered && result.switchInLoop) { challengeDone[1] = true; newly.push(2); }
+    if (!challengeDone[2] && result.motorPowered) { challengeDone[2] = true; newly.push(3); }
+    if (!challengeDone[3] && result.bulbPowered && result.motorPowered) { challengeDone[3] = true; newly.push(4); }
+    if (newly.length) {
+      renderChallenges();
+      showToast('🏆 Challenge Complete! (#' + newly.join(', #') + ')');
+    }
+  }
+
+  function afterChange() {
+    const result = render();
+    if (running) {
+      showBanner(result);
+      updateMiniStatuses(result);
+      checkChallenges(result);
+    }
+  }
+
+  // ---------- Controls ----------
+  document.getElementById('runBtn').addEventListener('click', () => {
+    running = true;
+    afterChange();
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    running = false;
+    components.forEach(c => { if (c.type === 'switch') c.on = false; });
+    hideBanner();
+    const result = render();
+    updateMiniStatuses(result);
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    components = [];
+    wires = [];
+    running = false;
+    addCount = 0;
+    document.querySelectorAll('.comp').forEach(el => el.remove());
+    hideBanner();
+    const result = render();
+    updateMiniStatuses(result);
+  });
+
+  window.addEventListener('resize', () => render());
+
+  // ---------- Init ----------
+  renderChallenges();
+  const initialResult = render();
+  updateMiniStatuses(initialResult);
+})();
+</script>
+
+</body>
+</html>
