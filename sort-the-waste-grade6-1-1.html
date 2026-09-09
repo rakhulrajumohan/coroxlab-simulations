@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>♻️ Sort the Waste | COROX LAB</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#071a16;color:#effff8}.wrap{max-width:1150px;margin:auto;padding:16px}.hero{text-align:center;padding:10px}.hero h1{margin:0;color:#65f0b1;font-size:clamp(30px,5vw,46px)}.hero p{color:#b2cbc1}.card{background:#0c241e;border:1px solid #245445;border-radius:18px;padding:17px;margin:14px 0;box-shadow:0 8px 28px #0005}.panel{background:#081b17;border:1px solid #21483d;border-radius:13px;padding:13px}h2{color:#c9fff0;margin:4px 0 13px}.section-gap{margin-top:22px}.objects{display:grid;grid-template-columns:1fr 1fr;gap:10px}.waste{min-height:100px;background:#102b24;border:2px solid #2c5d4d;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;cursor:pointer;user-select:none;transition:.18s;position:relative}.waste:hover{transform:translateY(-3px);border-color:#65f0b1}.waste.selected{border-color:#ffd23f;box-shadow:0 0 0 3px #ffd23f55,0 10px 24px #0007;transform:translateY(-5px) scale(1.04);background:#26260f}.waste.selected::after{content:'✓ selected';position:absolute;top:6px;right:8px;font-size:10px;font-weight:bold;color:#ffd23f}.emoji{font-size:45px}.wname{font-weight:bold;color:#d9fff1;font-size:14px;text-align:center}.bins{display:grid;grid-template-columns:1fr 1fr;gap:12px}.bin{min-height:145px;border-radius:16px;padding:10px;text-align:center;border:3px dashed #52645f;transition:.18s;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;cursor:pointer}.bin.plastic{background:#4b3f0b;border-color:#e5c83e}.bin.food{background:#103b24;border-color:#53d477}.bin.paper{background:#10304a;border-color:#49a9ec}.bin.metal{background:#202328;border-color:#9ca5ad}.bin:hover{transform:translateY(-2px)}.bin.ready{box-shadow:0 0 18px currentColor;border-style:solid}.bin:active{transform:scale(.96)}.binIcon{font-size:42px}.bin b{font-size:14px}.dropHint{font-size:11px;color:#b6c7c1;margin-top:4px}.progressTop{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}.progress{height:14px;background:#07110f;border-radius:20px;overflow:hidden;border:1px solid #285347}.bar{height:100%;width:0;background:#4de89e;transition:.35s}.score{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}.pill{background:#081714;border:1px solid #285347;border-radius:10px;padding:8px 12px;color:#c9fff0}.feedback{display:none;margin-top:12px;padding:13px;border-radius:12px;text-align:center;font-weight:bold}.feedback.show{display:block}.correct{background:#123a29;border:1px solid #3ee894;color:#7dffbd}.wrong{background:#401b20;border:1px solid #ff6875;color:#ff9ca4}.learning{margin-top:9px;font-weight:normal;color:#d9fff1}.buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}button{border:0;border-radius:10px;padding:11px 15px;font-weight:bold;cursor:pointer;background:#45e39c;color:#052017}button.secondary{background:#17352d;color:#dcfff1}button:disabled{opacity:.45;cursor:not-allowed}.round{display:inline-block;color:#75efb4;font-weight:bold}.challenge{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid #21463c}.challenge:last-of-type{border:0}.challenge h3{margin:0 0 4px;color:#75efb4}.challenge p{margin:0;color:#a9c0b8;font-size:14px}.challenge button.done{background:#218451;color:#fff}.challenge button.sel{background:#123d31;color:#72efb5;border:2px solid #45e39c}.final{display:none;margin-top:12px;padding:17px;border-radius:13px;background:#102e26;border:1px solid #3b765f;text-align:center}.final.show{display:block}.final h2{margin-top:0;color:#75efb4}.small{font-size:13px;color:#9fbab0}footer{text-align:center;color:#71958a;padding:20px;font-size:13px}
+@media(max-width:800px){.waste{min-height:90px}.bin{min-height:125px}}@media(max-width:500px){.wrap{padding:9px}.objects,.bins{grid-template-columns:1fr 1fr;gap:7px}.emoji{font-size:38px}.binIcon{font-size:35px}.bin{padding:7px}.bin b{font-size:12px}.challenge{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero"><h1>♻️ Sort the Waste</h1><p>Learn how waste segregation helps recycling and protects our environment.</p></header>
+
+<section class="card">
+<div class="progressTop"><b id="roundLabel">Round 1</b><b id="sortedLabel">Sorted: 0 / 4</b></div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div class="score"><div class="pill">🏆 Score: <b id="score">0</b> / 12</div><div class="pill">🎯 Correct: <b id="correct">0</b></div><div class="pill">❌ Attempts: <b id="attempts">0</b></div></div>
+</section>
+
+<section class="card">
+<div class="panel">
+<h2>🗑️ Waste Objects</h2><p class="small">Tap a waste item to select it, then tap the matching bin to place it.</p><div class="objects" id="objects"></div>
+<h2 class="section-gap">🧺 Waste Bins</h2><div class="bins">
+<div class="bin plastic" data-bin="plastic"><div class="binIcon">🟡</div><b>Plastic Bin</b><span class="dropHint">Tap to place here</span></div>
+<div class="bin food" data-bin="food"><div class="binIcon">🟢</div><b>Food Waste Bin</b><span class="dropHint">Tap to place here</span></div>
+<div class="bin paper" data-bin="paper"><div class="binIcon">🔵</div><b>Paper Bin</b><span class="dropHint">Tap to place here</span></div>
+<div class="bin metal" data-bin="metal"><div class="binIcon">⚫</div><b>Metal Bin</b><span class="dropHint">Tap to place here</span></div>
+</div>
+<div class="feedback" id="feedback"></div>
+<div class="buttons"><button id="start">▶️ Start</button><button id="next" class="secondary" disabled>➡️ Next Round</button><button id="reset" class="secondary">🔄 Reset</button></div>
+</div>
+</section>
+
+<section class="card"><h2>🧠 Why Sort Waste?</h2><div class="learning" id="lesson">When you sort waste correctly, different materials can be sent to the right recycling, composting, or waste-treatment process.</div></section>
+
+<section class="card"><h2>🎯 Challenge Mode</h2>
+<div class="challenge"><div><h3>Challenge 1 — Sort Everything</h3><p>Connect every waste object to its correct bin.</p></div><button id="c0" onclick="chooseChallenge(0)">Choose</button></div>
+<div class="challenge"><div><h3>Challenge 2 — Perfect Round</h3><p>Sort all 4 objects with no wrong attempts.</p></div><button id="c1" onclick="chooseChallenge(1)">Choose</button></div>
+<div class="challenge"><div><h3>Challenge 3 — Fast Sorter</h3><p>Complete a round quickly and accurately.</p></div><button id="c2" onclick="chooseChallenge(2)">Choose</button></div>
+<div class="challenge"><div><h3>Challenge 4 — Master Sorter</h3><p>Complete 3 rounds with at least 9 correct answers.</p></div><button id="c3" onclick="chooseChallenge(3)">Choose</button></div>
+<div class="final" id="final"></div></section>
+<footer>This simulation was created by COROX LAB</footer>
+</div>
+<script>
+const bank=[
+ {id:'plasticBottle',emoji:'🥤',name:'Plastic Bottle',type:'plastic',lesson:'Plastic can often be collected and recycled into new products.'},
+ {id:'banana',emoji:'🍌',name:'Banana Peel',type:'food',lesson:'Food waste can be composted and turned into useful compost.'},
+ {id:'newspaper',emoji:'📄',name:'Newspaper',type:'paper',lesson:'Paper can be recycled to make new paper products.'},
+ {id:'can',emoji:'🥫',name:'Metal Can',type:'metal',lesson:'Metal can be collected and recycled into new metal products.'},
+ {id:'cardboard',emoji:'📦',name:'Cardboard Box',type:'paper',lesson:'Clean cardboard is a paper-based material that can be recycled into new products.'},
+ {id:'vegetable',emoji:'🥬',name:'Vegetable Waste',type:'food',lesson:'Vegetable scraps can be composted and returned to the soil as useful compost.'},
+ {id:'container',emoji:'🧴',name:'Plastic Container',type:'plastic',lesson:'Many plastic containers can be collected and recycled into new plastic products.'},
+ {id:'aluminium',emoji:'🧃',name:'Aluminium Can',type:'metal',lesson:'Aluminium is a metal that can be collected and recycled into new metal products.'}
+];
+let round=1,items=[],sorted=0,score=0,correct=0,attempts=0,started=false,roundStart=0,challenge=-1,completed=new Set();
+const $=id=>document.getElementById(id);
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function newRound(){const types=['plastic','food','paper','metal'];items=shuffle(types.map(t=>{const opts=bank.filter(b=>b.type===t);return opts[Math.floor(Math.random()*opts.length)]}));sorted=0;attempts=0;started=false;roundStart=Date.now();$('feedback').className='feedback';$('feedback').innerHTML='';$('next').disabled=true;$('next').textContent='➡️ Next Round';$('start').disabled=false;$('roundLabel').textContent='Round '+round;renderObjects();updateProgress()}
+function renderObjects(){const box=$('objects');box.innerHTML='';selected=null;setBinsReady(false);items.forEach(item=>{const e=document.createElement('div');e.className='waste';e.dataset.type=item.type;e.dataset.id=item.id;e.innerHTML='<span class="emoji">'+item.emoji+'</span><span class="wname">'+item.name+'</span>';if(started)enableSelect(e);box.appendChild(e)})}
+function enableSelect(el){el.addEventListener('click',()=>selectItem(el))}
+let selected=null;
+function setBinsReady(on){document.querySelectorAll('.bin').forEach(b=>b.classList.toggle('ready',on))}
+function selectItem(el){if(!started)return;if(selected===el){el.classList.remove('selected');selected=null;setBinsReady(false);return}if(selected)selected.classList.remove('selected');selected=el;el.classList.add('selected');setBinsReady(true)}
+document.querySelectorAll('.bin').forEach(bin=>bin.addEventListener('click',()=>binClicked(bin)));
+function binClicked(binEl){if(!started)return;if(!selected){showFeedback(false,'👆 Pick an item first',"Tap a waste item above, then tap a bin to match it.");return}const d={el:selected,type:selected.dataset.type,id:selected.dataset.id};selected.classList.remove('selected');selected=null;setBinsReady(false);dropItem(d,binEl.dataset.bin)}
+function dropItem(d,bin){attempts++;if(d.type===bin){sorted++;correct++;score=Math.min(12,score+1);const item=items.find(x=>x.id===d.id);showFeedback(true,'✅ Correct!',item.lesson);d.el.style.pointerEvents='none';const anim=d.el.animate([{transform:'scale(1)',opacity:1},{transform:'scale(0.15)',opacity:0}],{duration:260,easing:'ease-in'});anim.onfinish=()=>d.el.remove();updateProgress();if(sorted===4){setTimeout(finishRound,1200)}}else{showFeedback(false,'❌ Try Again!',hint(d.type));d.el.animate([{transform:'translateX(0)'},{transform:'translateX(-8px)'},{transform:'translateX(8px)'},{transform:'translateX(0)'}],{duration:280});updateProgress()}}
+function hint(type){const n={plastic:'the Plastic Bin',food:'the Food Waste Bin',paper:'the Paper Bin',metal:'the Metal Bin'};return 'That belongs in '+n[type]+'. Give it a try!'}
+function showFeedback(ok,title,text){$('feedback').className='feedback show '+(ok?'correct':'wrong');$('feedback').innerHTML='<div>'+title+'</div><div class="learning">'+text+'</div>'}
+function updateProgress(){$('sortedLabel').textContent='Sorted: '+sorted+' / 4';$('bar').style.width=(sorted/4*100)+'%';$('score').textContent=score;$('correct').textContent=correct;$('attempts').textContent=attempts}
+function finishRound(){started=false;const gameOver=round>=3;$('next').disabled=gameOver;$('next').textContent=gameOver?'🏁 Game Complete':'➡️ Next Round';$('feedback').className='feedback show correct';$('feedback').innerHTML='<div>🎉 All Waste Sorted!</div><div class="learning">Great job! You sorted every object correctly.</div>'+(gameOver?'<div class="learning">Tap 🔄 Reset to play again.</div>':'');if(challenge===0)completeChallenge();if(challenge===1&&attempts===4)completeChallenge();if(challenge===2&&(Date.now()-roundStart)<20000)completeChallenge();if(challenge===3&&round>=3&&correct>=9)completeChallenge();if(round>=3&&correct>=9)completed.add(3);updateChallengeButtons();showFinalIfReady()}
+function startGame(){started=true;roundStart=Date.now();$('start').disabled=true;$('feedback').className='feedback';$('feedback').innerHTML='';document.querySelectorAll('.waste').forEach(enableSelect);$('objects').scrollIntoView({behavior:'smooth',block:'start'})}
+$('start').onclick=startGame;$('next').onclick=()=>{round++;newRound();startGame()};$('reset').onclick=()=>{round=1;score=0;correct=0;challenge=-1;completed.clear();newRound();$('final').className='final';updateChallengeButtons()};
+function chooseChallenge(i){challenge=i;const t=['Sort every object correctly.','Complete one round with no wrong attempts.','Complete a round in under 20 seconds.','Complete 3 rounds with at least 9 correct answers.'];$('feedback').className='feedback show';$('feedback').innerHTML='🎯 <b>Challenge selected:</b> '+t[i];updateChallengeButtons()}
+function completeChallenge(){completed.add(challenge);}
+function updateChallengeButtons(){for(let i=0;i<4;i++){const b=$('c'+i);b.className='';if(completed.has(i)){b.textContent='✅ Completed';b.classList.add('done')}else if(challenge===i){b.textContent='🎯 Selected';b.classList.add('sel')}else b.textContent='Choose'}}
+function showFinalIfReady(){if(round>=3){$('final').className='final show';let msg=correct>=9?'🌟 Excellent Waste Sorter!':correct>=6?'👍 Good Job! Keep Practising!':'🔄 Try Again and Improve!';$('final').innerHTML='<h2>'+msg+'</h2><div>Final Score: <b>'+score+' / 12</b></div><p class="small">You made '+correct+' correct choices across your rounds. Keep learning how proper segregation supports recycling and environmental protection.</p>'}}
+newRound();updateChallengeButtons();
+</script>
+</body>
+</html>
