@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Material Testing Lab - Grade 6</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#071525;color:#eef7ff}button{font:inherit;cursor:pointer;border:0} .wrap{max-width:1050px;margin:auto;padding:18px}.header{text-align:center}.header h1{margin:5px 0;color:#52d8ff;font-size:clamp(25px,5vw,40px)}.header p{margin:0 0 16px;color:#b8cde0}.samples,.tests{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}.sample{background:#102a40;color:white;padding:13px 20px;border-radius:12px;border:1px solid #24516e}.sample.active{background:#1597c4}.lab{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}.card{background:#0d2135;border:1px solid #1c425b;border-radius:18px;padding:18px}.stage{text-align:center;min-height:330px;display:flex;flex-direction:column;align-items:center;justify-content:center}.object{width:130px;height:130px;border-radius:25px;background:#9eb7c5;display:grid;place-items:center;font-size:65px;box-shadow:0 0 30px #1d6882;margin:15px}.object.test{animation:pulse .55s ease}.label{color:#72ddff;font-weight:bold}.result{min-height:45px;margin-top:12px;padding:12px;border-radius:10px;background:#081724;color:#bfeeff}.tests button{padding:11px 13px;border-radius:10px;background:#173b54;color:#fff}.tests button:hover{background:#1e6688}.table{width:100%;border-collapse:collapse;margin-top:12px}.table th,.table td{padding:9px;border-bottom:1px solid #23445a;text-align:left}.table th{color:#7de3ff}.guess{margin-top:14px}.choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}.choices button{padding:10px 15px;border-radius:10px;background:#28516a;color:#fff}.feedback{font-weight:bold;margin-top:10px}.score{text-align:right;color:#9feaff}.reset{margin-top:15px;background:#e05d5d;color:#fff;padding:11px 18px;border-radius:10px}.footer{text-align:center;margin-top:20px;color:#7692a7;font-size:13px}@keyframes pulse{50%{transform:scale(1.12) rotate(3deg)}}@media(max-width:700px){.lab{grid-template-columns:1fr}.stage{min-height:260px}.wrap{padding:12px}.sample,.tests button{flex:1 1 40%}}
+</style></head>
+<body><div class="wrap">
+<div class="header"><div class="score">Identified: <span id="score">0</span>/4</div><h1>🧪 Material Testing Lab</h1><p>Test the mystery materials and use their properties to identify them.</p></div>
+<div class="card"><div class="samples" id="samples"></div></div>
+<div class="lab">
+<section class="card stage"><div class="label" id="sampleTitle">UNKNOWN MATERIAL</div><div class="object" id="object">❔</div><div id="result" class="result">Choose a mystery material to begin.</div></section>
+<section class="card"><h2>🔬 Tests</h2><div class="tests" id="tests"></div><h2>📋 Property Table</h2><table class="table"><tbody id="props"></tbody></table><div class="guess"><h2>🔎 What is this material?</h2><div class="choices" id="choices"></div><div class="feedback" id="feedback"></div></div></section>
+</div><button class="reset" id="reset">🔄 Reset Lab</button><div class="footer">This simulation was created by COROX LAB</div>
+</div>
+<script>
+const materials=[
+{name:'Iron',icon:'🔩',p:{hard:'Hard',sol:'Does not dissolve',trans:'Opaque',float:'Sinks',cond:'Conducts electricity',mag:'Attracted to magnet',flex:'Rigid',app:'Shiny / grey'}},
+{name:'Copper',icon:'🟠',p:{hard:'Medium',sol:'Does not dissolve',trans:'Opaque',float:'Sinks',cond:'Conducts electricity',mag:'Not attracted',flex:'Slightly flexible',app:'Shiny / reddish'}},
+{name:'Plastic',icon:'🧩',p:{hard:'Medium',sol:'Does not dissolve',trans:'Opaque',float:'Floats',cond:'Poor conductor',mag:'Not attracted',flex:'Flexible',app:'Smooth / colourful'}},
+{name:'Wood',icon:'🪵',p:{hard:'Medium',sol:'Does not dissolve',trans:'Opaque',float:'Floats',cond:'Poor conductor',mag:'Not attracted',flex:'Slightly flexible',app:'Dull / textured'}},
+{name:'Glass',icon:'🧊',p:{hard:'Hard',sol:'Does not dissolve',trans:'Transparent',float:'Sinks',cond:'Poor conductor',mag:'Not attracted',flex:'Rigid',app:'Smooth / shiny'}},
+{name:'Rubber',icon:'⚫',p:{hard:'Soft',sol:'Does not dissolve',trans:'Opaque',float:'Floats',cond:'Poor conductor',mag:'Not attracted',flex:'Flexible',app:'Dull / smooth'}}];
+const tests=[['hard','🪨 Hardness'],['sol','💧 Solubility'],['trans','🔦 Transparency'],['float','🌊 Float / Sink'],['cond','⚡ Conductivity'],['mag','🧲 Magnetism'],['flex','🪢 Flexibility'],['app','👁️ Appearance']];
+const MYSTERY_ICON='🧪';
+let order=[], current=null, identified=0;
+const $=id=>document.getElementById(id);
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+function init(){
+  // Fresh clones each round: keeps "identified" state from a previous round
+  // from leaking into this one after Reset.
+  order=shuffle(materials).slice(0,4).map(m=>({...m,tested:{},done:false}));
+  identified=0;
+  $('score').textContent=0;
+  renderSamples();
+  renderTests();
+  current=null;
+  clearView();
+}
+function renderSamples(){ $('samples').innerHTML=order.map((m,i)=>`<button class="sample" data-i="${i}">Material ${String.fromCharCode(65+i)}</button>`).join('');document.querySelectorAll('.sample').forEach(b=>b.onclick=()=>select(+b.dataset.i)); }
+function renderTests(){ $('tests').innerHTML=tests.map(t=>`<button data-t="${t[0]}">${t[1]}</button>`).join('');document.querySelectorAll('#tests button').forEach(b=>b.onclick=()=>runTest(b.dataset.t)); }
+function tableRows(m){return '<tr><th>Property</th><th>Result</th></tr>'+tests.map(t=>`<tr><td>${t[1].replace(/^\S+ /,'')}</td><td>${(m&&m.tested[t[0]])?m.tested[t[0]]:'?'}</td></tr>`).join('')}
+function clearView(){$('sampleTitle').textContent='UNKNOWN MATERIAL';$('object').textContent='❔';$('result').textContent='Choose a mystery material to begin.';$('props').innerHTML=tableRows(null);$('choices').innerHTML='';$('feedback').textContent='';}
+function select(i){
+  current=order[i];
+  document.querySelectorAll('.sample').forEach((b,j)=>b.classList.toggle('active',j===i));
+  if(current.done){
+    // Already solved this round: fine to show the reveal again.
+    $('sampleTitle').textContent=current.name+' — Identified!';
+    $('object').textContent=current.icon;
+    $('result').textContent='You already identified this one. Review its properties below.';
+  }else{
+    // Generic icon only — no material-specific art before it's identified,
+    // so the sample can't be guessed by appearance alone.
+    $('sampleTitle').textContent='UNKNOWN MATERIAL '+String.fromCharCode(65+i);
+    $('object').textContent=MYSTERY_ICON;
+    $('result').textContent='Sample selected. Run tests to discover its properties.';
+  }
+  $('feedback').textContent='';
+  updateTable();
+  makeChoices();
+}
+function runTest(k){if(!current){alert('Choose a mystery material first.');return}current.tested[k]=current.p[k];$('object').classList.remove('test');void $('object').offsetWidth;$('object').classList.add('test');$('result').textContent='Testing…';setTimeout(()=>{$('result').textContent=`Result: ${current.p[k]}`;updateTable();},450)}
+function updateTable(){$('props').innerHTML=tableRows(current)}
+function makeChoices(){
+  if(!current){$('choices').innerHTML='';return}
+  // Always exactly 4 distinct choices: the correct material + 3 random others.
+  const others=shuffle(materials.filter(m=>m.name!==current.name)).slice(0,3);
+  const opts=shuffle([current,...others]);
+  $('choices').innerHTML=opts.map(m=>`<button data-name="${m.name}">${m.name}</button>`).join('');
+  document.querySelectorAll('#choices button').forEach(b=>b.onclick=()=>guess(b.dataset.name));
+}
+function guess(name){
+  if(!current)return;
+  if(name===current.name){
+    $('feedback').textContent='✅ Correct! You used the material properties to identify it.';
+    $('object').textContent=current.icon;
+    $('sampleTitle').textContent=current.name+' — Identified!';
+    if(!current.done){current.done=true;identified++;$('score').textContent=identified;}
+    if(identified===4)setTimeout(()=>alert('🏆 Great Material Detective! Materials Identified: 4/4'),100);
+  }else{
+    $('feedback').textContent='❌ Try again. Check the properties you discovered.';
+  }
+}
+$('reset').onclick=init;init();
+</script></body></html>
