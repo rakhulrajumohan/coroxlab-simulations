@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Virtual Separation Laboratory | COROX LAB</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#081525;color:#eef7ff;min-height:100vh;overflow-x:hidden}.app{max-width:900px;margin:auto;padding:20px}.header{text-align:center}.header h1{margin:5px 0 6px;font-size:clamp(25px,5vw,38px)}.header p{margin:0;color:#a9c7db}.infoRow{text-align:center;margin:16px 0 0}.infoBtn{width:38px;height:38px;border-radius:50%;border:1px solid #32627e;background:#15344c;color:#fff;font-weight:900;font-size:18px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}.infoBtn:hover{background:#1d4965}.modalOverlay{display:none;position:fixed;inset:0;background:#000a;z-index:50;align-items:center;justify-content:center;padding:16px}.modalOverlay.open{display:flex}.modalBox{background:#102236;border:1px solid #21465f;border-radius:18px;padding:24px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 12px 35px #0007}.modalBox h2{margin-top:0}.modalBox h3{color:#66d9ff;margin-bottom:6px}.modalBox ol,.modalBox ul{padding-left:20px;margin-top:4px}.modalBox li{margin-bottom:6px}.modalClose{display:block;width:100%;margin-top:18px;border:1px solid #32627e;background:#167ca3;color:#fff;border-radius:10px;padding:12px;font-size:15px;font-weight:bold;cursor:pointer}.modalClose:hover{background:#1c92c0}.stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:18px 0}.stat{background:#10253a;border:1px solid #21465f;border-radius:12px;padding:10px 18px;font-weight:bold}.card{background:#102236;border:1px solid #21465f;border-radius:18px;padding:22px;box-shadow:0 12px 35px #0004}.question{text-align:center}.qnum{color:#66d9ff;font-weight:bold}.mixture{margin:20px auto;padding:28px 15px;min-height:145px;border-radius:16px;background:#07131f;border:1px solid #25475d;display:flex;align-items:center;justify-content:center;gap:25px;font-size:clamp(42px,12vw,75px);transition:.4s}.mixture.separated{transform:scale(1.04);background:#123522}.mixture span{display:inline-block;transition:.6s}.mixture.separated .a{transform:translateX(-45px)}.mixture.separated .b{transform:translateX(45px)}.result{min-height:52px;text-align:center;font-size:18px;font-weight:bold;margin:12px}.correct{color:#65e69a}.wrong{color:#ff8585}.hint{font-size:14px;color:#a9c7db;margin-top:5px;font-weight:normal}.methods{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:18px}.methods button,.controls button{border:1px solid #32627e;background:#15344c;color:#fff;border-radius:10px;padding:13px 10px;font-size:15px;font-weight:bold;cursor:pointer;transition:.2s}.methods button:hover{background:#1d4965;transform:translateY(-1px)}button:disabled{opacity:.45;cursor:not-allowed;transform:none!important}.controls{display:flex;justify-content:center;gap:10px;margin-top:18px}.next{background:#167ca3!important}.reset{background:#263849!important}.reference{margin-top:18px}.reference h2{font-size:20px;margin-top:0}.refgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.refgrid.hidden{display:none}.ref{padding:8px 10px;background:#0b1b2b;border-radius:8px;color:#c8deec;font-size:14px}.refbtn{display:block;width:100%;margin-top:18px;border:1px solid #32627e;background:#15344c;color:#fff;border-radius:10px;padding:13px 10px;font-size:15px;font-weight:bold;cursor:pointer}.refbtn:hover{background:#1d4965}.final{text-align:center}.final h2{font-size:30px}.scorebig{font-size:44px;color:#66d9ff;font-weight:900}.footer{text-align:center;color:#7894a7;font-size:13px;margin:20px 0 5px}@media(max-width:600px){.app{padding:13px}.card{padding:16px}.methods{grid-template-columns:1fr}.mixture{gap:12px}.refgrid{grid-template-columns:1fr}.methods button{padding:14px 8px}.controls button{flex:1}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="header"><h1>🧪 Virtual Separation Laboratory</h1><p>Choose the best method to separate each mixture.</p></header>
+<div id="game"></div>
+<div class="footer">This simulation was created by COROX LAB</div>
+</div>
+<div class="modalOverlay" id="infoModal">
+ <div class="modalBox">
+  <h2>ℹ️ About This Lab</h2>
+  <p>Every mixture is made of two things that need to be separated. Look at the mixture, think about what makes its two parts different, and pick the method scientists actually use.</p>
+  <h3>🎯 Goal</h3>
+  <p>Correctly identify the separation method for all 10 mystery mixtures.</p>
+  <h3>📝 How to Play</h3>
+  <ol>
+   <li>Read the mixture name and look at the two icons shown.</li>
+   <li>Tap one of the method buttons below it.</li>
+   <li><b>✅ Correct</b> — you'll see a short separation animation and the matching answer.</li>
+   <li><b>❌ Wrong</b> — you'll get a hint. Read it and try again; there's no limit on attempts.</li>
+   <li>Once you're correct, tap <b>Next ➜</b> to move to the next mixture.</li>
+  </ol>
+  <h3>🏆 Scoring</h3>
+  <p>A point is only awarded if you get the answer right on your <b>first try</b> for that question. Guessing wrong first still lets you continue and learn, but that question won't count toward your score.</p>
+  <p>The score shown at the top (<b>Score: Y / Z</b>) is your points out of the questions you've fully completed so far. Your final score out of 10 appears at the end.</p>
+  <h3>🔀 Random Order</h3>
+  <p>The method buttons are shuffled into a new random order every question, so the correct answer isn't always in the same spot.</p>
+  <h3>🧠 Quick Reference</h3>
+  <p>Tap <b>Show Quick Reference</b> at any time to reveal all 10 methods and the mixtures they match. Tap it again to hide it.</p>
+  <h3>🔄 Reset</h3>
+  <p>Tap <b>Reset</b> at any time to start over from Question 1 with your score cleared.</p>
+  <button class="modalClose" onclick="toggleInfo()">Got it, close</button>
+ </div>
+</div>
+<script>
+const questions=[
+ {mix:'🍚 + 🪨',name:'Rice + Stones',answer:'Handpicking',hint:'The unwanted stones are large enough to pick out by hand.',parts:['🍚','🪨']},
+ {mix:'🏖️ + 🪨',name:'Sand + Stones',answer:'Sieving',hint:'Think about particles of different sizes.',parts:['🏖️','🪨']},
+ {mix:'🌾 + 🍂',name:'Husk + Grain',answer:'Winnowing',hint:'Air can separate the lighter husk from heavier grain.',parts:['🌾','🍂']},
+ {mix:'🧲 + 🏖️',name:'Iron + Sand',answer:'Magnetic Separation',hint:'One part of this mixture is attracted to a magnet.',parts:['🧲','🏖️']},
+ {mix:'💧 + 🟤',name:'Mud + Water',answer:'Sedimentation',hint:'Let the heavier mud settle at the bottom.',parts:['💧','🟤']},
+ {mix:'🌫️ + 💧',name:'Muddy Water',answer:'Filtration',hint:'Use a filter to trap the solid particles.',parts:['🌫️','💧']},
+ {mix:'🧂 + 💧',name:'Salt + Water',answer:'Evaporation',hint:'Remove the water and leave the dissolved salt behind.',parts:['🧂','💧']},
+ {mix:'🥛 + 🧈',name:'Cream + Curd',answer:'Churning',hint:'Agitation can help separate butter/cream from curd.',parts:['🥛','🧈']},
+ {mix:'🌾 + 🌱',name:'Grain + Stalks',answer:'Threshing',hint:'The grains need to be separated from the plant stalks.',parts:['🌾','🌱']},
+ {mix:'💧 + 🟤',name:'Clear Water + Settled Mud',answer:'Decantation',hint:'Carefully pour the clear liquid away from the settled solid.',parts:['💧','🟤']}
+];
+const methods=['Handpicking','Sieving','Winnowing','Threshing','Magnetic Separation','Sedimentation','Decantation','Filtration','Evaporation','Churning'];
+const methodIcons={'Handpicking':'✋','Sieving':'🧺','Winnowing':'🌬️','Threshing':'🌾','Magnetic Separation':'🧲','Sedimentation':'⏳','Decantation':'💧','Filtration':'☕','Evaporation':'🔥','Churning':'🧈'};
+function toggleInfo(){document.getElementById('infoModal').classList.toggle('open');}
+document.getElementById('infoModal').addEventListener('click',e=>{if(e.target.id==='infoModal')toggleInfo();});
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}
+let index=0,score=0,answered=false,wrong=0,missedCurrent=false,shuffledMethods=[],refOpen=false;
+function render(){
+ missedCurrent=false; // fresh question: first attempt hasn't happened yet
+ refOpen=false; // reference stays hidden until the student asks for it
+ shuffledMethods=shuffle(methods); // new random button order every question
+ const q=questions[index];
+ document.getElementById('game').innerHTML=`<div class="stats"><div class="stat">Question ${index+1} / ${questions.length}</div><div class="stat">Score: ${score} / ${index}</div></div>
+ <div class="infoRow"><button class="infoBtn" onclick="toggleInfo()" aria-label="How to play">i</button></div>
+ <section class="card question"><div class="qnum">🔬 HOW CAN WE SEPARATE THIS MIXTURE?</div><h2>${q.name}</h2>
+ <div class="mixture" id="mixture"><span class="a">${q.parts[0]}</span><span>＋</span><span class="b">${q.parts[1]}</span></div>
+ <div class="result" id="result">Choose a separation method below.</div>
+ <div class="methods">${shuffledMethods.map(m=>`<button onclick="choose('${m}')">${methodIcons[m]} ${m}</button>`).join('')}</div>
+ <div class="controls"><button class="next" id="next" onclick="nextQ()" disabled>Next ➜</button><button class="reset" onclick="resetLab()">Reset</button></div></section>
+ <section class="card reference"><button class="refbtn" onclick="toggleRef()">🧠 <span id="refBtnLabel">Show Quick Reference</span></button><div class="refgrid hidden" id="refGrid">${[['Handpicking','Rice + stones'],['Sieving','Sand + stones'],['Winnowing','Husk + grain'],['Magnetic Separation','Iron + sand'],['Sedimentation','Mud + water'],['Decantation','Clear water + settled mud'],['Filtration','Muddy water'],['Evaporation','Salt + water'],['Churning','Cream/curd → butter'],['Threshing','Grain + stalks']].map(x=>`<div class="ref"><b>${methodIcons[x[0]]} ${x[0]}</b> → ${x[1]}</div>`).join('')}</div></section>`;
+}
+function toggleRef(){refOpen=!refOpen;document.getElementById('refGrid').classList.toggle('hidden',!refOpen);document.getElementById('refBtnLabel').textContent=refOpen?'Hide Quick Reference':'Show Quick Reference';}
+function choose(method){if(answered)return;const q=questions[index],r=document.getElementById('result');if(method===q.answer){answered=true;if(!missedCurrent)score++;document.querySelectorAll('.methods button').forEach(b=>b.disabled=true);document.getElementById('mixture').classList.add('separated');r.innerHTML=`<span class="correct">✅ Correct!</span><div class="hint">${q.name} → ${q.answer}</div>`;document.getElementById('next').disabled=false}else{wrong++;missedCurrent=true;r.innerHTML=`<span class="wrong">❌ Try Again!</span><div class="hint">${q.hint}</div>`}}
+function nextQ(){if(!answered)return;if(index<questions.length-1){index++;answered=false;render()}else finish()}
+function finish(){document.getElementById('game').innerHTML=`<div class="infoRow"><button class="infoBtn" onclick="toggleInfo()" aria-label="How to play">i</button></div><section class="card final"><h2>🏆 Great Job!</h2><div class="scorebig">${score} / ${questions.length}</div><p>You completed the Virtual Separation Laboratory.</p><p><b>Score: ${Math.round(score/questions.length*100)}%</b></p><p>Scientists choose separation methods by looking at the properties of the substances in a mixture.</p><div class="controls"><button class="next" onclick="resetLab()">🔄 Try Again</button></div></section><section class="card reference"><button class="refbtn" onclick="toggleRef()">🧠 <span id="refBtnLabel">Show Quick Reference</span></button><div class="refgrid hidden" id="refGrid">${methods.map((m,i)=>`<div class="ref"><b>${methodIcons[m]} ${m}</b> → ${questions.find(q=>q.answer===m).name}</div>`).join('')}</div></section>`;refOpen=false;}
+function resetLab(){index=0;score=0;answered=false;wrong=0;missedCurrent=false;render();window.scrollTo({top:0,behavior:'smooth'})}
+render();
+</script>
+</body>
+</html>
