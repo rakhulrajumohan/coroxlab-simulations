@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌈 pH / Indicator Lab — Grade 6</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#07152b;color:#eef7ff;min-height:100vh} .app{max-width:1050px;margin:auto;padding:18px}.header{text-align:center;margin-bottom:15px}.header h1{margin:5px 0;font-size:clamp(25px,5vw,40px)}.header p{color:#a9c8df;margin:6px}.stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.stat{background:#102b49;border:1px solid #245274;border-radius:12px;padding:9px 15px;font-weight:bold}.panel{background:#0d223d;border:1px solid #214a69;border-radius:18px;padding:18px;margin:14px 0;box-shadow:0 8px 25px #0003}.title{font-size:20px;font-weight:bold;margin-bottom:12px}.samples,.answers{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.indicators{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}button{border:0;border-radius:12px;padding:13px 10px;background:#173b5d;color:#fff;font-weight:bold;font-size:15px;cursor:pointer;transition:.2s}button:hover{transform:translateY(-2px);background:#205477}button.selected{outline:3px solid #48d9ff;background:#225d7b}.sample-icon{font-size:30px;display:block;margin-bottom:5px}.stage{text-align:center}.current-sample{font-size:18px;font-weight:bold;margin-bottom:10px;color:#eaf6ff}.bench{height:210px;border-radius:15px;background:linear-gradient(#102c49 0 70%,#513923 70%);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}.beaker{width:145px;height:130px;border:4px solid #bfeeff;border-top:0;border-radius:0 0 25px 25px;position:relative;background:#72d5ff44;overflow:hidden}.liquid{position:absolute;bottom:0;left:0;right:0;height:0%;background:#8ce6ff99;transition:height .6s ease,background .5s ease}.drop{position:absolute;left:50%;top:15px;width:12px;height:22px;border-radius:50%;background:#ffd94d;opacity:0;transform:translate(-50%,-10px);z-index:2}.drop.animate{animation:drop .65s ease forwards}@keyframes drop{0%{transform:translate(-50%,-10px);opacity:0}40%{opacity:1}100%{transform:translate(-50%,90px);opacity:1}}.strip{position:absolute;left:50%;top:-55px;width:16px;height:95px;background:#f2ecd8;border:2px solid #cabf9d;border-radius:4px;box-shadow:0 2px 8px #0007;transform:translateX(-50%);transition:top .8s ease;z-index:2}.strip.dip{top:35px}.stripTip{position:absolute;left:1px;right:1px;bottom:1px;height:34%;border-radius:0 0 2px 2px;transition:background .5s ease}.pour{position:absolute;left:50%;top:-40px;width:9px;height:0;border-radius:0 0 4px 4px;transform:translateX(-50%);opacity:0;z-index:1}.pour.animate{animation:pourfall .6s ease forwards}@keyframes pourfall{0%{height:0;top:-40px;opacity:.85}55%{height:78px;top:8px;opacity:.85}100%{height:78px;top:8px;opacity:0}}.result{margin-top:13px;min-height:74px;padding:13px;border-radius:12px;background:#102d49;color:#dff4ff}.colorbox{width:48px;height:48px;border-radius:50%;display:inline-block;vertical-align:middle;margin-right:9px;border:3px solid #fff8;box-shadow:0 0 18px #fff5}.big{font-size:21px;font-weight:bold}.classification{display:inline-block;margin-top:7px;padding:6px 12px;border-radius:20px;background:#193d5b}.phwrap{margin-top:15px}.phbar{height:22px;border-radius:20px;background:linear-gradient(90deg,#ef4056,#ff8b68,#f7d66b,#91d86b,#55c6d8,#5477ef);position:relative}.marker{position:absolute;top:-7px;width:5px;height:36px;background:white;border-radius:5px;left:50%;transform:translateX(-50%);box-shadow:0 0 7px #000}.phlabels{display:flex;justify-content:space-between;font-size:12px;color:#bad2e4;margin-top:4px}.answers{grid-template-columns:repeat(3,1fr)}.feedback{font-size:18px;font-weight:bold;margin-top:10px;min-height:24px}.correct{color:#59e69a}.wrong{color:#ff7180}.hint{font-size:14px;color:#a9c8df;margin-top:5px}.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.card{background:#102d49;border-radius:12px;padding:12px}.card h3{margin:0 0 7px}.footer{text-align:center;color:#8eabc0;padding:20px 5px}.reset{background:#6d2c3b}.challenge{background:#513d16}.complete{background:#153f2b;border:1px solid #2a8b5f;border-radius:14px;padding:14px;text-align:center;font-weight:bold;font-size:18px;margin-top:10px}.hidden{display:none!important}
+.ind-card{display:flex;flex-direction:column;gap:6px}.ind-card button{width:100%}.ind-info{margin:0;font-size:12px;line-height:1.4;color:#a9c8df;padding:0 2px}
+@media(max-width:700px){.samples{grid-template-columns:repeat(2,1fr)}.indicators,.quick{grid-template-columns:1fr}.answers{grid-template-columns:1fr}.bench{height:190px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="header"><h1>🌈 pH / Indicator Lab</h1><p>Choose a substance → add an indicator → observe the colour → classify it.</p><div class="stats"><div class="stat">Samples Tested: <span id="tested">0</span> / 5</div><div class="stat">Correct Classifications: <span id="correct">0 / 0</span></div></div></header>
+<section class="panel"><div class="title">🧪 Choose a substance</div><div class="samples" id="samples"></div></section>
+<section class="panel stage"><div class="current-sample" id="selectedName">Select a container above</div><div class="bench"><div class="beaker"><div class="liquid" id="liquid"></div></div><div class="pour hidden" id="pour"></div><div class="drop hidden" id="drop"></div><div class="strip hidden" id="strip"><div class="stripTip" id="stripTip"></div></div></div><div class="result" id="result">Choose a substance and an indicator to begin.</div></section>
+<section class="panel"><div class="title">🌈 Choose an indicator</div><div class="indicators" id="mainIndicators">
+<div class="ind-card"><button data-ind="litmus">🟣 Universal Litmus Paper</button><p class="ind-info">🧻 A single paper strip. Universal litmus paper turns red in acids, turns blue in bases, and stays the same colour in neutral liquids. Only the paper changes colour — the liquid does not.</p></div>
+<div class="ind-card"><button data-ind="turmeric">🟡 Turmeric</button><p class="ind-info">🧴 A yellow liquid indicator. Stays yellow in acids and neutral liquids, turns reddish-brown in bases. The whole liquid changes colour.</p></div>
+<div class="ind-card"><button data-ind="cabbage">🌿 Natural Indicator</button><p class="ind-info">🥬 A purple liquid made from red cabbage. Turns pink/red in acids, stays purple in neutral liquids, turns blue/green in bases. The whole liquid changes colour.</p></div>
+</div><div class="hint">Tap an indicator to test it on the liquid instantly.</div></section>
+<section class="panel"><div class="title">✅ Classification</div><div id="classification" class="result hidden"></div></section>
+<section class="panel"><div class="title">🌡️ Simple pH idea</div><p style="color:#b9d1e3">pH is a scale that helps us describe how acidic or basic a solution is.</p><div class="phwrap"><div class="phbar"><div class="marker" id="marker"></div></div><div class="phlabels"><span>🔴 0 Acidic</span><span>7 Neutral</span><span>Basic 14 🔵</span></div></div></section>
+<section class="panel hidden" id="challenge"><div class="title">🎯 Test the mystery liquid!</div><p>Tap an indicator to test it on the mystery liquid, observe the colour — then decide if it's an acid, neutral, or a base. Try all three indicators!</p>
+<div class="bench" style="height:170px;margin-bottom:12px"><div class="beaker" style="width:120px;height:105px"><div class="liquid" id="challengeLiquid"></div></div><div class="pour hidden" id="challengePour"></div><div class="drop hidden" id="challengeDrop"></div><div class="strip hidden" id="challengeStrip"><div class="stripTip" id="challengeStripTip"></div></div></div>
+<div class="indicators" id="challengeIndicators"><button data-ind="litmus">🟣 Universal Litmus Paper</button><button data-ind="turmeric">🟡 Turmeric</button><button data-ind="cabbage">🌿 Natural Indicator</button></div>
+<div class="result hidden" id="challengeResult"></div>
+<div class="answers hidden" id="challengeAnswers"><button data-answer="acid">🟥 Acid</button><button data-answer="neutral">🟩 Neutral</button><button data-answer="base">🟦 Base</button></div>
+<div id="challengeFeedback" class="feedback"></div>
+<div class="hint" id="challengeProgress">Classification attempts: 0 / 3</div>
+</section>
+<section class="panel hidden" id="completeBanner"></section>
+<section class="panel"><div class="title">🧠 Quick Learning</div><div class="quick"><div class="card"><h3>Acids</h3><p>Show acidic properties. Examples: 🍋 Lemon juice, 🍶 Vinegar.</p></div><div class="card"><h3>Bases</h3><p>Show basic properties. Examples: 🧼 Soap solution, 🧂 Baking soda solution.</p></div><div class="card"><h3>Neutral</h3><p>Neither acidic nor basic. Example: 💧 Water.</p></div></div><div class="card" style="margin-top:10px"><h3>🌈 Indicator</h3><p>An indicator is a substance that changes colour to help us identify whether a solution is acidic or basic.</p></div></section>
+<section class="panel"><button class="reset" id="reset" style="width:100%">🔄 RESET LAB</button></section>
+<footer class="footer">This simulation was created by COROX LAB</footer>
+</div>
+<script>
+const indicatorColour={litmus:'#8a63d2',turmeric:'#ffd94d',cabbage:'#b06bcf'};
+// The colour shown after testing depends on the indicator AND the substance's type —
+// two different acids give the same litmus/turmeric/cabbage colour, so colour is looked
+// up by (indicator, type), not stored per substance.
+const resultColour={
+  litmus:{acid:'#ef4444',base:'#3b82f6',neutral:'#8a63d2'},
+  turmeric:{acid:'#ffd94d',neutral:'#ffd94d',base:'#a0522d'},
+  cabbage:{acid:'#ff5270',neutral:'#a98bdb',base:'#55d99a'}
+};
+
+// `color` = what the substance itself looks like in the beaker, BEFORE any indicator
+// reacts with it (a real-world approximation, not a science result).
+const data={
+ lemon:{name:'🍋 Lemon Juice',type:'acid',ph:2,color:'#f2e04d',litmus:'Universal litmus paper turns red',turmeric:'Yellow',cabbage:'Pink / Red'},
+ soap:{name:'🧼 Soap Solution',type:'base',ph:10,color:'#eaf5fb',litmus:'Universal litmus paper turns blue',turmeric:'Reddish-brown',cabbage:'Blue / Green'},
+ water:{name:'💧 Water',type:'neutral',ph:7,color:'#8ce6ff',litmus:'Universal litmus paper stays the same colour',turmeric:'Yellow',cabbage:'Purple'},
+ vinegar:{name:'🍶 Vinegar',type:'acid',ph:3,color:'#eee7ae',litmus:'Universal litmus paper turns red',turmeric:'Yellow',cabbage:'Pink / Red'},
+ baking:{name:'🧂 Baking Soda Solution',type:'base',ph:8,color:'#dcecf5',litmus:'Universal litmus paper turns blue',turmeric:'Reddish-brown',cabbage:'Blue / Green'}
+};
+// Hidden "mystery liquid" for the challenge — a mild base, not revealed by name or colour.
+const mystery={type:'base',ph:8,color:'#c9d3d1',litmus:'Universal litmus paper turns blue',turmeric:'Reddish-brown',cabbage:'Blue / Green'};
+
+let current=null,tested=new Set();
+const $=id=>document.getElementById(id);
+const samples=$('samples');
+Object.entries(data).forEach(([key,v])=>{let b=document.createElement('button');b.dataset.key=key;b.innerHTML=`<span class="sample-icon">${v.name.split(' ')[0]}</span>${v.name.slice(v.name.indexOf(' ')+1)}`;b.onclick=()=>select(key);samples.appendChild(b)});
+
+// A "bench" bundles one beaker's elements and knows how to: fill with a substance's own
+// colour (pour + rise animation), preview an indicator being introduced (paper dips in /
+// liquid indicator drops in, but nothing reacts yet), and actually react when ADD is
+// pressed. Litmus is paper: only the paper's colour changes, the liquid never does.
+// Turmeric and the natural (cabbage) indicator are liquids: the whole beaker changes colour.
+function makeBench({liquid,pour,drop,strip,tip}){
+  let substanceColor=null, selected=null;
+
+  function reset(){
+    pour.classList.remove('animate');pour.classList.add('hidden');
+    drop.classList.remove('animate');drop.classList.add('hidden');
+    strip.classList.remove('dip');strip.classList.add('hidden');
+    tip.style.background='transparent';
+    selected=null;
+  }
+
+  function fill(colorHex){
+    substanceColor=colorHex;
+    reset();
+    pour.style.background=colorHex;
+    pour.classList.remove('hidden');
+    pour.classList.remove('animate');void pour.offsetWidth;pour.classList.add('animate');
+    liquid.style.background=colorHex+'99';
+    liquid.style.height='0%';
+    void liquid.offsetWidth;
+    requestAnimationFrame(()=>{liquid.style.height='65%'});
+    setTimeout(()=>pour.classList.add('hidden'),650);
+  }
+
+  function selectIndicator(ind){
+    selected=ind;
+    // Switching indicators (or re-picking one) always starts from the substance's own
+    // colour — any previous reaction shouldn't carry over into the new test.
+    if(substanceColor) liquid.style.background=substanceColor+'99';
+    if(ind==='litmus'){
+      drop.classList.add('hidden');
+      strip.classList.remove('hidden');
+      strip.classList.remove('dip');
+      tip.style.background=indicatorColour.litmus;
+      void strip.offsetWidth;
+      requestAnimationFrame(()=>strip.classList.add('dip'));
+    } else {
+      strip.classList.add('hidden');
+      drop.classList.remove('hidden');
+      drop.style.background=indicatorColour[ind];
+      drop.classList.remove('animate');void drop.offsetWidth;drop.classList.add('animate');
+      setTimeout(()=>{drop.classList.add('hidden');drop.classList.remove('animate')},650);
+    }
+  }
+
+  function addIndicator(resultHex,onDone){
+    if(selected==='litmus'){
+      // Only the paper reacts — the liquid stays the substance's own colour.
+      tip.style.background=resultHex;
+      setTimeout(onDone,500);
+    } else {
+      drop.classList.remove('hidden');
+      drop.style.background=indicatorColour[selected];
+      drop.classList.remove('animate');void drop.offsetWidth;drop.classList.add('animate');
+      setTimeout(()=>{
+        liquid.style.background=resultHex+'cc';
+        drop.classList.add('hidden');
+        drop.classList.remove('animate');
+        onDone();
+      },650);
+    }
+  }
+
+  return {fill,selectIndicator,addIndicator,get indicator(){return selected}};
+}
+
+const mainBench=makeBench({liquid:$('liquid'),pour:$('pour'),drop:$('drop'),strip:$('strip'),tip:$('stripTip')});
+const challengeBench=makeBench({liquid:$('challengeLiquid'),pour:$('challengePour'),drop:$('challengeDrop'),strip:$('challengeStrip'),tip:$('challengeStripTip')});
+
+function select(key){
+  current=key;
+  document.querySelectorAll('.samples button').forEach(b=>b.classList.toggle('selected',b.dataset.key===key));
+  document.querySelectorAll('#mainIndicators button').forEach(b=>b.classList.remove('selected'));
+  $('selectedName').textContent=data[key].name;
+  $('result').innerHTML='Now choose an indicator.';
+  $('classification').classList.add('hidden');
+  mainBench.fill(data[key].color);
+  setPH(data[key].ph);
+}
+
+function runMainIndicator(ind){
+  if(!current)return;
+  let d=data[current];
+  const resultHex=resultColour[ind][d.type];
+  mainBench.addIndicator(resultHex,()=>{
+    const colourText=ind==='litmus'?d.litmus:d[ind];
+    const hint=ind==='litmus'?'The universal litmus paper changed colour — the liquid itself stays the same.':'The indicator has mixed into the liquid and changed its colour.';
+    $('result').innerHTML=`<span class="colorbox" style="background:${resultHex}"></span><span class="big">${colourText}</span><br><span class="hint">${hint}</span>`;
+    $('classification').classList.remove('hidden');
+    $('classification').innerHTML=`Classification: <b>${d.type==='acid'?'🍋 ACID':d.type==='base'?'🟦 BASE':'💧 NEUTRAL'}</b>`;
+    if(!tested.has(current)){tested.add(current);$('tested').textContent=tested.size}
+    if(tested.size===5){
+      $('challenge').classList.remove('hidden');
+      challengeBench.fill(mystery.color);
+      showCompleteBanner();
+    }
+  });
+}
+
+document.querySelectorAll('#mainIndicators button').forEach(b=>b.onclick=()=>{
+  if(!current){$('result').innerHTML='⚠️ Choose a substance first.';return}
+  const ind=b.dataset.ind;
+  document.querySelectorAll('#mainIndicators button').forEach(x=>x.classList.toggle('selected',x===b));
+  $('classification').classList.add('hidden');
+  mainBench.selectIndicator(ind);
+  $('result').innerHTML=`Testing with <b>${b.textContent}</b>…`;
+  // Litmus paper needs to finish dipping into the liquid (the .8s CSS transition)
+  // before it reacts; liquid indicators react as soon as the drop lands.
+  setTimeout(()=>runMainIndicator(ind),ind==='litmus'?800:0);
+});
+
+function setPH(ph){$('marker').style.left=(ph/14*100)+'%'}
+
+function showCompleteBanner(){
+  $('completeBanner').classList.remove('hidden');
+  $('completeBanner').innerHTML='<div class="complete">🏆 Indicator Lab Complete!<br><span style="font-weight:normal;font-size:14px">You tested all 5 samples. Now try the Mystery Liquid challenge above!</span></div>';
+}
+
+// ----- Mystery liquid challenge -----
+let mysteryTested=new Set(), mysteryScore=0, answeredThisRound=false;
+
+function runChallengeIndicator(ind){
+  const colourText=ind==='litmus'?mystery.litmus:mystery[ind];
+  const mysteryHex=resultColour[ind][mystery.type];
+  challengeBench.addIndicator(mysteryHex,()=>{
+    $('challengeResult').classList.remove('hidden');
+    $('challengeResult').innerHTML=`<span class="colorbox" style="background:${mysteryHex}"></span><span class="big">${colourText}</span>`;
+    $('challengeAnswers').classList.remove('hidden');
+    $('challengeFeedback').textContent='';
+    $('challengeFeedback').className='feedback';
+  });
+}
+
+document.querySelectorAll('#challengeIndicators button').forEach(b=>b.onclick=()=>{
+  const ind=b.dataset.ind;
+  document.querySelectorAll('#challengeIndicators button').forEach(x=>x.classList.toggle('selected',x===b));
+  $('challengeResult').classList.add('hidden');
+  $('challengeAnswers').classList.add('hidden');
+  $('challengeFeedback').textContent='';
+  $('challengeFeedback').className='feedback';
+  answeredThisRound=false;
+  challengeBench.selectIndicator(ind);
+  setTimeout(()=>runChallengeIndicator(ind),ind==='litmus'?800:0);
+});
+
+$('challengeAnswers').addEventListener('click',e=>{
+  if(!e.target.dataset.answer||!challengeBench.indicator)return;
+  // Only the first answer per round counts. Without this, a student could pick a wrong
+  // answer (locking in a wrong score) and then immediately click the right one and see
+  // "Correct!" — a message that contradicts their recorded score. Require re-selecting an
+  // indicator (which re-triggers the reaction) to get a genuine new attempt.
+  if(answeredThisRound)return;
+  answeredThisRound=true;
+  const ind=challengeBench.indicator;
+  const correctAns=e.target.dataset.answer===mystery.type;
+  if(!mysteryTested.has(ind)){
+    mysteryTested.add(ind);
+    if(correctAns) mysteryScore++;
+    $('challengeProgress').textContent=`Classification attempts: ${mysteryTested.size} / 3`;
+    $('correct').textContent=`${mysteryScore} / ${mysteryTested.size}`;
+  }
+  if(correctAns){
+    $('challengeFeedback').className='feedback correct';
+    $('challengeFeedback').textContent='🎉 Congrats! You got it right!';
+  } else {
+    const hintMap={litmus:'whether the universal litmus paper turned red or blue',turmeric:'the turmeric colour (yellow vs reddish-brown)',cabbage:'the natural indicator colour (pink/red, purple, or blue/green)'};
+    $('challengeFeedback').className='feedback wrong';
+    $('challengeFeedback').innerHTML=`❌ Try Again! Hint: look carefully at ${hintMap[ind]}.`;
+  }
+  if(mysteryTested.size===3){
+    $('challengeProgress').innerHTML+='<br>🎉 You tested the mystery liquid with every indicator!';
+  }
+});
+
+$('reset').onclick=()=>location.reload();
+</script>
+</body></html>
