@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Reaction Detector | COROX LAB</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#071525;color:#eef8ff;min-height:100vh} .app{max-width:1050px;margin:auto;padding:18px}.top{text-align:center}.top h1{margin:5px 0;color:#67e8f9}.top p{color:#b8cfe0}.stats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin:14px 0}.pill{background:#10263b;border:1px solid #21415b;border-radius:20px;padding:9px 15px}.card{background:#0d2032;border:1px solid #24435b;border-radius:18px;padding:18px;margin:14px 0}.choices{display:grid;grid-template-columns:1fr 1fr;gap:14px}.selectbox{background:#10283d;border:1px solid #2d536e;border-radius:15px;padding:14px}.selectbox h3{margin:0 0 10px}.substances{display:flex;flex-wrap:wrap;gap:8px}.substances button,.testbtn{border:1px solid #42627a;background:#152f45;color:#fff;padding:11px 13px;border-radius:11px;cursor:pointer;font-weight:bold}.substances button:hover,.testbtn:hover{background:#1d405b}.substances button.active{outline:2px solid #67e8f9;background:#17445a}.mix{text-align:center;margin:16px}.mix button,.answer button,.next,.reset{border:0;border-radius:13px;padding:14px 24px;font-size:16px;font-weight:bold;cursor:pointer}.mix button{background:#67e8f9;color:#062033}.mix button:disabled{opacity:.5;cursor:not-allowed}.answer{display:none;text-align:center}.answer button{margin:5px;min-width:180px}.answer button:disabled{opacity:.4;cursor:not-allowed}.yes{background:#34d399;color:#052217}.no{background:#60a5fa;color:#071b30}.visual{min-height:250px;display:flex;justify-content:center;align-items:center;gap:45px;position:relative;overflow:hidden;flex-wrap:wrap}.beakerWrap{text-align:center}.beaker{width:180px;height:180px;border:4px solid #9ed7ed;border-top:0;border-radius:0 0 28px 28px;position:relative;background:rgba(72,180,220,.12);overflow:hidden}.liquid{position:absolute;left:0;right:0;bottom:0;height:65%;background:rgba(86,210,239,.3);transition:.6s}.bubble{position:absolute;width:10px;height:10px;border:2px solid #fff;border-radius:50%;bottom:15px;animation:bubble 1.8s infinite ease-in}.b1{left:35%}.b2{left:58%;animation-delay:.5s}.b3{left:72%;animation-delay:.9s}@keyframes bubble{to{transform:translateY(-145px);opacity:0}}.thermoWrap{text-align:center}.thermo{width:35px;height:150px;border:3px solid #bcd8e8;border-radius:20px;position:relative;margin:0 auto}.thermo:after{content:'';position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);width:50px;height:50px;background:#ef4444;border-radius:50%;z-index:-1}.mercury{position:absolute;bottom:8px;left:9px;right:9px;height:35%;background:#ef4444;border-radius:12px;transition:.5s}.tempText{margin-top:22px;font-size:13px;color:#bcd3e2;font-weight:bold}.signs{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:14px}.sign{padding:9px 12px;border-radius:12px;background:#102b3e;color:#a9c5d8}.sign.on{background:#173c35;color:#7ff0bd}.flow{text-align:center;margin-top:14px;color:#dcecf7}.flowRow{font-weight:bold;margin:3px 0}.arrowRow{color:#8fd7ff;margin:6px 0;font-size:14px}.feedback{min-height:50px;text-align:center;font-weight:bold;padding:12px;border-radius:12px;margin-top:10px}.good{background:#123c30;color:#7ff0bd}.bad{background:#45212a;color:#ff9eaa}.next,.reset{background:#facc15;color:#241e00;margin:10px 5px}.learning{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.learn{background:#10283c;border-radius:12px;padding:12px}.learn strong{color:#67e8f9}footer{text-align:center;color:#819caf;padding:20px}.hidden{display:none}@media(max-width:700px){.choices{grid-template-columns:1fr}.learning{grid-template-columns:1fr}.visual{gap:25px}.beaker{width:145px;height:155px}.answer button{width:100%;margin:5px 0}.app{padding:12px}}
+</style></head>
+<body><main class="app">
+<header class="top"><h1>⚗️ Reaction Detector</h1><p>Combine substances → Observe → Detect the reaction</p></header>
+<div class="stats"><div class="pill" id="q">Experiment 1 / 5</div><div class="pill" id="score">Score: 0 / 0</div></div>
+<section class="card"><h2>🧪 Choose two substances</h2><div class="choices">
+<div class="selectbox"><h3>Substance A</h3><div class="substances" id="a"></div></div>
+<div class="selectbox"><h3>Substance B</h3><div class="substances" id="b"></div></div></div>
+<div class="mix"><button id="mix">➕ MIX</button></div></section>
+<section class="card"><h2 id="title">What happens when they mix?</h2>
+<div class="visual">
+  <div class="beakerWrap"><div class="beaker"><div class="liquid" id="liquid"></div><div class="bubble b1 hidden" id="bub1"></div><div class="bubble b2 hidden" id="bub2"></div><div class="bubble b3 hidden" id="bub3"></div></div></div>
+  <div class="thermoWrap"><div class="thermo"><div class="mercury" id="mercury"></div></div><div class="tempText" id="tempText">25°C</div></div>
+</div>
+<div class="flow">
+  <div class="flowRow" id="reactants">Reactants: Substance A + Substance B</div>
+  <div class="arrowRow">⬇️ Chemical Reaction ⬇️</div>
+  <div class="flowRow" id="products">Products: ?</div>
+</div>
+<div class="signs"><span class="sign" id="colour">🎨 Colour change</span><span class="sign" id="gas">🫧 Gas formation</span><span class="sign" id="temp">🌡️ Temperature change</span><span class="sign" id="new">🧪 New substance</span></div>
+</section>
+<section class="card"><div class="answer" id="answer"><h2>🔬 Did a chemical reaction happen?</h2><button class="yes" data-answer="yes">🟢 YES — REACTION</button><button class="no" data-answer="no">🔵 NO REACTION</button><div id="feedback"></div><button class="next hidden" id="next">Next Experiment →</button></div></section>
+<section class="card"><h2>🧠 Quick Learning</h2><div class="learning"><div class="learn"><strong>Chemical Reaction</strong><br>A process where substances change and new substances are formed.</div><div class="learn"><strong>Reactants</strong><br>The substances present before the reaction.</div><div class="learn"><strong>Products</strong><br>The new substances formed by a reaction.</div></div><p>🎨 Colour change &nbsp; 🫧 Gas formation &nbsp; 🌡️ Temperature change &nbsp; 🧪 Formation of a new substance</p></section>
+<section class="card hidden" id="final"></section><div style="text-align:center"><button class="reset" id="reset">🔄 Reset Simulation</button></div><footer>This simulation was created by COROX LAB</footer>
+</main>
+<script>
+const substances=['Vinegar','Baking Soda','Water','Salt Solution','Lemon Juice'];
+
+// Each entry: unordered pair -> outcome data.
+// signs: any of 'gas','colour','temp'. 'new' (new substance) is automatic whenever reaction === 'yes'.
+const experiments=[
+ {a:'Vinegar',b:'Baking Soda',reaction:'yes',signs:['gas','temp'],tempBefore:24,tempAfter:19,
+   explanation:'🫧 Lots of bubbles form (carbon dioxide gas) and the mixture feels cooler.',
+   product:'Carbon Dioxide Gas + Water + Sodium Acetate'},
+ {a:'Water',b:'Water',reaction:'no',signs:[],tempBefore:25,tempAfter:25,
+   explanation:'The two waters just combine. No new substance forms.',product:null},
+ {a:'Vinegar',b:'Water',reaction:'no',signs:[],tempBefore:25,tempAfter:25,
+   explanation:'The vinegar becomes more diluted, but no new substance forms.',product:null},
+ {a:'Lemon Juice',b:'Baking Soda',reaction:'yes',signs:['gas','colour'],tempBefore:24,tempAfter:24,
+   explanation:'🫧 Bubbles form and the mixture turns cloudy as a new substance forms.',
+   product:'Carbon Dioxide Gas + New Substances'},
+ {a:'Salt Solution',b:'Water',reaction:'no',signs:[],tempBefore:25,tempAfter:25,
+   explanation:'The salt solution becomes more diluted. No new substance is formed.',product:null},
+ {a:'Vinegar',b:'Salt Solution',reaction:'no',signs:[],tempBefore:25,tempAfter:25,
+   explanation:'The liquids mix together, but no new substance forms.',product:null},
+ {a:'Lemon Juice',b:'Water',reaction:'no',signs:[],tempBefore:25,tempAfter:25,
+   explanation:'The lemon juice becomes diluted. No chemical change occurs.',product:null}
+];
+// Safe fallback for any substance pair not listed above, so the app never breaks.
+const defaultExp={reaction:'no',signs:[],tempBefore:25,tempAfter:25,
+ explanation:'The substances mix, but there are no clear signs of a chemical reaction.',product:null};
+
+function findExp(A,B){
+  const hit=experiments.find(e=>(e.a===A&&e.b===B)||(e.a===B&&e.b===A));
+  return hit||defaultExp;
+}
+
+let round=0,score=0,completed=0,mixed=false,locked=false,currentEx=null;
+const $=id=>document.getElementById(id);
+
+function buttons(id){$(id).innerHTML=substances.map(s=>`<button>${s}</button>`).join('');$(id).querySelectorAll('button').forEach(x=>x.onclick=()=>{ $(id).querySelectorAll('button').forEach(y=>y.classList.remove('active'));x.classList.add('active'); });}
+buttons('a');buttons('b');
+
+function resetVisual(){
+  ['colour','gas','temp','new'].forEach(x=>$(x).classList.remove('on'));
+  ['bub1','bub2','bub3'].forEach(x=>$(x).classList.add('hidden'));
+  $('liquid').style.background='rgba(86,210,239,.3)';
+  $('mercury').style.height='35%';
+  $('tempText').textContent='25°C';
+  $('reactants').textContent='Reactants: Substance A + Substance B';
+  $('products').textContent='Products: ?';
+}
+
+function mix(){
+  const A=$('a').querySelector('.active')?.textContent, B=$('b').querySelector('.active')?.textContent;
+  if(!A||!B){alert('Choose one substance in A and B first.');return;}
+  resetVisual();
+  mixed=true;
+  currentEx=findExp(A,B);
+  const ex=currentEx;
+  $('reactants').textContent=`Reactants: ${A} + ${B}`;
+  setTimeout(()=>{
+    if(ex.signs.includes('gas')){
+      ['bub1','bub2','bub3'].forEach(x=>$(x).classList.remove('hidden'));
+      $('gas').classList.add('on');
+    }
+    if(ex.signs.includes('colour')){
+      $('liquid').style.background='rgba(250,204,21,.45)';
+      $('colour').classList.add('on');
+    }
+    if(ex.signs.includes('temp')){
+      $('temp').classList.add('on');
+      $('mercury').style.height=(ex.tempAfter>ex.tempBefore?'60%':'14%');
+    }
+    $('tempText').textContent=(ex.tempBefore===ex.tempAfter)?`${ex.tempBefore}°C (no change)`:`${ex.tempBefore}°C → ${ex.tempAfter}°C`;
+    if(ex.reaction==='yes'){
+      $('new').classList.add('on');
+      $('products').textContent='Products: '+(ex.product||'New substance(s) formed');
+      $('title').textContent='⚡ Something happened!';
+    } else {
+      $('products').textContent='Products: No new substance formed';
+      $('title').textContent='🔎 Observe carefully';
+    }
+    $('answer').style.display='block';
+    $('answer').querySelectorAll('button').forEach(b=>b.disabled=false);
+    $('feedback').innerHTML='';
+    $('feedback').className='feedback';
+    $('next').classList.add('hidden');
+  },500);
+}
+$('mix').onclick=mix;
+
+$('answer').addEventListener('click',e=>{
+  if(!e.target.dataset.answer||!mixed||!currentEx) return;
+  const ex=currentEx;
+  const userSaysYes=e.target.dataset.answer==='yes';
+  const correct=userSaysYes===(ex.reaction==='yes');
+
+  if(!locked){ locked=true; if(correct) score++; }
+
+  if(correct){
+    let signsList=ex.signs.map(s=>({gas:'🫧 Gas was formed',colour:'🎨 Colour changed',temp:'🌡️ Temperature changed'}[s])).filter(Boolean);
+    if(ex.reaction==='yes') signsList.push('🧪 A new substance formed');
+    $('feedback').className='feedback good';
+    $('feedback').innerHTML='🎉 <b>Correct!</b><br>'+ex.explanation+(signsList.length?('<br>Signs observed: '+signsList.join(', ')):'');
+    $('next').classList.remove('hidden');
+    $('answer').querySelectorAll('button').forEach(b=>b.disabled=true);
+  } else {
+    $('feedback').className='feedback bad';
+    $('feedback').innerHTML='❌ <b>Try Again!</b><br>Look carefully for bubbles, colour change, or temperature change.';
+  }
+  $('score').textContent=`Score: ${score} / ${completed}`;
+});
+
+$('next').onclick=()=>{
+  completed++;
+  round++;
+  $('score').textContent=`Score: ${score} / ${completed}`;
+  if(completed>=5){ finish(); return; }
+  newExp();
+};
+
+function finish(){
+  $('final').classList.remove('hidden');
+  $('final').innerHTML=`<h2>🏆 Reaction Detector Complete!</h2><p>Score: <b>${score} / ${completed}</b></p><p>Great work! You observed changes and used evidence to detect chemical reactions.</p>`;
+  $('answer').style.display='none';
+  $('mix').disabled=true;
+}
+
+function newExp(){
+  $('q').textContent=`Experiment ${Math.min(completed+1,5)} / 5`;
+  $('a').querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+  $('b').querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+  $('answer').style.display='none';
+  mixed=false;locked=false;currentEx=null;
+  resetVisual();
+  $('title').textContent='What happens when they mix?';
+}
+
+$('reset').onclick=()=>location.reload();
+</script></body></html>
