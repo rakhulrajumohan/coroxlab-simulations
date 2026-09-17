@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What's Inside Air? | COROX LAB</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#071426;color:#eaf7ff;overflow-x:hidden}.wrap{max-width:1050px;margin:auto;padding:18px}.header{text-align:center}.header h1{margin:5px 0;font-size:clamp(28px,5vw,44px)}.header p{color:#a9c9dc;margin:8px auto 18px;max-width:700px}.card{background:#0d2035;border:1px solid #214563;border-radius:20px;padding:18px;margin:14px 0;box-shadow:0 10px 30px #0004}.airbox{height:360px;border:3px solid #5bd8ff;border-radius:24px;position:relative;overflow:hidden;background:radial-gradient(circle at 50% 45%,#123c5b,#071a2d);box-shadow:inset 0 0 35px #49d9ff33}.airbox:before{content:'AIR';position:absolute;top:15px;left:0;right:0;text-align:center;font-size:25px;font-weight:800;letter-spacing:4px;color:#8de8ff}.particle{position:absolute;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:bold;color:#00131e;box-shadow:0 0 12px currentColor;animation:float 5s ease-in-out infinite alternate}.n{background:#43a5ff;color:#43a5ff}.o{background:#55e58b;color:#55e58b}.c{background:#222;color:#ddd}.w{background:#9ceaff;color:#9ceaff}.particle span{color:#00131e;text-shadow:none}.c span{color:white}.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.btn{border:0;border-radius:13px;padding:13px 10px;background:#17334e;color:white;font-weight:800;cursor:pointer;transition:.2s;font-size:15px}.btn:hover,.btn.active{transform:translateY(-2px);background:#1d5776;box-shadow:0 5px 18px #0005}.info{min-height:72px;background:#091a2b;border-radius:14px;padding:15px;margin-top:12px;border-left:4px solid #5bd8ff}.composition{display:grid;grid-template-columns:3fr 1fr 1fr;gap:5px;height:32px;border-radius:12px;overflow:hidden;margin:14px 0}.bar{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold}.nit{background:#277fc5}.oxy{background:#3fae70}.other{background:#756cbb}.legend{display:flex;gap:18px;flex-wrap:wrap;color:#b9d6e5;font-size:13px}.activity-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.activity{min-height:170px;background:#091a2b;border-radius:16px;padding:16px;text-align:center}.emoji{font-size:50px}.pollution{display:flex;gap:10px;flex-wrap:wrap}.pollution .btn{flex:1;min-width:130px}.polluted .airbox{background:radial-gradient(circle,#27313b,#10151b)}.smoke{position:absolute;font-size:38px;animation:smoke 3s infinite ease-in-out}.quiz button{width:100%;margin:5px 0}.score{font-weight:bold;color:#7fffb0}.reset{background:#8a3344}.particle.dim{opacity:.15}.particle.highlight{width:26px;height:26px;border:3px solid #fff;opacity:1;box-shadow:0 0 25px currentColor,0 0 45px currentColor;z-index:3}.airbox.mini{height:150px;margin-bottom:12px}.airbox.mini:before{content:'';display:none}.pollutant{font-size:8px}.p-co{background:#ff9142;color:#ff9142}.p-so2{background:#ffe066;color:#ffe066}.p-no2{background:#ff5c5c;color:#ff5c5c}.p-pm{background:#6b6b6b;color:#6b6b6b}.pollutant span{color:#1a0d00;text-shadow:none}.p-pm span{color:#fff}.cloud-scene{position:relative;height:90px;overflow:hidden;margin-bottom:8px;background:#091a2b;border-radius:14px}.cloud-scene .drop{position:absolute;left:12%;bottom:6px;font-size:22px;animation:rise 4s ease-in-out infinite}.cloud-scene .vapor{position:absolute;left:12%;bottom:6px;font-size:22px;opacity:0;animation:evap 4s ease-in-out infinite}.cloud-scene .cloud{position:absolute;font-size:30px;animation:drift 11s linear infinite}.cloud-scene .c2{top:14px;font-size:22px;animation-delay:-5.5s}.cloud-scene .c1{top:34px}.footer{text-align:center;color:#8caabd;padding:20px}.pill{display:inline-block;padding:6px 10px;border-radius:20px;background:#122e48;color:#86ddff;font-size:12px;font-weight:bold}.challenge{font-size:18px;font-weight:bold}.result{font-weight:800;margin-top:8px}.good{color:#75f2a4}.bad{color:#ff7d88}@keyframes float{from{transform:translate(0,0)}to{transform:translate(35px,-25px)}}@keyframes smoke{0%,100%{transform:translateY(20px);opacity:.4}50%{transform:translateY(-25px);opacity:1}}@keyframes rise{0%,100%{bottom:6px;opacity:1}40%{bottom:60px;opacity:1}45%{opacity:0}}@keyframes evap{0%,40%{opacity:0;bottom:6px;transform:scale(1)}45%{opacity:1;bottom:60px;transform:scale(1)}70%{opacity:1;bottom:60px;transform:scale(1.5)}100%{opacity:0;bottom:60px;transform:scale(1.5)}}@keyframes drift{0%{left:-15%}100%{left:105%}}
+@media(max-width:700px){.controls{grid-template-columns:1fr 1fr}.activity-grid{grid-template-columns:1fr}.airbox{height:310px}.wrap{padding:12px}.card{padding:14px}.header h1{font-size:30px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="header"><span class="pill">GRADE 6 SCIENCE</span><h1>🌬️ What's Inside Air?</h1><p>Explore the gases in air and discover why each one is important.</p></header>
+
+<section class="card">
+  <div class="airbox" id="airbox"></div>
+  <div class="controls">
+    <button class="btn" data-gas="nitrogen">🔵 Nitrogen</button>
+    <button class="btn" data-gas="oxygen">🟢 Oxygen</button>
+    <button class="btn" data-gas="carbon">⚫ Carbon Dioxide</button>
+    <button class="btn" data-gas="water">💧 Water Vapour</button>
+  </div>
+  <div class="info" id="gasInfo">Air is not a single substance. It is a mixture of different gases.</div>
+</section>
+
+<section class="card">
+<h2>🥧 Simple Air Composition</h2>
+<div class="composition"><div class="bar nit">Nitrogen — Most</div><div class="bar oxy">Oxygen — About 1/5</div><div class="bar other">Other gases</div></div>
+<div class="legend">🔵 Nitrogen &nbsp; 🟢 Oxygen &nbsp; ⚫ Carbon dioxide + 💧 water vapour are part of the smaller/variable portion.</div>
+</section>
+
+<section class="card">
+<h2>🫁 Why is Oxygen Important?</h2>
+<div class="activity-grid">
+<div class="activity"><div class="emoji" id="person">🫁</div><b>Breathing</b><p id="breath">Oxygen is important for respiration.</p></div>
+<div class="activity"><div class="emoji" id="candle">🕯️</div><b>Burning</b><p id="burn">Oxygen supports burning.</p></div>
+</div>
+</section>
+
+<section class="card">
+<h2>🌱 Carbon Dioxide</h2><div class="activity"><div class="emoji">🌱 + ⚫</div><p><b>Plant + Carbon Dioxide → Food</b></p><p>Plants use carbon dioxide during photosynthesis to make food.</p></div>
+</section>
+
+<section class="card">
+<h2>💧 Water Vapour</h2><div class="activity">
+<div class="cloud-scene"><span class="drop">💧</span><span class="vapor">🌫️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span></div>
+<p>Air can contain water vapour. Its amount changes depending on conditions.</p></div>
+</section>
+
+<section class="card" id="pollutionCard">
+<h2>🏭 Air Pollution</h2><p>Compare clean air with polluted air.</p>
+<div class="airbox mini" id="pollutionBox"></div>
+<div class="pollution"><button class="btn active" id="cleanBtn">🌿 Clean Air</button><button class="btn" id="pollutedBtn">🏭 Polluted Air</button></div>
+<div class="info" id="pollutionInfo">Mostly normal gas particles are shown.</div>
+</section>
+
+<section class="card quiz">
+<h2>🎯 Mini Challenge</h2><div class="challenge" id="qText">Which gas is important for breathing?</div><div id="answers"></div><div class="score" id="quizScore">Correct: 0 / 3</div>
+<button class="btn reset" id="reset">🔄 Reset Simulation</button></section>
+
+<section class="card"><h2>🧠 Quick Learning</h2><p><b>Air is a mixture of gases.</b></p><p>🔵 Nitrogen → largest part of air</p><p>🟢 Oxygen → important for breathing</p><p>⚫ Carbon dioxide → used by plants to make food</p><p>💧 Water vapour → gaseous water present in air</p><p>🏭 Air pollution → harmful substances added to air</p></section>
+<div class="footer">This simulation was created by <b>COROX LAB</b></div>
+</div>
+<script>
+const air=document.getElementById('airbox');
+const types=['n','n','n','n','n','o','o','c','w','n','n','o','n','o','n','n','c','w','n','o','n','n','o','n'];
+function makeParticles(){air.innerHTML='<div style="position:absolute;top:15px;left:0;right:0;text-align:center;font-size:25px;font-weight:800;letter-spacing:4px;color:#8de8ff">AIR</div>';types.forEach((t,i)=>{const p=document.createElement('div');p.className='particle '+t;p.style.left=(8+(i*37)%86)+'%';p.style.top=(16+(i*61)%70)+'%';p.style.animationDelay=(-i*.32)+'s';p.innerHTML='<span>'+({n:'N',o:'O',c:'CO₂',w:'H₂O'}[t])+'</span>';air.appendChild(p)})}
+makeParticles();
+const pbox=document.getElementById('pollutionBox');
+const miniTypes=['n','n','o','n','c','n','o','w','n','o'];
+function makeMiniParticles(){pbox.innerHTML='<div style="position:absolute;top:8px;left:0;right:0;text-align:center;font-size:13px;font-weight:800;letter-spacing:2px;color:#8de8ff">AIR SAMPLE</div>';miniTypes.forEach((t,i)=>{const p=document.createElement('div');p.className='particle '+t;p.style.left=(10+(i*29)%80)+'%';p.style.top=(34+(i*53)%50)+'%';p.style.animationDelay=(-i*.3)+'s';p.innerHTML='<span>'+({n:'N',o:'O',c:'CO₂',w:'H₂O'}[t])+'</span>';pbox.appendChild(p)})}
+makeMiniParticles();
+const gasInfo={nitrogen:'🔵 Nitrogen: Nitrogen makes up most of the air.',oxygen:'🟢 Oxygen: Oxygen is important for breathing and helps support burning.',carbon:'⚫ Carbon Dioxide: Plants use carbon dioxide to make food.',water:'💧 Water Vapour: Water vapour is water in gaseous form and is present in varying amounts in air.'};
+const gasType={nitrogen:'n',oxygen:'o',carbon:'c',water:'w'};
+document.querySelectorAll('[data-gas]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-gas]').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('gasInfo').textContent=gasInfo[b.dataset.gas];const t=gasType[b.dataset.gas];document.querySelectorAll('#airbox .particle').forEach(p=>{if(p.classList.contains(t)){p.classList.add('highlight');p.classList.remove('dim')}else{p.classList.add('dim');p.classList.remove('highlight')}});if(b.dataset.gas==='oxygen'){document.getElementById('person').textContent='🫁✨';document.getElementById('candle').textContent='🕯️🔥'}else{document.getElementById('person').textContent='🫁';document.getElementById('candle').textContent='🕯️'}});
+const clean=document.getElementById('cleanBtn'),poll=document.getElementById('pollutedBtn'),pc=document.getElementById('pollutionCard');clean.onclick=()=>{pc.classList.remove('polluted');clean.classList.add('active');poll.classList.remove('active');document.getElementById('pollutionInfo').textContent='Mostly normal gas particles are shown.';pbox.querySelectorAll('.pollutant').forEach(x=>x.remove())};
+const pollutants=[{c:'p-co',l:'CO',left:14,top:14},{c:'p-so2',l:'SO₂',left:62,top:12},{c:'p-no2',l:'NO₂',left:40,top:18},{c:'p-pm',l:'PM',left:82,top:22}];
+poll.onclick=()=>{pc.classList.add('polluted');poll.classList.add('active');clean.classList.remove('active');document.getElementById('pollutionInfo').textContent='Air pollution happens when harmful substances are added to the air — gases like CO, SO₂, NO₂ and soot (PM) from vehicles, factories and burning waste.';pbox.querySelectorAll('.pollutant').forEach(x=>x.remove());pollutants.forEach((pd,i)=>{const p=document.createElement('div');p.className='particle pollutant '+pd.c;p.style.left=pd.left+'%';p.style.top=pd.top+'%';p.style.animationDelay=(-i*.4)+'s';p.innerHTML='<span>'+pd.l+'</span>';pbox.appendChild(p)})};
+const qs=[['Which gas is important for breathing?',['Nitrogen','Oxygen','Carbon dioxide'],1],['Which gas do plants use to make food?',['Nitrogen','Oxygen','Carbon dioxide'],2],['Is air a single gas?',['YES','NO'],1]];let qi=0,score=0;const qt=document.getElementById('qText'),ans=document.getElementById('answers');function renderQ(){qt.textContent=qs[qi][0];ans.innerHTML='';qs[qi][1].forEach((a,i)=>{const b=document.createElement('button');b.className='btn';b.textContent=a;b.onclick=()=>{if(i===qs[qi][2]){score++;document.getElementById('quizScore').textContent=`Correct: ${score} / 3`;b.classList.add('active')}else{b.textContent='❌ Try again';setTimeout(()=>b.textContent=a,800);return}setTimeout(()=>{qi++;if(qi<qs.length)renderQ();else{qt.textContent='🏆 Air Explorer!';ans.innerHTML='<p class="good">Excellent! You understand that air is a mixture of gases.</p>'}},700)};ans.appendChild(b)})}renderQ();
+document.getElementById('reset').onclick=()=>{qi=0;score=0;document.getElementById('quizScore').textContent='Correct: 0 / 3';renderQ();makeParticles();makeMiniParticles();clean.click();document.querySelectorAll('[data-gas]').forEach(x=>x.classList.remove('active'));document.getElementById('gasInfo').textContent='Air is not a single substance. It is a mixture of different gases.';document.getElementById('person').textContent='🫁';document.getElementById('candle').textContent='🕯️'};
+</script>
+</body></html>
