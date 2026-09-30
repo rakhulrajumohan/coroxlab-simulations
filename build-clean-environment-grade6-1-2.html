@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Build a Clean Environment - Grade 6</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#071522;color:#eef7fb;overflow-x:hidden}.wrap{max-width:1100px;margin:auto;padding:18px}.title{text-align:center}.title h1{margin:5px 0;font-size:clamp(25px,5vw,40px)}.title p{margin:6px;color:#a9c4d0}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:15px 0}.stat,.panel{background:#102838;border:1px solid #21475a;border-radius:16px;padding:12px}.stat b{display:block;font-size:18px}.bar{height:9px;background:#203b49;border-radius:20px;margin-top:8px;overflow:hidden}.fill{height:100%;width:100%;background:#48d597;transition:.5s}.scene{position:relative;height:380px;border-radius:20px;overflow:hidden;background:linear-gradient(#9bd9f0 0 54%,#79bd55 54% 100%);border:3px solid #23485a}.sun{position:absolute;right:7%;top:7%;font-size:45px}.cloud{position:absolute;font-size:35px;opacity:.8}.c1{left:12%;top:10%}.c2{left:40%;top:5%}.mount{position:absolute;bottom:44%;font-size:120px;opacity:.32}.m1{left:4%}.m2{right:10%}.house{position:absolute;bottom:26.2%;font-size:44px;z-index:1}.h1{left:16%}.h2{left:32%}.tree-mid{position:absolute;bottom:26.8%;left:25%;font-size:26px;opacity:.85;z-index:0}.factory{position:absolute;right:13%;bottom:26%;font-size:88px}
+.bird{position:absolute;font-size:20px;opacity:.85;animation:fly linear infinite;z-index:2}
+.bird .wing{display:inline-block;animation:flap .5s ease-in-out infinite alternate}
+.b1{top:10%;animation-duration:20s;animation-delay:0s}
+.b2{top:17%;animation-duration:26s;animation-delay:4s;font-size:16px}
+.b2 .wing{animation-duration:.42s}
+.b3{top:6%;animation-duration:16s;animation-delay:9s;font-size:15px}
+.b3 .wing{animation-duration:.36s}
+.b4{top:23%;animation-duration:30s;animation-delay:2s;font-size:14px}
+.b4 .wing{animation-duration:.58s}
+@keyframes fly{0%{left:-8%;transform:translateY(0)}25%{transform:translateY(-10px)}50%{transform:translateY(3px)}75%{transform:translateY(-6px)}100%{left:108%;transform:translateY(0)}}
+@keyframes flap{0%{transform:scaleX(-1) scaleY(1)}50%{transform:scaleX(-1) scaleY(.5)}100%{transform:scaleX(-1) scaleY(1)}}.road{position:absolute;left:0;right:0;bottom:10%;height:55px;background:#3b4850}.road:after{content:'—   —   —   —   —   —';position:absolute;left:0;right:0;text-align:center;top:17px;color:#f7d86a;font-size:22px;letter-spacing:8px}.river{position:absolute;left:0;right:0;bottom:0;height:27%;background:#55bde5;border-top:4px solid #2c93bc}.trees{position:absolute;bottom:26.8%;left:2%;font-size:30px;display:flex;gap:12px;opacity:.85;z-index:0}.cars{position:absolute;bottom:18%;left:50%;font-size:26px;transition:.4s}.smoke{position:absolute;right:19%;bottom:53%;font-size:30px;opacity:0;transition:.4s}.pollution{position:absolute;inset:0;background:#687078;opacity:0;pointer-events:none;transition:.5s}.controls{margin-top:14px}.choice-title{font-size:18px;font-weight:bold;margin-bottom:10px}.choices{display:flex;flex-wrap:wrap;gap:9px}.choices button,.action{border:0;border-radius:12px;padding:13px 15px;background:#183d50;color:#fff;font-weight:bold;cursor:pointer;transition:.2s}.choices button:hover,.action:hover{transform:translateY(-2px);background:#24566d}.choices button.good{outline:2px solid #48d597}.choices button.bad{outline:2px solid #ff7777}.feedback{min-height:45px;margin-top:10px;padding:11px;border-radius:12px;background:#0b202d;color:#cfe4ec}.challenge{display:none}.challenge.active{display:block}.progress{height:8px;background:#183442;border-radius:20px;overflow:hidden;margin:8px 0}.progress span{display:block;height:100%;width:0;background:#57d8ef;transition:.3s}.reference{margin-top:15px}.refgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.refgrid div{background:#0c2230;border-radius:10px;padding:9px}.final{text-align:center;display:none}.final.show{display:block}.reset{display:block;margin:18px auto 5px;background:#38a9c9}.small{font-size:13px;color:#a9c4d0}.score{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;margin-top:10px}.score div{background:#0c2230;border-radius:10px;padding:8px 6px}.score b{display:block;font-size:16px}@media(max-width:650px){.stats{grid-template-columns:repeat(2,1fr)}.score{grid-template-columns:repeat(2,1fr)}.scene{height:300px}.mount{font-size:90px}.factory{font-size:64px}.trees{font-size:28px}.house{font-size:34px}.bird{font-size:14px}.refgrid{grid-template-columns:1fr}.choices button{flex:1 1 45%}}
+</style></head>
+<body><div class="wrap">
+<div class="title"><div>🌍</div><h1>Build a Clean Environment</h1><p>MAKE A CHOICE → SEE THE ENVIRONMENT CHANGE → LEARN WHY</p></div>
+<div class="stats">
+<div class="stat">🌬️ Air: <b id="airText">Good</b><div class="bar"><div class="fill" id="airBar"></div></div></div>
+<div class="stat">💧 Water: <b id="waterText">Good</b><div class="bar"><div class="fill" id="waterBar"></div></div></div>
+<div class="stat">🌱 Soil: <b id="soilText">Good</b><div class="bar"><div class="fill" id="soilBar"></div></div></div>
+<div class="stat">🗑️ Waste: <b id="wasteText">Low</b><div class="bar"><div class="fill" id="wasteBar"></div></div></div>
+</div>
+<div class="scene" id="scene"><div class="sun">☀️</div><div class="cloud c1">☁️</div><div class="cloud c2">☁️</div><div class="mount m1">⛰️</div><div class="mount m2">⛰️</div><div class="bird b1"><span class="wing">🐦</span></div><div class="bird b2"><span class="wing">🐦</span></div><div class="bird b3"><span class="wing">🐦</span></div><div class="bird b4"><span class="wing">🐦</span></div><div class="trees">🌳 🌳 🌳</div><div class="house h1">🏠</div><div class="tree-mid">🌳</div><div class="house h2">🏠</div><div class="factory">🏭</div><div class="cars" id="cars">🚗 🚗</div><div class="smoke" id="smoke">💨 💨</div><div class="river"></div><div class="pollution" id="pollution"></div></div>
+<div class="panel controls"><div class="choice-title" id="choiceTitle">1️⃣ Transport — How should people travel?</div><div class="choices" id="choices"></div><div class="feedback" id="feedback">Choose an option to see what happens.</div></div>
+<div class="panel" id="scorePanel"><b>🌍 Environment Score</b><div class="score"><div>🌬️ Air<b id="airPct">100%</b></div><div>💧 Water<b id="waterPct">100%</b></div><div>🌱 Soil<b id="soilPct">100%</b></div><div>🗑️ Waste<b id="wastePct">0%</b></div></div></div>
+<div class="panel challenge" id="challenge"><b>🎯 Final Challenge</b><p id="challengeQ"></p><div class="progress"><span id="challengeBar"></span></div><div class="choices" id="challengeChoices"></div><div class="feedback" id="challengeFeedback"></div></div>
+<div class="panel reference"><b>🧠 Quick Learning</b><div class="refgrid"><div>🌬️ <b>Air pollution</b> — harmful substances make air dirty.</div><div>💧 <b>Water pollution</b> — harmful substances make water dirty.</div><div>🌱 <b>Soil pollution</b> — harmful substances damage soil.</div><div>🗑️ <b>Waste</b> — unwanted materials that we throw away.</div><div>♻️ <b>Recycling</b> — processing materials so they can be used again.</div><div>🧴 <b>Plastic</b> — useful, but excessive single-use plastic can create problems.</div><div>🌿 <b>Sustainable choices</b> — choices that reduce waste and environmental damage.</div></div></div>
+<div class="panel final" id="final"></div><button class="action reset" onclick="resetAll()">🔄 Reset Simulation</button>
+<p class="small" style="text-align:center">This simulation was created by COROX LAB</p>
+</div>
+<script>
+const TOTAL_STAGES=7; /* 3 steps + waste-sorting game + 3 steps */
+const state={air:100,water:100,soil:100,waste:100,step:0,score:0,challenge:0,binIndex:0};
+/* each opt: [label, dAir, dWater, dSoil, dWasteAdded, explanation] */
+const steps=[
+{title:'1️⃣ Transport — How should people travel?',opts:[['🚗 Use many cars',-18,0,0,10,'More cars create more exhaust, so air pollution increases.'],['🚌 Use public transport',8,0,0,-3,'Sharing transport can reduce the number of vehicles on the road.'],['🚲 Walk / Cycle',12,0,0,-5,'Walking and cycling create very little vehicle pollution.']]},
+{title:'2️⃣ Factory Waste — What should the factory do?',opts:[['🏭 Release waste into river',0,-25,-4,8,'Waste released into a river can increase water pollution.'],['♻️ Treat and reuse waste',4,15,2,-5,'Treating and reusing waste helps protect water and reduce waste.'],['🚰 Clean wastewater before releasing',3,12,1,-2,'Cleaning wastewater before release helps keep the river healthier.']]},
+{title:'3️⃣ Plastic Waste — Which choice is better?',opts:[['🛍️ Use many single-use plastic bags',-2,-2,-2,18,'Single-use plastics create more waste and can remain in the environment for a long time.'],['♻️ Reuse bags',3,2,1,-8,'Reusing a bag means fewer new bags and less waste.'],['👜 Use reusable cloth bags',5,3,2,-10,'Reusable bags can reduce the need for single-use plastic bags.']]},
+{title:'5️⃣ Soil Pollution — What should we do?',opts:[['🧪 Throw chemicals onto soil',-2,-5,-22,12,'Chemical dumping can damage soil and affect plant growth.'],['🌱 Use safer materials and proper disposal',2,3,14,-8,'Proper disposal helps protect soil and reduce pollution, so plants grow normally.']]},
+{title:'6️⃣ Recycling — What should you do with this bottle?',opts:[['🗑️ Throw anywhere',-3,-2,-2,12,'Litter adds waste to the environment.'],['🔥 Burn it',-8,-5,-2,10,'Burning waste can release harmful substances into the air.'],['♻️ Put it in the recycling bin',6,3,3,-10,'Correct! Recycling can allow some materials to be processed and used again.'],['🌊 Throw it into the river',-3,-15,-1,10,'Waste in rivers can increase water pollution.']]},
+{title:'7️⃣ Sustainable Materials — Which should you reuse?',opts:[['🧴 Single-use plastic container',-2,-1,-1,8,'Single-use items can create more waste.'],['🥣 Reusable metal / glass container',5,3,2,-8,'A reusable container can be used many times and help reduce waste.']]}
+];
+/* Choice 4: real item-to-bin matching, with genuine right/wrong feedback */
+const bins=[{key:'organic',label:'🍌 Organic'},{key:'paper',label:'📄 Paper'},{key:'plastic',label:'🥤 Plastic'},{key:'recyclable',label:'♻️ Recyclable'}];
+const binItems=[{item:'🍌 Banana peel',correct:'organic'},{item:'📦 Paper carton',correct:'paper'},{item:'🥤 Plastic bottle',correct:'plastic'},{item:'🍾 Glass bottle',correct:'recyclable'}];
+function clamp(n){return Math.max(0,Math.min(100,n))}
+function quality(n){return n>=80?'Good':n>=55?'Fair':'Poor'}
+function update(){
+airText.textContent=quality(state.air);waterText.textContent=quality(state.water);soilText.textContent=quality(state.soil);
+wasteText.textContent=state.waste>=70?'Low':state.waste>=45?'Medium':'High';
+airBar.style.width=state.air+'%';waterBar.style.width=state.water+'%';soilBar.style.width=state.soil+'%';wasteBar.style.width=(100-state.waste)+'%';
+airPct.textContent=state.air+'%';waterPct.textContent=state.water+'%';soilPct.textContent=state.soil+'%';wastePct.textContent=(100-state.waste)+'%';
+smoke.style.opacity=state.air<75?'0.8':'0';
+pollution.style.opacity=(state.air<50||state.soil<40)?'.18':0;
+}
+function renderStep(){
+if(state.step>=TOTAL_STAGES){startChallenge();return}
+if(state.step===3){startBinGame();return}
+const idx=state.step<3?state.step:state.step-1;
+const s=steps[idx];
+choiceTitle.textContent=s.title;choices.innerHTML='';
+s.opts.forEach((o,i)=>{let b=document.createElement('button');b.textContent=o[0];b.onclick=()=>choose(idx,i);choices.appendChild(b)});
+feedback.textContent='Choose an option to see what happens.';update()
+}
+function choose(idx,i){
+const o=steps[idx].opts[i];
+state.air=clamp(state.air+o[1]);state.water=clamp(state.water+o[2]);state.soil=clamp(state.soil+o[3]);state.waste=clamp(state.waste-o[4]);
+feedback.innerHTML='✅ <b>Choice applied!</b> '+o[5];
+state.step++;update();setTimeout(renderStep,850)
+}
+function startBinGame(){state.binIndex=0;renderBinItem()}
+function renderBinItem(){
+const b=binItems[state.binIndex];
+choiceTitle.textContent='4️⃣ Waste Management — Where should this go? '+b.item;
+choices.innerHTML='';
+bins.forEach(bin=>{let btn=document.createElement('button');btn.textContent=bin.label;btn.onclick=()=>pickBin(bin.key);choices.appendChild(btn)});
+feedback.textContent='Tap the correct bin for this item.'
+}
+function pickBin(key){
+const b=binItems[state.binIndex];
+if(key===b.correct){
+feedback.innerHTML='✅ <b>Correct!</b> That goes in the '+bins.find(x=>x.key===key).label.replace(/^\S+\s/,'')+' bin.';
+state.waste=clamp(state.waste+8);
+}else{
+feedback.innerHTML='❌ <b>Not quite.</b> That item actually belongs in the '+bins.find(x=>x.key===b.correct).label.replace(/^\S+\s/,'')+' bin — sorting it wrong can contaminate recycling, so waste goes up a little.';
+state.waste=clamp(state.waste-6);
+}
+update();
+state.binIndex++;
+if(state.binIndex>=binItems.length){setTimeout(()=>{state.step++;renderStep()},850)}
+else setTimeout(renderBinItem,850)
+}
+const cq=[
+['How should you travel to reduce air pollution?',['🚗 Many cars','🚌 Public transport','🚲 Walk / Cycle'],[1,2]],
+['What should a factory do with wastewater?',['🏭 Release it untreated','🚰 Clean it before release','🌊 Send it to the river'],[1]],
+['What should you do with a plastic bottle?',['🌊 Throw it in the river','♻️ Put it in recycling','🔥 Burn it'],[1]],
+['How should waste be handled?',['🗑️ Mix everything','♻️ Separate suitable waste','🌳 Leave it outside'],[1]],
+['Which material can help reduce waste when reused?',['🧴 Single-use container','🥣 Reusable container','🛍️ Single-use bag'],[1]]];
+function startChallenge(){challenge.classList.add('active');challengeQ.textContent=cq[0][0];challengeFeedback.textContent='';renderChallenge();document.querySelector('.controls').style.display='none'}
+function renderChallenge(){challengeBar.style.width=(state.challenge/5*100)+'%';challengeChoices.innerHTML='';cq[state.challenge][1].forEach((x,i)=>{let b=document.createElement('button');b.textContent=x;b.onclick=()=>challengePick(i);challengeChoices.appendChild(b)})}
+function challengePick(i){let correct=cq[state.challenge][2].includes(i);if(correct){state.score++;challengeFeedback.textContent='✅ Correct! Great environmental choice.';state.challenge++;if(state.challenge>=5){challengeBar.style.width='100%';setTimeout(showFinal,500);return}setTimeout(()=>{challengeQ.textContent=cq[state.challenge][0];challengeFeedback.textContent='';renderChallenge()},600)}else challengeFeedback.textContent='❌ Try again! Think about how the choice affects air, water, soil, or waste.'}
+function showFinal(){challenge.style.display='none';final.classList.add('show');let health=Math.round((state.air+state.water+state.soil+state.waste)/4);final.innerHTML=`<h2>🌍 Can You Clean the Environment?</h2><div style="font-size:28px">Environment Health: <b>${health}%</b></div><p>${health>=80?'🎉 Excellent! Your choices helped reduce pollution and waste.':'🌱 Try again! Think about how your choices affect air, water, soil, and waste.'}</p><p><b>Challenge Score: ${state.score}/5</b></p>`}
+function resetAll(){location.reload()}renderStep();
+</script></body></html>
