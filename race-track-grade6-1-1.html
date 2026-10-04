@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Race Track - Grade 6 | COROX LAB</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#071525;color:#eaf7ff;overflow-x:hidden}.wrap{max-width:1100px;margin:auto;padding:18px}.hero{text-align:center}.hero h1{margin:5px 0;color:#5ee7ff}.hero p{margin:5px;color:#a9c3d6}.panel{background:#10263a;border:1px solid #21465f;border-radius:18px;padding:18px;margin:14px 0}.track{position:relative;background:#29404c;border-radius:16px;padding:22px 18px;overflow:hidden}.lane{height:78px;border-bottom:3px dashed #9db2bc;position:relative}.lane:last-child{border:0}.start,.finish{position:absolute;top:0;bottom:0;width:5px;background:#fff;opacity:.8}.start{left:7%}.finish{right:5%}.finish:after{content:'FINISH';position:absolute;top:-22px;left:-20px;font-size:11px}.car{position:absolute;left:7%;top:50%;transform:translateY(-50%) scaleX(-1);font-size:34px;transition:left .05s linear;z-index:2}.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}.card{background:#0b1d2d;border-radius:14px;padding:14px}.card h3{margin:0 0 10px;color:#65eaff}.choices{display:flex;flex-wrap:wrap;gap:8px}.choices button,.controls button,.answer{border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer;background:#183b52;color:#fff}.choices button:hover,.controls button:hover,.answer:hover{background:#245a77}.selected{outline:2px solid #5ee7ff}.controls{text-align:center;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.primary{background:#09a8c8!important}.danger{background:#a64052!important}.formula{text-align:center;font-size:20px;color:#fff}.result{text-align:center;min-height:30px;font-weight:700}.success{color:#6dff9d}.error{color:#ff8d9c}.compare{display:grid;grid-template-columns:1fr 1fr;gap:12px}.everyday{display:flex;gap:10px;flex-wrap:wrap}.everyday button{display:flex;flex-direction:column;align-items:center;gap:6px;background:#102f44;border:1px solid #28617c;border-radius:12px;padding:10px 8px;cursor:pointer;min-width:78px}.everyday button .e-icon{font-size:28px}.everyday button .e-speed{font-size:11px;color:#a9c3d6;font-weight:700;line-height:1.3}.hint{color:#a9c3d6;font-size:13px}.score{font-size:18px;font-weight:bold}.challengeBox{background:#0b1d2d;border-radius:14px;padding:16px}.answers{display:flex;flex-wrap:wrap;gap:10px}.feedback{margin-top:10px;min-height:24px;font-weight:bold}footer{text-align:center;color:#9bb5c7;padding:20px;font-size:13px}@media(max-width:700px){.stats,.compare{grid-template-columns:1fr}.wrap{padding:10px}.lane{height:68px}.car{font-size:29px}.panel{padding:13px}.choices button,.controls button,.answer{width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hero"><h1>🏁 Race Track</h1><p>Change distance and time → watch the race → compare speeds</p></div>
+
+<div class="panel">
+<h2>🏎️ Main Race Track</h2>
+<div class="track" id="track">
+<div class="start"></div><div class="finish"></div>
+<div class="lane"><div class="car" id="carA">🏎️</div></div>
+<div class="lane"><div class="car b" id="carB">🏎️</div></div>
+</div>
+<div class="stats" style="margin-top:14px">
+<div class="card"><h3>🏎️ Car A</h3><b>Distance</b><div class="choices" id="distA"></div><br><b>Time</b><div class="choices" id="timeA"></div><p>Speed: <strong id="speedA">10</strong> m/s</p></div>
+<div class="card"><h3>🏎️ Car B</h3><b>Distance</b><div class="choices" id="distB"></div><br><b>Time</b><div class="choices" id="timeB"></div><p>Speed: <strong id="speedB">10</strong> m/s</p></div>
+</div>
+<div class="formula">🏃 <b>Speed = Distance ÷ Time</b></div>
+<div class="controls"><button class="primary" onclick="startRace()">▶️ Start Race</button><button onclick="pauseRace()">⏸️ Pause</button><button class="danger" onclick="resetRace()">🔄 Reset</button></div>
+<div class="result" id="raceResult"></div>
+</div>
+
+<div class="panel"><h2>⚡ Compare Two Speeds</h2><div class="compare"><div class="card">Car A: <b>8 m/s</b></div><div class="card">Car B: <b>12 m/s</b></div></div><p>Which car is faster?</p><div class="answers"><button class="answer" onclick="compareAnswer('A')">Car A</button><button class="answer" onclick="compareAnswer('B')">Car B</button></div><div id="compareResult" class="feedback"></div></div>
+
+<div class="panel"><h2>🚶 Everyday Speed</h2><p>Click an object to learn. Typical speed shown under each — compare them!</p><div class="everyday"><button onclick="everyday('🚶','Walking',1.4,5,'usually slower than cycling')"><span class="e-icon">🚶</span><span class="e-speed">~1.4 m/s<br>(5 km/h)</span></button><button onclick="everyday('🚲','Cycling',5,18,'usually slower than a car')"><span class="e-icon">🚲</span><span class="e-speed">~5 m/s<br>(18 km/h)</span></button><button onclick="everyday('🚌','Bus',11,40,'can travel faster than walking, depending on conditions')"><span class="e-icon">🚌</span><span class="e-speed">~11 m/s<br>(40 km/h)</span></button><button onclick="everyday('🚗','Car',14,50,'often travels faster than walking or cycling')"><span class="e-icon">🚗</span><span class="e-speed">~14 m/s<br>(50 km/h)</span></button><button onclick="everyday('✈️','Aeroplane',250,900,'travels very fast over long distances')"><span class="e-icon">✈️</span><span class="e-speed">~250 m/s<br>(900 km/h)</span></button></div><p id="everydayResult" class="hint"></p></div>
+
+<div class="panel"><h2>🎯 Race Challenge</h2><div class="challengeBox"><p><b>Which car has the greater speed?</b></p><p>🏎️ Car A: 120 m in 20 s = <b>6 m/s</b></p><p>🏎️ Car B: 100 m in 10 s = <b>10 m/s</b></p><div class="answers"><button class="answer" onclick="challenge('A')">Car A</button><button class="answer" onclick="challenge('B')">Car B</button></div><div id="challengeResult" class="feedback"></div></div></div>
+
+<div class="panel"><h2>🧠 Quick Learning</h2><p>📏 <b>Distance</b> — how far an object travels.</p><p>⏱️ <b>Time</b> — how long the motion takes.</p><p>🏃 <b>Speed</b> — how fast an object moves.</p><p class="formula">Speed = Distance ÷ Time</p><p>🐢 Smaller speed → slower motion</p><p>⚡ Greater speed → faster motion</p><p>Example: 100 m ÷ 10 s = <b>10 m/s</b></p></div>
+
+<div class="panel"><div class="score">🏆 Challenge Score: <span id="score">0</span>/1</div></div>
+<footer>This simulation was created by COROX LAB</footer>
+</div>
+<script>
+const distances=[50,100,150,200], times=[5,10,20,25];
+const RACE_DIST=Math.max(...distances);
+const cars={A:{d:100,t:10},B:{d:100,t:10}};let running=false,raf=null,startTime=0;let score=0;
+function makeChoices(id,type,car){const el=document.getElementById(id);el.innerHTML='';(type==='d'?distances:times).forEach(v=>{let b=document.createElement('button');b.textContent=v+(type==='d'?' m':' s');if(cars[car][type==='d'?'d':'t']===v)b.className='selected';b.onclick=()=>{if(running)return;cars[car][type==='d'?'d':'t']=v;update();};el.appendChild(b)});}
+function update(){makeChoices('distA','d','A');makeChoices('timeA','t','A');makeChoices('distB','d','B');makeChoices('timeB','t','B');document.getElementById('speedA').textContent=(cars.A.d/cars.A.t).toFixed(1).replace('.0','');document.getElementById('speedB').textContent=(cars.B.d/cars.B.t).toFixed(1).replace('.0','');}
+function startRace(){if(running)return;running=true;document.getElementById('raceResult').textContent='';document.getElementById('carA').style.left='7%';document.getElementById('carB').style.left='7%';startTime=performance.now();let sa=cars.A.d/cars.A.t,sb=cars.B.d/cars.B.t;let finishA=RACE_DIST/sa,finishB=RACE_DIST/sb;let maxT=Math.max(finishA,finishB);function step(now){if(!running)return;let elapsed=Math.min((now-startTime)/1000,maxT);let pa=Math.min(1,elapsed/finishA),pb=Math.min(1,elapsed/finishB);document.getElementById('carA').style.left=(7+pa*86)+'%';document.getElementById('carB').style.left=(7+pb*86)+'%';if(elapsed<maxT){raf=requestAnimationFrame(step)}else{running=false;document.getElementById('raceResult').innerHTML=sa===sb?'🤝 Same speed — both cars reach the finish together!':'🏆 '+(sa>sb?'Car A':'Car B')+' is faster and wins the race!';}}raf=requestAnimationFrame(step)}
+function pauseRace(){running=false;if(raf)cancelAnimationFrame(raf);}
+function resetRace(){pauseRace();document.getElementById('carA').style.left='7%';document.getElementById('carB').style.left='7%';document.getElementById('raceResult').textContent='';update();}
+function compareAnswer(x){let r=document.getElementById('compareResult');r.className='feedback '+(x==='B'?'success':'error');r.textContent=x==='B'?'✅ Correct! 12 m/s is greater than 8 m/s, so Car B is faster.':'❌ Try again! Compare 8 m/s and 12 m/s.';}
+function everyday(icon,name,ms,kmh,text){document.getElementById('everydayResult').innerHTML=icon+' <b>'+name+'</b> → about <b>'+ms+' m/s</b> (~'+kmh+' km/h). This is '+text+'. Actual speeds can vary with conditions.';}
+function challenge(x){let r=document.getElementById('challengeResult');if(x==='B'){r.className='feedback success';r.textContent='✅ Correct! Car B has 10 m/s, which is greater than 6 m/s.';if(score===0){score=1;document.getElementById('score').textContent=score;}}else{r.className='feedback error';r.textContent='❌ Try again! Calculate distance ÷ time for both cars.';}}
+update();
+</script>
+</body>
+</html>
